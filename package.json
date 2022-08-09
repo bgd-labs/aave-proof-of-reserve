@@ -1,20 +1,20 @@
 {
-  "name": "bgd-forge-template",
+  "name": "aave-proof-of-reserves",
   "version": "1.0.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bgd-labs/bgd-forge-template.git"
+    "url": "git+https://github.com/bgd-labs/aave-proof-of-reserve.git"
   },
   "keywords": [],
   "author": "BGD labs",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bgd-labs/bgd-forge-template/issues"
+    "url": "https://github.com/bgd-labs/aave-proof-of-reserve/issues"
   },
-  "homepage": "https://github.com/bgd-labs/bgd-forge-template#readme",
+  "homepage": "https://github.com/bgd-labs/aave-proof-of-reserve#readme",
   "devDependencies": {
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19"
