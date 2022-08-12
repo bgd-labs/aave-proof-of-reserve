@@ -2,20 +2,19 @@
 pragma solidity ^0.8.0;
 
 interface IAaveProofOfReserve {
-  enum PoolVersion {
-    v2,
-    v3
-  }
+  event EmergencyActionExecuted(address indexed reserve, address indexed user);
 
-  event EmergencyActionExecuted(address indexed asset, address indexed user);
+  function addReserve(address reserve, address proofOfReserveFeed) external;
 
-  function addReserve(address asset, address reserveFeed) external;
+  function removeReserve(address reserve) external;
 
-  function removeReserve(address asset) external;
-
-  function checkMarket(address pool, PoolVersion version)
+  function anyAssetReserveIsNotProofed(address poolAddress)
     external
+    view
     returns (bool);
 
-  function doSomething(address pool, PoolVersion version) external;
+  function executeEmergencyAction(
+    address poolAddress,
+    address poolConfiguratorAddress
+  ) external;
 }
