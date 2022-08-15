@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
+import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
+import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IAaveProofOfReserve} from '../interfaces/IAaveProofOfReserve.sol';
-import {AggregatorV3Interface} from 'lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
-import {Ownable} from 'lib/solidity-utils/src/contracts/oz-common/Ownable.sol';
-import {IERC20} from 'lib/solidity-utils/src/contracts/oz-common/interfaces/IERC20.sol';
-import {IPool} from 'lib/aave-v3-core/contracts/interfaces/IPool.sol';
+import {IPool} from '../dependencies/IPool.sol';
+import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
+import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
-contract ProofOfReserveKeeper is IAaveProofOfReserve, Ownable {
+contract ProofOfReserve is IAaveProofOfReserve, Ownable {
   mapping(address => address) public proofOfReserveList;
 
   function addReserve(address reserve, address proofOfReserveFeed)
@@ -21,39 +23,87 @@ contract ProofOfReserveKeeper is IAaveProofOfReserve, Ownable {
     proofOfReserveList[reserve] = address(0);
   }
 
-  function anyReserveIsNotProofed(address poolAddress)
+  function areAllReservesBacked(address poolAddress)
     public
     view
     returns (bool)
   {
     IPool pool = IPool(poolAddress);
-    address[] reservesList = pool.getReservesList();
+    address[] memory reservesList = pool.getReservesList();
 
-    return anyReseveFromListIsNotProofed(reservesList);
+    return areAllReservesBacked(reservesList);
   }
 
-  function anyReseveFromListIsNotProofed(address[] reservesList) private {
+  function areAllReservesBacked(address[] memory reservesList)
+    internal
+    view
+    returns (bool)
+  {
     for (uint256 i = 0; i < reservesList.length; i++) {
       address assetAddress = reservesList[i];
       address feedAddress = proofOfReserveList[assetAddress];
 
-      if (feed != address(0)) {
+      if (feedAddress != address(0)) {
         AggregatorV3Interface aggregator = AggregatorV3Interface(feedAddress);
         IERC20 token = IERC20(assetAddress);
 
         (, int256 answer, , , ) = aggregator.latestRoundData();
 
-        if (answer > token.totalSupply()) {
-          return true;
+        if (answer > int256(token.totalSupply())) {
+          return false;
         }
       }
     }
 
-    return false;
+    return true;
   }
 
-  function executeEmergencyAction(address poolAddress) public {
+  function executeEmergencyAction(address poolAddress, PoolVersion version)
+    public
+  {
     IPool pool = IPool(poolAddress);
-    address[] reservesList = pool.getReservesList();
+    address[] memory reservesList = pool.getReservesList();
+
+    if (!areAllReservesBacked(reservesList)) {
+      disableBorrowing(pool, version, reservesList);
+    }
+  }
+
+  function disableBorrowing(
+    IPool pool,
+    PoolVersion version,
+    address[] memory reservesList
+  ) private {
+    if (version == PoolVersion.V2) {
+      disableBorrowingV2(pool, reservesList);
+    } else if (version == PoolVersion.V3) {
+      disableBorrowingV3(pool, reservesList);
+    }
+  }
+
+  function disableBorrowingV2(IPool pool, address[] memory reservesList)
+    internal
+  {
+    IPoolAddressProvider addressProvider = pool.getAddressesProvider();
+    IPoolConfigurator configurator = IPoolConfigurator(
+      addressProvider.getLendingPoolConfigurator()
+    );
+
+    for (uint256 i = 0; i < reservesList.length; i++) {
+      configurator.disableBorrowingOnReserve(reservesList[i]);
+    }
+  }
+
+  function disableBorrowingV3(IPool pool, address[] memory reservesList)
+    internal
+  {
+    IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
+    IPoolConfigurator configurator = IPoolConfigurator(
+      addressProvider.getPoolConfigurator()
+    );
+
+    for (uint256 i = 0; i < reservesList.length; i++) {
+      configurator.setReserveBorrowing(reservesList[i], false);
+    }
   }
 }
