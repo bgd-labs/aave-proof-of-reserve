@@ -46,12 +46,10 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
       address feedAddress = proofOfReserveList[assetAddress];
 
       if (feedAddress != address(0)) {
-        AggregatorV3Interface aggregator = AggregatorV3Interface(feedAddress);
-        IERC20 token = IERC20(assetAddress);
+        (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
+          .latestRoundData();
 
-        (, int256 answer, , , ) = aggregator.latestRoundData();
-
-        if (answer > int256(token.totalSupply())) {
+        if (answer < 0 || int256(IERC20(assetAddress).totalSupply()) > answer) {
           return assetAddress;
         }
       }
