@@ -31,18 +31,16 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     IPool pool = IPool(poolAddress);
     address[] memory reservesList = pool.getReservesList();
 
-    address[] memory unbackedReserves = getUnbackedReserves(reservesList);
+    address unbackedReserve = getUnbackedReserve(reservesList);
 
-    return unbackedReserves.length == 0;
+    return (unbackedReserve == address(0));
   }
 
-  function getUnbackedReserves(address[] memory reservesList)
+  function getUnbackedReserve(address[] memory reservesList)
     internal
     view
-    returns (address[] memory)
+    returns (address)
   {
-    address[] memory result;
-
     for (uint256 i = 0; i < reservesList.length; i++) {
       address assetAddress = reservesList[i];
       address feedAddress = proofOfReserveList[assetAddress];
@@ -54,12 +52,12 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
         (, int256 answer, , , ) = aggregator.latestRoundData();
 
         if (answer > int256(token.totalSupply())) {
-          result[result.length] = assetAddress;
+          return assetAddress;
         }
       }
     }
 
-    return result;
+    return address(0);
   }
 
   function executeEmergencyAction(address poolAddress, PoolVersion version)
@@ -68,11 +66,11 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     IPool pool = IPool(poolAddress);
     address[] memory reservesList = pool.getReservesList();
 
-    address[] memory unbackedReserves = getUnbackedReserves(reservesList);
+    address unbackedReserve = getUnbackedReserve(reservesList);
 
-    if (unbackedReserves.length > 0) {
+    if (unbackedReserve != address(0)) {
       disableBorrowing(pool, version, reservesList);
-      emit EmergencyActionExecuted(unbackedReserves[0], msg.sender);
+      emit EmergencyActionExecuted(unbackedReserve, msg.sender);
     }
   }
 
