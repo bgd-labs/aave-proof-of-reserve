@@ -9,11 +9,17 @@ interface IAaveProofOfReserve {
     V3
   }
 
+  event ProofOfReserveFeedStateChanged(
+    address indexed asset,
+    address indexed proofOfReserveFeed,
+    bool enabled
+  );
   event EmergencyActionExecuted(address indexed user);
 
-  function addReserve(address reserve, address proofOfReserveFeed) external;
+  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
+    external;
 
-  function removeReserve(address reserve) external;
+  function disableProofOfReserveFeed(address asset) external;
 
   function areAllReservesBacked(IPool pool) external view returns (bool);
 
