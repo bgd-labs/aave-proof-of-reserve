@@ -10,79 +10,81 @@ import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
 contract ProofOfReserve is IAaveProofOfReserve, Ownable {
-  mapping(address => address) public proofOfReserveList;
+  mapping(address => address) internal _proofOfReserveList;
+  address[] internal _assets;
 
   function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
     public
     onlyOwner
   {
-    proofOfReserveList[asset] = proofOfReserveFeed;
+    if (_proofOfReserveList[asset] == address(0)) {
+      _assets.push(asset);
+    }
+
+    _proofOfReserveList[asset] = proofOfReserveFeed;
     emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, true);
   }
 
   function disableProofOfReserveFeed(address asset) public onlyOwner {
-    delete proofOfReserveList[asset];
+    delete _proofOfReserveList[asset];
+    _deleteAssetFromArray(asset);
     emit ProofOfReserveFeedStateChanged(asset, address(0), false);
   }
 
-  function areAllReservesBacked(IPool pool) public view returns (bool) {
-    address[] memory reservesList = pool.getReservesList();
+  function _deleteAssetFromArray(address asset) internal {
+    for (uint256 i = 0; i < _assets.length; i++) {
+      if (_assets[i] == asset) {
+        if (i != _assets.length - 1) {
+          _assets[i] = _assets[_assets.length - 1];
+        }
 
-    address[] memory unbackedReserves = getUnbackedReserve(reservesList);
-
-    return (unbackedReserves.length == 0);
+        _assets.pop();
+        break;
+      }
+    }
   }
 
-  function getUnbackedReserve(address[] memory reservesList)
-    internal
-    view
-    returns (address[] memory)
-  {
-    address[] memory result;
+  function areAllReservesBacked() public view returns (bool) {
+    return _areAllReservesBacked();
+  }
 
-    for (uint256 i = 0; i < reservesList.length; i++) {
-      address assetAddress = reservesList[i];
-      address feedAddress = proofOfReserveList[assetAddress];
+  function _areAllReservesBacked() internal view returns (bool) {
+    for (uint256 i = 0; i < _assets.length; i++) {
+      address assetAddress = _assets[i];
+      address feedAddress = _proofOfReserveList[assetAddress];
 
       if (feedAddress != address(0)) {
         (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
           .latestRoundData();
 
         if (answer < 0 || int256(IERC20(assetAddress).totalSupply()) > answer) {
-          result[result.length] = assetAddress;
+          return false;
         }
       }
     }
 
-    return result;
+    return true;
   }
 
   function executeEmergencyAction(IPool pool, PoolVersion version) public {
-    address[] memory reservesList = pool.getReservesList();
-
-    address[] memory unbackedReserves = getUnbackedReserve(reservesList);
-
-    if (unbackedReserves.length > 0) {
-      disableBorrowing(pool, version, reservesList);
-
+    if (!_areAllReservesBacked()) {
+      _disableBorrowing(pool, version);
       // TODO: emit event for every unbacked reserve
       emit EmergencyActionExecuted(msg.sender);
     }
   }
 
-  function disableBorrowing(
-    IPool pool,
-    PoolVersion version,
-    address[] memory reservesList
-  ) private {
+  function _disableBorrowing(IPool pool, PoolVersion version) internal {
+    address[] memory reservesList = pool.getReservesList();
+
     if (version == PoolVersion.V2) {
-      disableBorrowingV2(pool, reservesList);
+      _disableBorrowingV2(pool, reservesList);
     } else if (version == PoolVersion.V3) {
-      disableBorrowingV3(pool, reservesList);
+      _disableBorrowingV3(pool, reservesList);
     }
   }
 
-  function disableBorrowingV2(IPool pool, address[] memory reservesList)
+  function _disableBorrowingV2(IPool pool, address[] memory reservesList)
     internal
   {
     IPoolAddressProvider addressProvider = pool.getAddressesProvider();
@@ -95,7 +97,7 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     }
   }
 
-  function disableBorrowingV3(IPool pool, address[] memory reservesList)
+  function _disableBorrowingV3(IPool pool, address[] memory reservesList)
     internal
   {
     IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
