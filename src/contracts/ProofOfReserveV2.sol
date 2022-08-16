@@ -7,7 +7,7 @@ import {IPool} from '../dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
-contract ProofOfReserveV2 is ProofOfReserve, IAaveProofOfReserve {
+contract ProofOfReserveV2 is ProofOfReserve {
   function executeEmergencyAction(IPool pool) public {
     if (!_areAllReservesBacked()) {
       address[] memory reservesList = pool.getReservesList();

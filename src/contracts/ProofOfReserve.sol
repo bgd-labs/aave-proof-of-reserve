@@ -5,9 +5,6 @@ import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/Aggr
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IAaveProofOfReserve} from '../interfaces/IAaveProofOfReserve.sol';
-import {IPool} from '../dependencies/IPool.sol';
-import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
-import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
 abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
   mapping(address => address) internal _proofOfReserveList;
