@@ -9,7 +9,7 @@ import {IPool} from '../dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
-contract ProofOfReserve is IAaveProofOfReserve, Ownable {
+abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
   mapping(address => address) internal _proofOfReserveList;
   address[] internal _assets;
 
@@ -66,47 +66,47 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     return true;
   }
 
-  function executeEmergencyAction(IPool pool, PoolVersion version) public {
-    if (!_areAllReservesBacked()) {
-      _disableBorrowing(pool, version);
-      // TODO: emit event for every unbacked reserve
-      emit EmergencyActionExecuted(msg.sender);
-    }
-  }
+  // function executeEmergencyAction(IPool pool, PoolVersion version) public {
+  //   if (!_areAllReservesBacked()) {
+  //     _disableBorrowing(pool, version);
+  //     // TODO: emit event for every unbacked reserve
+  //     emit EmergencyActionExecuted(msg.sender);
+  //   }
+  // }
 
-  function _disableBorrowing(IPool pool, PoolVersion version) internal {
-    address[] memory reservesList = pool.getReservesList();
+  // function _disableBorrowing(IPool pool, PoolVersion version) internal {
+  //   address[] memory reservesList = pool.getReservesList();
 
-    if (version == PoolVersion.V2) {
-      _disableBorrowingV2(pool, reservesList);
-    } else if (version == PoolVersion.V3) {
-      _disableBorrowingV3(pool, reservesList);
-    }
-  }
+  //   if (version == PoolVersion.V2) {
+  //     _disableBorrowingV2(pool, reservesList);
+  //   } else if (version == PoolVersion.V3) {
+  //     _disableBorrowingV3(pool, reservesList);
+  //   }
+  // }
 
-  function _disableBorrowingV2(IPool pool, address[] memory reservesList)
-    internal
-  {
-    IPoolAddressProvider addressProvider = pool.getAddressesProvider();
-    IPoolConfigurator configurator = IPoolConfigurator(
-      addressProvider.getLendingPoolConfigurator()
-    );
+  // function _disableBorrowingV2(IPool pool, address[] memory reservesList)
+  //   internal
+  // {
+  //   IPoolAddressProvider addressProvider = pool.getAddressesProvider();
+  //   IPoolConfigurator configurator = IPoolConfigurator(
+  //     addressProvider.getLendingPoolConfigurator()
+  //   );
 
-    for (uint256 i = 0; i < reservesList.length; i++) {
-      configurator.disableBorrowingOnReserve(reservesList[i]);
-    }
-  }
+  //   for (uint256 i = 0; i < reservesList.length; i++) {
+  //     configurator.disableBorrowingOnReserve(reservesList[i]);
+  //   }
+  // }
 
-  function _disableBorrowingV3(IPool pool, address[] memory reservesList)
-    internal
-  {
-    IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
-    IPoolConfigurator configurator = IPoolConfigurator(
-      addressProvider.getPoolConfigurator()
-    );
+  // function _disableBorrowingV3(IPool pool, address[] memory reservesList)
+  //   internal
+  // {
+  //   IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
+  //   IPoolConfigurator configurator = IPoolConfigurator(
+  //     addressProvider.getPoolConfigurator()
+  //   );
 
-    for (uint256 i = 0; i < reservesList.length; i++) {
-      configurator.setReserveBorrowing(reservesList[i], false);
-    }
-  }
+  //   for (uint256 i = 0; i < reservesList.length; i++) {
+  //     configurator.setReserveBorrowing(reservesList[i], false);
+  //   }
+  // }
 }
