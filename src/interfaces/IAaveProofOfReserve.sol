@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {IPool} from '../dependencies/IPool.sol';
+
 interface IAaveProofOfReserve {
   enum PoolVersion {
     V2,
     V3
   }
 
-  event EmergencyActionExecuted(address indexed reserve, address indexed user);
+  event EmergencyActionExecuted(address indexed user);
 
   function addReserve(address reserve, address proofOfReserveFeed) external;
 
   function removeReserve(address reserve) external;
 
-  function areAllReservesBacked(address poolAddress)
-    external
-    view
-    returns (bool);
+  function areAllReservesBacked(IPool pool) external view returns (bool);
 
-  function executeEmergencyAction(address poolAddress, PoolVersion version)
-    external;
+  function executeEmergencyAction(IPool pool, PoolVersion version) external;
 }
