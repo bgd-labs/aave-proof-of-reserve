@@ -21,7 +21,7 @@ interface IAaveProofOfReserve {
 
   function disableProofOfReserveFeed(address asset) external;
 
-  function areAllReservesBacked(IPool pool) external view returns (bool);
+  function areAllReservesBacked() external view returns (bool);
 
   function executeEmergencyAction(IPool pool, PoolVersion version) external;
 }
