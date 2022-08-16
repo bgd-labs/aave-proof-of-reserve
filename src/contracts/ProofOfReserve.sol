@@ -23,24 +23,21 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     proofOfReserveList[reserve] = address(0);
   }
 
-  function areAllReservesBacked(address poolAddress)
-    public
-    view
-    returns (bool)
-  {
-    IPool pool = IPool(poolAddress);
+  function areAllReservesBacked(IPool pool) public view returns (bool) {
     address[] memory reservesList = pool.getReservesList();
 
-    address unbackedReserve = getUnbackedReserve(reservesList);
+    address[] memory unbackedReserves = getUnbackedReserve(reservesList);
 
-    return (unbackedReserve == address(0));
+    return (unbackedReserves.length == 0);
   }
 
   function getUnbackedReserve(address[] memory reservesList)
     internal
     view
-    returns (address)
+    returns (address[] memory)
   {
+    address[] memory result;
+
     for (uint256 i = 0; i < reservesList.length; i++) {
       address assetAddress = reservesList[i];
       address feedAddress = proofOfReserveList[assetAddress];
@@ -50,25 +47,24 @@ contract ProofOfReserve is IAaveProofOfReserve, Ownable {
           .latestRoundData();
 
         if (answer < 0 || int256(IERC20(assetAddress).totalSupply()) > answer) {
-          return assetAddress;
+          result[result.length] = assetAddress;
         }
       }
     }
 
-    return address(0);
+    return result;
   }
 
-  function executeEmergencyAction(address poolAddress, PoolVersion version)
-    public
-  {
-    IPool pool = IPool(poolAddress);
+  function executeEmergencyAction(IPool pool, PoolVersion version) public {
     address[] memory reservesList = pool.getReservesList();
 
-    address unbackedReserve = getUnbackedReserve(reservesList);
+    address[] memory unbackedReserves = getUnbackedReserve(reservesList);
 
-    if (unbackedReserve != address(0)) {
+    if (unbackedReserves.length > 0) {
       disableBorrowing(pool, version, reservesList);
-      emit EmergencyActionExecuted(unbackedReserve, msg.sender);
+
+      // TODO: emit event for every unbacked reserve
+      emit EmergencyActionExecuted(msg.sender);
     }
   }
 
