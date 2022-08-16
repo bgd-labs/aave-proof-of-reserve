@@ -12,15 +12,17 @@ import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 contract ProofOfReserve is IAaveProofOfReserve, Ownable {
   mapping(address => address) public proofOfReserveList;
 
-  function addReserve(address reserve, address proofOfReserveFeed)
+  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
     public
     onlyOwner
   {
-    proofOfReserveList[reserve] = proofOfReserveFeed;
+    proofOfReserveList[asset] = proofOfReserveFeed;
+    emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, true);
   }
 
-  function removeReserve(address reserve) public onlyOwner {
-    proofOfReserveList[reserve] = address(0);
+  function disableProofOfReserveFeed(address asset) public onlyOwner {
+    delete proofOfReserveList[asset];
+    emit ProofOfReserveFeedStateChanged(asset, address(0), false);
   }
 
   function areAllReservesBacked(IPool pool) public view returns (bool) {
