@@ -16,7 +16,16 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
   mapping(address => address) internal _proofOfReserveList;
 
   // the list of the assets to check
-  address[] internal _assets;
+  address[] public assets;
+
+  /// @inheritdoc IAaveProofOfReserve
+  function getProofOfReserveFeedForAsset(address asset)
+    external
+    view
+    returns (address)
+  {
+    return _proofOfReserveList[asset];
+  }
 
   /// @inheritdoc IAaveProofOfReserve
   function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
@@ -24,7 +33,7 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     onlyOwner
   {
     if (_proofOfReserveList[asset] == address(0)) {
-      _assets.push(asset);
+      assets.push(asset);
     }
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
@@ -43,13 +52,13 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
    * @param asset the address to delete
    */
   function _deleteAssetFromArray(address asset) internal {
-    for (uint256 i = 0; i < _assets.length; i++) {
-      if (_assets[i] == asset) {
-        if (i != _assets.length - 1) {
-          _assets[i] = _assets[_assets.length - 1];
+    for (uint256 i = 0; i < assets.length; i++) {
+      if (assets[i] == asset) {
+        if (i != assets.length - 1) {
+          assets[i] = assets[assets.length - 1];
         }
 
-        _assets.pop();
+        assets.pop();
         break;
       }
     }
@@ -57,8 +66,8 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
 
   /// @inheritdoc IAaveProofOfReserve
   function areAllReservesBacked() public view returns (bool) {
-    for (uint256 i = 0; i < _assets.length; i++) {
-      address assetAddress = _assets[i];
+    for (uint256 i = 0; i < assets.length; i++) {
+      address assetAddress = assets[i];
       address feedAddress = _proofOfReserveList[assetAddress];
 
       if (feedAddress != address(0)) {
