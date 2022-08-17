@@ -9,16 +9,27 @@ import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
 /**
  * @author BGD Labs
- * @dev Contract to disable borrowing for every asset listed on the AAVE V3 Pool,
- * when at least one of bridged assets is not backed.
+ * @dev Contract to disable the borrowing for every asset listed on the AAVE V2 Pool,
+ * when at least one of the bridged assets is not backed.
  */
 contract ProofOfReserveV3 is ProofOfReserve {
-  /// @inheritdoc IAaveProofOfReserve
-  function executeEmergencyAction(IPool pool) public {
-    if (!areAllReservesBacked()) {
-      address[] memory reservesList = pool.getReservesList();
+  // AAVE v3 pool
+  IPool internal _pool;
 
-      IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
+  /**
+   * @notice Constructor.
+   * @param poolAddress The address of the Aave's V3 pool
+   */
+  constructor(address poolAddress) {
+    _pool = IPool(poolAddress);
+  }
+
+  /// @inheritdoc IAaveProofOfReserve
+  function executeEmergencyAction() public {
+    if (!areAllReservesBacked()) {
+      address[] memory reservesList = _pool.getReservesList();
+
+      IPoolAddressProvider addressProvider = _pool.ADDRESSES_PROVIDER();
       IPoolConfigurator configurator = IPoolConfigurator(
         addressProvider.getPoolConfigurator()
       );
