@@ -12,10 +12,10 @@ import {IAaveProofOfReserve} from '../interfaces/IAaveProofOfReserve.sol';
  * and can check if any of the assets is not backed.
  */
 abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
-  // mapping of assets to proof of reserve feeds
+  // the mapping of assets to proof of reserve feeds
   mapping(address => address) internal _proofOfReserveList;
 
-  // list of assets to check
+  // the list of the assets to check
   address[] internal _assets;
 
   /// @inheritdoc IAaveProofOfReserve
@@ -40,7 +40,7 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
 
   /**
    * @dev delete asset from array.
-   * @param asset address to delete
+   * @param asset the address to delete
    */
   function _deleteAssetFromArray(address asset) internal {
     for (uint256 i = 0; i < _assets.length; i++) {

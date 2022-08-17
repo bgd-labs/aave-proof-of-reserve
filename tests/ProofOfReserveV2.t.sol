@@ -9,7 +9,7 @@ contract ProofOfReserveTest is Test {
   ProofOfReserveV2 public proofOfReserve;
 
   function setUp() public {
-    proofOfReserve = new ProofOfReserveV2();
+    proofOfReserve = new ProofOfReserveV2(address(0));
   }
 
   function testNumberIs42() public {

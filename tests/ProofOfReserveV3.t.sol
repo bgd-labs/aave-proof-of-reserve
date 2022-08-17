@@ -9,7 +9,7 @@ contract ProofOfReserveTest is Test {
   ProofOfReserveV3 public proofOfReserve;
 
   function setUp() public {
-    proofOfReserve = new ProofOfReserveV3();
+    proofOfReserve = new ProofOfReserveV3(address(0));
   }
 
   // add reserve check that it is added
