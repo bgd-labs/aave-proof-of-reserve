@@ -42,10 +42,6 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
   }
 
   function areAllReservesBacked() public view returns (bool) {
-    return _areAllReservesBacked();
-  }
-
-  function _areAllReservesBacked() internal view returns (bool) {
     for (uint256 i = 0; i < _assets.length; i++) {
       address assetAddress = _assets[i];
       address feedAddress = _proofOfReserveList[assetAddress];
@@ -62,48 +58,4 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
 
     return true;
   }
-
-  // function executeEmergencyAction(IPool pool, PoolVersion version) public {
-  //   if (!_areAllReservesBacked()) {
-  //     _disableBorrowing(pool, version);
-  //     // TODO: emit event for every unbacked reserve
-  //     emit EmergencyActionExecuted(msg.sender);
-  //   }
-  // }
-
-  // function _disableBorrowing(IPool pool, PoolVersion version) internal {
-  //   address[] memory reservesList = pool.getReservesList();
-
-  //   if (version == PoolVersion.V2) {
-  //     _disableBorrowingV2(pool, reservesList);
-  //   } else if (version == PoolVersion.V3) {
-  //     _disableBorrowingV3(pool, reservesList);
-  //   }
-  // }
-
-  // function _disableBorrowingV2(IPool pool, address[] memory reservesList)
-  //   internal
-  // {
-  //   IPoolAddressProvider addressProvider = pool.getAddressesProvider();
-  //   IPoolConfigurator configurator = IPoolConfigurator(
-  //     addressProvider.getLendingPoolConfigurator()
-  //   );
-
-  //   for (uint256 i = 0; i < reservesList.length; i++) {
-  //     configurator.disableBorrowingOnReserve(reservesList[i]);
-  //   }
-  // }
-
-  // function _disableBorrowingV3(IPool pool, address[] memory reservesList)
-  //   internal
-  // {
-  //   IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
-  //   IPoolConfigurator configurator = IPoolConfigurator(
-  //     addressProvider.getPoolConfigurator()
-  //   );
-
-  //   for (uint256 i = 0; i < reservesList.length; i++) {
-  //     configurator.setReserveBorrowing(reservesList[i], false);
-  //   }
-  // }
 }

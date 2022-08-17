@@ -12,6 +12,11 @@ contract ProofOfReserveTest is Test {
     proofOfReserve = new ProofOfReserveV2();
   }
 
+  function testNumberIs42() public {
+    bool result = proofOfReserve.areAllReservesBacked();
+
+    assertEq(result, true);
+  }
   // add reserve check that it is added
 
   // remove reserve check removed
