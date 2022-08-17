@@ -32,6 +32,11 @@ interface IAaveProofOfReserve {
     returns (address);
 
   /**
+   * @dev gets the list of the assets in the registry.
+   */
+  function getAssetsList() external view returns (address[] memory);
+
+  /**
    * @dev add the asset and corresponding proof of reserve feed to the registry.
    * @param asset the address of the asset
    * @param proofOfReserveFeed the address of the proof of reserve aggregator feed
