@@ -6,10 +6,19 @@ import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IAaveProofOfReserve} from '../interfaces/IAaveProofOfReserve.sol';
 
+/**
+ * @author BGD Labs
+ * @dev Contract that contains the registry of pairs asset/proof of reserve feed for the chain
+ * and can check if any of the assets is not backed.
+ */
 abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
+  // mapping of assets to proof of reserve feeds
   mapping(address => address) internal _proofOfReserveList;
+
+  // list of assets to check
   address[] internal _assets;
 
+  /// @inheritdoc IAaveProofOfReserve
   function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
     public
     onlyOwner
@@ -22,12 +31,17 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, true);
   }
 
+  /// @inheritdoc IAaveProofOfReserve
   function disableProofOfReserveFeed(address asset) public onlyOwner {
     delete _proofOfReserveList[asset];
     _deleteAssetFromArray(asset);
     emit ProofOfReserveFeedStateChanged(asset, address(0), false);
   }
 
+  /**
+   * @dev delete asset from array.
+   * @param asset address to delete
+   */
   function _deleteAssetFromArray(address asset) internal {
     for (uint256 i = 0; i < _assets.length; i++) {
       if (_assets[i] == asset) {
@@ -41,6 +55,7 @@ abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
     }
   }
 
+  /// @inheritdoc IAaveProofOfReserve
   function areAllReservesBacked() public view returns (bool) {
     for (uint256 i = 0; i < _assets.length; i++) {
       address assetAddress = _assets[i];

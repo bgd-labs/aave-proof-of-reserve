@@ -7,7 +7,13 @@ import {IPool} from '../dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
+/**
+ * @author BGD Labs
+ * @dev Contract to disable borrowing for every asset listed on the AAVE V2 Pool,
+ * when at least one of bridged assets is not backed.
+ */
 contract ProofOfReserveV2 is ProofOfReserve {
+  /// @inheritdoc IAaveProofOfReserve
   function executeEmergencyAction(IPool pool) public {
     if (!areAllReservesBacked()) {
       address[] memory reservesList = pool.getReservesList();
