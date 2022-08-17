@@ -11,7 +11,7 @@ import {IAaveProofOfReserve} from '../interfaces/IAaveProofOfReserve.sol';
  * @dev Contract that contains the registry of pairs asset/proof of reserve feed for the chain
  * and can check if any of the assets is not backed.
  */
-abstract contract ProofOfReserve is IAaveProofOfReserve, Ownable {
+abstract contract ProofOfReserveBase is IAaveProofOfReserve, Ownable {
   // the mapping of assets to proof of reserve feeds
   mapping(address => address) internal _proofOfReserveList;
 

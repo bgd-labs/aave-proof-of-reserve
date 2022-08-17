@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IAaveProofOfReserve} from '../interfaces/IAaveProofOfReserve.sol';
-import {ProofOfReserve} from './ProofOfReserve.sol';
+import {ProofOfReserveBase} from './ProofOfReserveBase.sol';
 import {IPool} from '../dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
@@ -12,7 +12,7 @@ import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
  * @dev Contract to disable the borrowing for every asset listed on the AAVE V2 Pool,
  * when at least one of the bridged assets is not backed.
  */
-contract ProofOfReserveV3 is ProofOfReserve {
+contract ProofOfReserveV3 is ProofOfReserveBase {
   // AAVE v3 pool
   IPool internal _pool;
 
