@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IPool} from '../dependencies/IPool.sol';
-
-interface IAaveProofOfReserve {
+interface IProofOfReserve {
   /**
    * @dev emitted when new asset and it's proof of reserve feed are enabled or disabled
    * @param asset the address of the asset
@@ -17,12 +15,6 @@ interface IAaveProofOfReserve {
   );
 
   /**
-   * @dev emitted when borrowing of all assets on the market is disabled
-   * @param user the address of the user who inited the action
-   */
-  event EmergencyActionExecuted(address indexed user);
-
-  /**
    * @dev add the asset and corresponding proof of reserve feed to the registry.
    * @param asset the address of the asset
    */
@@ -30,11 +22,6 @@ interface IAaveProofOfReserve {
     external
     view
     returns (address);
-
-  /**
-   * @dev gets the list of the assets in the registry.
-   */
-  function getAssetsList() external view returns (address[] memory);
 
   /**
    * @dev add the asset and corresponding proof of reserve feed to the registry.
@@ -51,13 +38,11 @@ interface IAaveProofOfReserve {
   function disableProofOfReserveFeed(address asset) external;
 
   /**
-   * @dev returns if all the assets in the registry are backed.
+   * @dev returns if all the assets that have been passed are backed;
+   * @param assets list of the assets to check
    */
-  function areAllReservesBacked() external view returns (bool);
-
-  /**
-   * @dev disable borrowing for all the assets on the pool when at least
-   * one of the assets in the registry is not backed.
-   */
-  function executeEmergencyAction() external;
+  function areAllReservesBacked(address[] calldata assets)
+    external
+    view
+    returns (bool, bool[] memory unbackedAssetsFlags);
 }

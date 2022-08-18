@@ -3,18 +3,21 @@ pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
 
-import {ProofOfReserveV2} from '../src/contracts/ProofOfReserveV2.sol';
+import {ProofOfReserve} from '../src/contracts/ProofOfReserve.sol';
 
 contract ProofOfReserveTest is Test {
-  ProofOfReserveV2 public proofOfReserve;
+  ProofOfReserve public proofOfReserve;
 
   function setUp() public {
-    proofOfReserve = new ProofOfReserveV2(address(0));
+    proofOfReserve = new ProofOfReserve();
   }
 
   function testNumberIs42() public {
-    bool result = proofOfReserve.areAllReservesBacked();
+    address[] memory assets = new address[](0);
+    (bool result, bool[] memory backedAssetsFlags) = proofOfReserve
+      .areAllReservesBacked(assets);
 
+    assertEq(backedAssetsFlags.length, 0);
     assertEq(result, true);
   }
   // add reserve check that it is added
