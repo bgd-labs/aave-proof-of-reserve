@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IAaveProofOfReserve} from '../interfaces/IAaveProofOfReserve.sol';
-import {ProofOfReserveBase} from './ProofOfReserveBase.sol';
+import {IProofOfReserveMonitor} from '../interfaces/IProofOfReserveMonitor.sol';
+import {ProofOfReserveMonitorBase} from './ProofOfReserveMonitorBase.sol';
 import {IPool} from '../dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
@@ -12,7 +12,7 @@ import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
  * @dev Contract to disable the borrowing for every asset listed on the AAVE V2 Pool,
  * when at least one of the bridged assets is not backed.
  */
-contract ProofOfReserveV3 is ProofOfReserveBase {
+contract ProofOfReserveEmergencyExecutorV3 is ProofOfReserveMonitorBase {
   // AAVE v3 pool
   IPool internal _pool;
 
@@ -24,7 +24,7 @@ contract ProofOfReserveV3 is ProofOfReserveBase {
     _pool = IPool(poolAddress);
   }
 
-  /// @inheritdoc IAaveProofOfReserve
+  /// @inheritdoc IProofOfReserveMonitor
   function executeEmergencyAction() public {
     if (!areAllReservesBacked()) {
       address[] memory reservesList = _pool.getReservesList();
