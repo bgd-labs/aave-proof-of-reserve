@@ -34,7 +34,7 @@ abstract contract ProofOfReserveBase is IAaveProofOfReserve, Ownable {
 
   /// @inheritdoc IAaveProofOfReserve
   function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
-    public
+    external
     onlyOwner
   {
     if (_proofOfReserveList[asset] == address(0)) {
@@ -46,7 +46,7 @@ abstract contract ProofOfReserveBase is IAaveProofOfReserve, Ownable {
   }
 
   /// @inheritdoc IAaveProofOfReserve
-  function disableProofOfReserveFeed(address asset) public onlyOwner {
+  function disableProofOfReserveFeed(address asset) external onlyOwner {
     delete _proofOfReserveList[asset];
     _deleteAssetFromArray(asset);
     emit ProofOfReserveFeedStateChanged(asset, address(0), false);
@@ -79,7 +79,9 @@ abstract contract ProofOfReserveBase is IAaveProofOfReserve, Ownable {
         (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
           .latestRoundData();
 
-        if (answer < 0 || int256(IERC20(assetAddress).totalSupply()) > answer) {
+        if (
+          answer < 0 || IERC20(assetAddress).totalSupply() > uint256(answer)
+        ) {
           return false;
         }
       }
