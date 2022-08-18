@@ -20,7 +20,9 @@ contract ProofOfReserveEmergencyExecutorV3 is ProofOfReserveMonitorBase {
    * @notice Constructor.
    * @param poolAddress The address of the Aave's V3 pool
    */
-  constructor(address poolAddress) {
+  constructor(address poolAddress, address proofOfReserveAddress)
+    ProofOfReserveMonitorBase(proofOfReserveAddress)
+  {
     _pool = IPool(poolAddress);
   }
 

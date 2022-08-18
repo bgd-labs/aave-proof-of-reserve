@@ -5,6 +5,7 @@ import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/Aggr
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IProofOfReserveMonitor} from '../interfaces/IProofOfReserveMonitor.sol';
+import {ProofOfReserve} from './ProofOfReserve.sol';
 
 /**
  * @author BGD Labs
@@ -12,8 +13,18 @@ import {IProofOfReserveMonitor} from '../interfaces/IProofOfReserveMonitor.sol';
  * and can check if any of the assets is not backed.
  */
 abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
+  // proof of reserve registry for checkings
+  ProofOfReserve internal _proofOfReserve;
+
   // the list of the assets to check
   address[] internal _assets;
+
+  // the list of the assets to check
+  mapping(address => bool) internal _assetsState;
+
+  constructor(address proofOfReserveAddress) {
+    _proofOfReserve = ProofOfReserve(proofOfReserveAddress);
+  }
 
   /// @inheritdoc IProofOfReserveMonitor
   function getAssetsList() external view returns (address[] memory) {
@@ -22,15 +33,17 @@ abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
 
   /// @inheritdoc IProofOfReserveMonitor
   function enableAsset(address asset) external onlyOwner {
-    // somehow control if asset is here?
-    _assets.push(asset);
-
-    emit AssetStateChanged(asset, true);
+    if (!_assetsState[asset]) {
+      _assets.push(asset);
+      _assetsState[asset] = true;
+      emit AssetStateChanged(asset, true);
+    }
   }
 
   /// @inheritdoc IProofOfReserveMonitor
   function disableAsset(address asset) external onlyOwner {
     _deleteAssetFromArray(asset);
+    delete _assetsState[asset];
     emit AssetStateChanged(asset, false);
   }
 
@@ -53,8 +66,12 @@ abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
 
   /// @inheritdoc IProofOfReserveMonitor
   function areAllReservesBacked() public view returns (bool) {
-    // call other contract
+    if (_assets.length == 0) {
+      return true;
+    }
 
-    return true;
+    (bool result, ) = _proofOfReserve.areAllReservesBacked(_assets);
+
+    return result;
   }
 }
