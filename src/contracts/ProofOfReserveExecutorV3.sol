@@ -40,6 +40,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
       );
 
       for (uint256 i = 0; i < reservesList.length; i++) {
+        configurator.setReserveStableRateBorrowing(reservesList[i], false);
         configurator.setReserveBorrowing(reservesList[i], false);
       }
 

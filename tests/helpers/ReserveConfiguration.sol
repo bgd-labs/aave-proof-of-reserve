@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import {ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
+import {ReserveConfigurationMap} from '../../src/dependencies/IPool.sol';
 
 library ReserveConfiguration {
   uint256 constant LTV_MASK =                   0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000; // prettier-ignore

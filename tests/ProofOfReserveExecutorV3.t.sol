@@ -3,19 +3,22 @@ pragma solidity ^0.8.0;
 
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {Test} from 'forge-std/Test.sol';
+import 'forge-std/console.sol';
 
 import {ProofOfReserve} from '../src/contracts/ProofOfReserve.sol';
-import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
+import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 
 import {IPool, ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../src/dependencies/IPoolAddressProvider.sol';
+import {IACLManager} from './helpers/IACLManager.sol';
 import {ReserveConfiguration} from './helpers/ReserveConfiguration.sol';
 
-contract ProofOfReserveExecutorV2Test is Test {
+contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserve private proofOfReserve;
-  ProofOfReserveExecutorV2 private proofOfReserveExecutorV2;
+  ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
+
   uint256 private avalancheFork;
-  address private constant POOL = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
+  address private constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
 
   address private constant USER = address(9999);
   address private constant ASSET_1 = address(1234);
@@ -36,90 +39,10 @@ contract ProofOfReserveExecutorV2Test is Test {
     avalancheFork = vm.createFork('https://avalancherpc.com');
     vm.selectFork(avalancheFork);
     proofOfReserve = new ProofOfReserve();
-    proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
+    proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       POOL,
       address(proofOfReserve)
     );
-  }
-
-  function testAssetIsEnabled() public {
-    address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 0);
-
-    vm.expectEmit(true, false, false, true);
-    emit AssetStateChanged(ASSET_1, true);
-
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
-
-    enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 1);
-    assertEq(enabledAssets[0], ASSET_1);
-  }
-
-  function testAssetIsEnabledTwice() public {
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
-
-    address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 1);
-    assertEq(enabledAssets[0], ASSET_1);
-  }
-
-  function testAssetIsEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
-    vm.prank(address(0));
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
-  }
-
-  function testAssetIsDisabled() public {
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
-
-    address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
-
-    assertEq(enabledAssets[0], ASSET_1);
-
-    vm.expectEmit(true, false, false, true);
-    emit AssetStateChanged(ASSET_1, false);
-
-    proofOfReserveExecutorV2.disableAsset(ASSET_1);
-    enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 0);
-  }
-
-  function testAssetIsDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
-    vm.prank(address(0));
-    proofOfReserveExecutorV2.disableAsset(ASSET_1);
-  }
-
-  function testAreAllReservesBackedEmptyArray() public {
-    bool result = proofOfReserveExecutorV2.areAllReservesBacked();
-
-    assertEq(result, true);
-  }
-
-  function testAreAllReservesBackedAaveBtc() public {
-    enableFeedsOnRegistry();
-    enableAssetsOnExecutor();
-
-    bool result = proofOfReserveExecutorV2.areAllReservesBacked();
-
-    assertEq(result, true);
-  }
-
-  function testNotAllReservesBacked() public {
-    enableFeedsOnRegistry();
-    enableAssetsOnExecutor();
-
-    vm.mockCall(
-      PORF_AAVE,
-      abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
-      abi.encode(1, 1, 1, 1, 1)
-    );
-
-    bool result = proofOfReserveExecutorV2.areAllReservesBacked();
-
-    assertEq(result, false);
   }
 
   function testExecuteEmergencyActionAllBacked() public {
@@ -131,7 +54,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     assertEq(result, true);
   }
 
-  function testExecuteEmergencyAction() public {
+  function testExecuteEmergencyActionV3() public {
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
@@ -156,14 +79,12 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.expectEmit(true, false, false, true);
     emit EmergencyActionExecuted(USER);
 
-    // TODO: change to risk admin
-    setPoolAdmin();
+    setRiskAdmin();
 
     vm.prank(USER);
-    proofOfReserveExecutorV2.executeEmergencyAction();
+    proofOfReserveExecutorV3.executeEmergencyAction();
 
     bool result = isBorrowingEnabledAtLeastOnOneAsset();
-
     assertEq(result, false);
   }
 
@@ -175,16 +96,16 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function enableAssetsOnExecutor() private {
-    proofOfReserveExecutorV2.enableAsset(AAVEE);
-    proofOfReserveExecutorV2.enableAsset(BTCB);
+    proofOfReserveExecutorV3.enableAsset(AAVEE);
+    proofOfReserveExecutorV3.enableAsset(BTCB);
   }
 
-  function setPoolAdmin() private {
+  function setRiskAdmin() private {
     IPool pool = IPool(POOL);
-    IPoolAddressProvider addressProvider = pool.getAddressesProvider();
-    vm.prank(addressProvider.getPoolAdmin());
-
-    addressProvider.setPoolAdmin(address(proofOfReserveExecutorV2));
+    IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
+    IACLManager aclManager = IACLManager(addressProvider.getACLManager());
+    vm.prank(addressProvider.getACLAdmin());
+    aclManager.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
 
   function isBorrowingEnabledAtLeastOnOneAsset() private view returns (bool) {
