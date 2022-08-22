@@ -9,4 +9,8 @@ interface IPoolAddressProvider {
   function getPoolAdmin() external view returns (address);
 
   function setPoolAdmin(address admin) external;
+
+  function getACLManager() external view returns (address);
+
+  function getACLAdmin() external view returns (address);
 }
