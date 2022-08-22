@@ -28,7 +28,10 @@ contract ProofOfReserveMonitorBaseV2 is ProofOfReserveMonitorBase {
 
   /// @inheritdoc IProofOfReserveMonitor
   function executeEmergencyAction() public {
-    if (!areAllReservesBacked()) {
+    (bool result, bool[] memory unbackedAssetsFlags) = _proofOfReserve
+      .areAllReservesBacked(_assets);
+
+    if (!result) {
       address[] memory reservesList = _pool.getReservesList();
 
       IPoolAddressProvider addressProvider = _pool.getAddressesProvider();
@@ -38,6 +41,12 @@ contract ProofOfReserveMonitorBaseV2 is ProofOfReserveMonitorBase {
 
       for (uint256 i = 0; i < reservesList.length; i++) {
         configurator.disableBorrowingOnReserve(reservesList[i]);
+      }
+
+      for (uint256 i = 0; i < _assets.length; i++) {
+        if (unbackedAssetsFlags[i]) {
+          emit AssetIsNotBacked(_assets[i]);
+        }
       }
 
       emit EmergencyActionExecuted(msg.sender);

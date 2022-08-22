@@ -41,7 +41,7 @@ contract ProofOfReserve is IProofOfReserve, Ownable {
 
   /// @inheritdoc IProofOfReserve
   function areAllReservesBacked(address[] calldata assets)
-    public
+    external
     view
     returns (bool, bool[] memory)
   {
@@ -61,7 +61,7 @@ contract ProofOfReserve is IProofOfReserve, Ownable {
         if (
           answer < 0 || IERC20(assetAddress).totalSupply() > uint256(answer)
         ) {
-          unbackedAssetsFlags[i] = false;
+          unbackedAssetsFlags[i] = true;
           result = false;
         }
       }
