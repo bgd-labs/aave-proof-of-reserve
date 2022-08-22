@@ -4,7 +4,6 @@ test = 'tests'
 out = 'out'
 libs = ['lib']
 remappings = [
-    'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/',
     'solidity-utils/=lib/solidity-utils/src/',
     'chainlink-brownie-contracts/=lib/chainlink-brownie-contracts/contracts/src/v0.8/',

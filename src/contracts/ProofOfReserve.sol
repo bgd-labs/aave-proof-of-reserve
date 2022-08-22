@@ -49,7 +49,7 @@ contract ProofOfReserve is IProofOfReserve, Ownable {
     bool result = true;
 
     for (uint256 i = 0; i < assets.length; i++) {
-      unbackedAssetsFlags[i] = true;
+      unbackedAssetsFlags[i] = false;
 
       address assetAddress = assets[i];
       address feedAddress = _proofOfReserveList[assetAddress];
