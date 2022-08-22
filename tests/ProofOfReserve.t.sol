@@ -1,16 +1,16 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
+
+import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 
 import {Test} from 'forge-std/Test.sol';
 
 import {ProofOfReserve} from '../src/contracts/ProofOfReserve.sol';
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 
 contract ProofOfReserveTest is Test {
   ProofOfReserve public proofOfReserve;
   uint256 private avalancheFork;
 
-  address private constant OWNER = address(1234);
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
 
@@ -28,7 +28,6 @@ contract ProofOfReserveTest is Test {
   );
 
   function setUp() public {
-    // TODO: we do not need to create fork for every test
     avalancheFork = vm.createFork('https://avalancherpc.com');
     vm.selectFork(avalancheFork);
     proofOfReserve = new ProofOfReserve();
@@ -85,7 +84,7 @@ contract ProofOfReserveTest is Test {
   }
 
   function testAreAllReservesBackedDifferentAssets() public {
-    addFeedsToContract();
+    addFeeds();
 
     address[] memory assets = new address[](2);
     assets[0] = address(0);
@@ -101,7 +100,7 @@ contract ProofOfReserveTest is Test {
   }
 
   function testAreAllReservesBackedAaveBtc() public {
-    addFeedsToContract();
+    addFeeds();
 
     address[] memory assets = new address[](2);
     assets[0] = AAVEE;
@@ -117,14 +116,14 @@ contract ProofOfReserveTest is Test {
   }
 
   function testNotAllReservesBacked() public {
-    addFeedsToContract();
+    addFeeds();
 
     address[] memory assets = new address[](2);
     assets[0] = AAVEE;
     assets[1] = BTCB;
 
     vm.mockCall(
-      0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7,
+      PORF_AAVE,
       abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
       abi.encode(1, 1, 1, 1, 1)
     );
@@ -138,7 +137,7 @@ contract ProofOfReserveTest is Test {
     assertEq(result, false);
   }
 
-  function addFeedsToContract() private {
+  function addFeeds() private {
     proofOfReserve.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
     proofOfReserve.enableProofOfReserveFeed(BTCB, PORF_BTCB);
   }
