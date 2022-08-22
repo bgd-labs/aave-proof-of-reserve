@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
-import {IProofOfReserveMonitor} from '../interfaces/IProofOfReserveMonitor.sol';
+import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ProofOfReserve} from './ProofOfReserve.sol';
 
 /**
@@ -12,7 +12,10 @@ import {ProofOfReserve} from './ProofOfReserve.sol';
  * @dev Contract that contains the registry of pairs asset/proof of reserve feed for the chain
  * and can check if any of the assets is not backed.
  */
-abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
+abstract contract ProofOfReserveExecutorBase is
+  IProofOfReserveExecutor,
+  Ownable
+{
   // proof of reserve registry for checkings
   ProofOfReserve internal _proofOfReserve;
 
@@ -26,12 +29,12 @@ abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
     _proofOfReserve = ProofOfReserve(proofOfReserveAddress);
   }
 
-  /// @inheritdoc IProofOfReserveMonitor
-  function getAssetsList() external view returns (address[] memory) {
+  /// @inheritdoc IProofOfReserveExecutor
+  function getAssets() external view returns (address[] memory) {
     return _assets;
   }
 
-  /// @inheritdoc IProofOfReserveMonitor
+  /// @inheritdoc IProofOfReserveExecutor
   function enableAsset(address asset) external onlyOwner {
     if (!_assetsState[asset]) {
       _assets.push(asset);
@@ -40,7 +43,7 @@ abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
     }
   }
 
-  /// @inheritdoc IProofOfReserveMonitor
+  /// @inheritdoc IProofOfReserveExecutor
   function disableAsset(address asset) external onlyOwner {
     _deleteAssetFromArray(asset);
     delete _assetsState[asset];
@@ -64,7 +67,7 @@ abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
     }
   }
 
-  /// @inheritdoc IProofOfReserveMonitor
+  /// @inheritdoc IProofOfReserveExecutor
   function areAllReservesBacked() external view returns (bool) {
     if (_assets.length == 0) {
       return true;

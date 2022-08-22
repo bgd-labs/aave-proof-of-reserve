@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IProofOfReserveMonitor {
+interface IProofOfReserveExecutor {
   /**
    * @dev emitted when new asset is enabled or disabled
    * @param asset the address of the asset
@@ -24,7 +24,7 @@ interface IProofOfReserveMonitor {
   /**
    * @dev gets the list of the assets to check
    */
-  function getAssetsList() external view returns (address[] memory);
+  function getAssets() external view returns (address[] memory);
 
   /**
    * @dev add the asset and corresponding proof of reserve feed to the registry.
