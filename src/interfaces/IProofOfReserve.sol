@@ -44,5 +44,5 @@ interface IProofOfReserve {
   function areAllReservesBacked(address[] calldata assets)
     external
     view
-    returns (bool, bool[] memory unbackedAssetsFlags);
+    returns (bool, bool[] memory);
 }

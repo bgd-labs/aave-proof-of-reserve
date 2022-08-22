@@ -51,7 +51,7 @@ abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
    * @dev delete asset from array.
    * @param asset the address to delete
    */
-  function _deleteAssetFromArray(address asset) internal {
+  function _deleteAssetFromArray(address asset) private {
     for (uint256 i = 0; i < _assets.length; i++) {
       if (_assets[i] == asset) {
         if (i != _assets.length - 1) {
@@ -65,7 +65,7 @@ abstract contract ProofOfReserveMonitorBase is IProofOfReserveMonitor, Ownable {
   }
 
   /// @inheritdoc IProofOfReserveMonitor
-  function areAllReservesBacked() public view returns (bool) {
+  function areAllReservesBacked() external view returns (bool) {
     if (_assets.length == 0) {
       return true;
     }
