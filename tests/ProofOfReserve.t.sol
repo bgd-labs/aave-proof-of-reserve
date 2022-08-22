@@ -1,21 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import 'forge-std/Test.sol';
+import {Test} from 'forge-std/Test.sol';
 
 import {ProofOfReserve} from '../src/contracts/ProofOfReserve.sol';
+import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 
 contract ProofOfReserveTest is Test {
   ProofOfReserve public proofOfReserve;
-  uint256 avalancheFork;
+  uint256 private avalancheFork;
 
-  address constant OWNER = address(1234);
-  address constant ASSET_1 = address(1234);
-  address constant PROOF_OF_RESERVE_FEED_1 = address(4321);
+  address private constant OWNER = address(1234);
+  address private constant ASSET_1 = address(1234);
+  address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
 
-  // asset2
-  // PROOF_OF_RESERVE_FEED_1
-  // proofOfReserveFeed2
+  address private constant AAVEE = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
+  address private constant PORF_AAVE =
+    0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7;
+  address private constant BTCB = 0x152b9d0FdC40C096757F570A51E494bd4b943E50;
+  address private constant PORF_BTCB =
+    0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9;
+
   event ProofOfReserveFeedStateChanged(
     address indexed asset,
     address indexed proofOfReserveFeed,
@@ -23,8 +28,9 @@ contract ProofOfReserveTest is Test {
   );
 
   function setUp() public {
-    // avalancheFork = vm.createFork('https://avalancherpc.com');
-    // vm.selectFork(avalancheFork);
+    // TODO: we do not need to create fork for every test
+    avalancheFork = vm.createFork('https://avalancherpc.com');
+    vm.selectFork(avalancheFork);
     proofOfReserve = new ProofOfReserve();
   }
 
@@ -71,16 +77,69 @@ contract ProofOfReserveTest is Test {
 
   function testAreAllReservesBackedEmptyArray() public {
     address[] memory assets = new address[](0);
-    (bool result, bool[] memory backedAssetsFlags) = proofOfReserve
+    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
       .areAllReservesBacked(assets);
 
-    assertEq(backedAssetsFlags.length, 0);
+    assertEq(unbackedAssetsFlags.length, 0);
     assertEq(result, true);
   }
 
-  // all reserves backed - assets in array and in contract are different
+  function testAreAllReservesBackedDifferentAssets() public {
+    addFeedsToContract();
 
-  // all reserves backed - true
+    address[] memory assets = new address[](2);
+    assets[0] = address(0);
+    assets[1] = address(1);
 
-  // all reserves backed - false
+    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
+      .areAllReservesBacked(assets);
+
+    assertEq(unbackedAssetsFlags.length, 2);
+    assertEq(unbackedAssetsFlags[0], false);
+    assertEq(unbackedAssetsFlags[1], false);
+    assertEq(result, true);
+  }
+
+  function testAreAllReservesBackedAaveBtc() public {
+    addFeedsToContract();
+
+    address[] memory assets = new address[](2);
+    assets[0] = AAVEE;
+    assets[1] = BTCB;
+
+    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
+      .areAllReservesBacked(assets);
+
+    assertEq(unbackedAssetsFlags.length, 2);
+    assertEq(unbackedAssetsFlags[0], false);
+    assertEq(unbackedAssetsFlags[1], false);
+    assertEq(result, true);
+  }
+
+  function testNotAllReservesBacked() public {
+    addFeedsToContract();
+
+    address[] memory assets = new address[](2);
+    assets[0] = AAVEE;
+    assets[1] = BTCB;
+
+    vm.mockCall(
+      0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7,
+      abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+      abi.encode(1, 1, 1, 1, 1)
+    );
+
+    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
+      .areAllReservesBacked(assets);
+
+    assertEq(unbackedAssetsFlags.length, 2);
+    assertEq(unbackedAssetsFlags[0], true);
+    assertEq(unbackedAssetsFlags[1], false);
+    assertEq(result, false);
+  }
+
+  function addFeedsToContract() private {
+    proofOfReserve.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
+    proofOfReserve.enableProofOfReserveFeed(BTCB, PORF_BTCB);
+  }
 }
