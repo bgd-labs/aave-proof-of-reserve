@@ -16,17 +16,17 @@ abstract contract ProofOfReserveExecutorBase is
   IProofOfReserveExecutor,
   Ownable
 {
-  // proof of reserve registry for checkings
-  ProofOfReserve internal _proofOfReserve;
+  /// @dev proof of reserve aggregator contract that
+  ProofOfReserve internal _proofOfReserveAggregator;
 
-  // the list of the assets to check
+  /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
   address[] internal _assets;
 
-  // the list of the assets to check
+  /// @dev token address = > is it contained in the list
   mapping(address => bool) internal _assetsState;
 
-  constructor(address proofOfReserveAddress) {
-    _proofOfReserve = ProofOfReserve(proofOfReserveAddress);
+  constructor(address proofOfReserveAggregatorAddress) {
+    _proofOfReserveAggregator = ProofOfReserve(proofOfReserveAggregatorAddress);
   }
 
   /// @inheritdoc IProofOfReserveExecutor
@@ -73,8 +73,9 @@ abstract contract ProofOfReserveExecutorBase is
       return true;
     }
 
-    (bool result, ) = _proofOfReserve.areAllReservesBacked(_assets);
+    (bool areAllReservesbacked, ) = _proofOfReserveAggregator
+      .areAllReservesBacked(_assets);
 
-    return result;
+    return areAllReservesbacked;
   }
 }

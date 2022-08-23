@@ -7,4 +7,6 @@ interface IPoolConfigurator {
   function setReserveStableRateBorrowing(address asset, bool enabled) external;
 
   function disableBorrowingOnReserve(address asset) external;
+
+  function disableReserveStableRate(address asset) external;
 }
