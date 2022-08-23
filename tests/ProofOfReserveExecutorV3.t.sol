@@ -20,7 +20,6 @@ contract ProofOfReserveExecutorV3Test is Test {
   uint256 private avalancheFork;
   address private constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
 
-  address private constant USER = address(9999);
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
 
@@ -33,7 +32,7 @@ contract ProofOfReserveExecutorV3Test is Test {
 
   event AssetStateChanged(address indexed asset, bool enabled);
   event AssetIsNotBacked(address indexed asset);
-  event EmergencyActionExecuted(address indexed user);
+  event EmergencyActionExecuted();
 
   function setUp() public {
     avalancheFork = vm.createFork('https://avalancherpc.com');
@@ -49,9 +48,9 @@ contract ProofOfReserveExecutorV3Test is Test {
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
-    bool result = isBorrowingEnabledAtLeastOnOneAsset();
+    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
 
-    assertEq(result, true);
+    assertEq(isBorrowingEnabled, true);
   }
 
   function testExecuteEmergencyActionV3() public {
@@ -76,16 +75,15 @@ contract ProofOfReserveExecutorV3Test is Test {
     vm.expectEmit(true, false, false, true);
     emit AssetIsNotBacked(BTCB);
 
-    vm.expectEmit(true, false, false, true);
-    emit EmergencyActionExecuted(USER);
+    vm.expectEmit(false, false, false, true);
+    emit EmergencyActionExecuted();
 
     setRiskAdmin();
 
-    vm.prank(USER);
     proofOfReserveExecutorV3.executeEmergencyAction();
 
-    bool result = isBorrowingEnabledAtLeastOnOneAsset();
-    assertEq(result, false);
+    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
+    assertEq(isBorrowingEnabled, false);
   }
 
   // emergency action - executed and events are emmited
@@ -111,7 +109,7 @@ contract ProofOfReserveExecutorV3Test is Test {
   function isBorrowingEnabledAtLeastOnOneAsset() private view returns (bool) {
     IPool pool = IPool(POOL);
     address[] memory allAssets = pool.getReservesList();
-    bool result = false;
+    bool isBorrowingEnabled = false;
 
     for (uint256 i; i < allAssets.length; i++) {
       ReserveConfigurationMap memory configuration = pool.getConfiguration(
@@ -122,9 +120,9 @@ contract ProofOfReserveExecutorV3Test is Test {
         configuration
       );
 
-      result = result || borrowingEnabled;
+      isBorrowingEnabled = isBorrowingEnabled || borrowingEnabled;
     }
 
-    return result;
+    return isBorrowingEnabled;
   }
 }

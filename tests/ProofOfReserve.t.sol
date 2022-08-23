@@ -76,11 +76,13 @@ contract ProofOfReserveTest is Test {
 
   function testAreAllReservesBackedEmptyArray() public {
     address[] memory assets = new address[](0);
-    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
-      .areAllReservesBacked(assets);
+    (
+      bool areAllReservesbacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserve.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 0);
-    assertEq(result, true);
+    assertEq(areAllReservesbacked, true);
   }
 
   function testAreAllReservesBackedDifferentAssets() public {
@@ -90,13 +92,15 @@ contract ProofOfReserveTest is Test {
     assets[0] = address(0);
     assets[1] = address(1);
 
-    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
-      .areAllReservesBacked(assets);
+    (
+      bool areAllReservesbacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserve.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], false);
     assertEq(unbackedAssetsFlags[1], false);
-    assertEq(result, true);
+    assertEq(areAllReservesbacked, true);
   }
 
   function testAreAllReservesBackedAaveBtc() public {
@@ -106,13 +110,15 @@ contract ProofOfReserveTest is Test {
     assets[0] = AAVEE;
     assets[1] = BTCB;
 
-    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
-      .areAllReservesBacked(assets);
+    (
+      bool areAllReservesbacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserve.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], false);
     assertEq(unbackedAssetsFlags[1], false);
-    assertEq(result, true);
+    assertEq(areAllReservesbacked, true);
   }
 
   function testNotAllReservesBacked() public {
@@ -128,13 +134,15 @@ contract ProofOfReserveTest is Test {
       abi.encode(1, 1, 1, 1, 1)
     );
 
-    (bool result, bool[] memory unbackedAssetsFlags) = proofOfReserve
-      .areAllReservesBacked(assets);
+    (
+      bool areAllReservesbacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserve.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], true);
     assertEq(unbackedAssetsFlags[1], false);
-    assertEq(result, false);
+    assertEq(areAllReservesbacked, false);
   }
 
   function addFeeds() private {

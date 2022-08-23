@@ -17,7 +17,6 @@ contract ProofOfReserveExecutorV2Test is Test {
   uint256 private avalancheFork;
   address private constant POOL = 0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C;
 
-  address private constant USER = address(9999);
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
 
@@ -30,7 +29,7 @@ contract ProofOfReserveExecutorV2Test is Test {
 
   event AssetStateChanged(address indexed asset, bool enabled);
   event AssetIsNotBacked(address indexed asset);
-  event EmergencyActionExecuted(address indexed user);
+  event EmergencyActionExecuted();
 
   function setUp() public {
     avalancheFork = vm.createFork('https://avalancherpc.com');
@@ -93,18 +92,18 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAreAllReservesBackedEmptyArray() public {
-    bool result = proofOfReserveExecutorV2.areAllReservesBacked();
+    bool areAllReservesBacked = proofOfReserveExecutorV2.areAllReservesBacked();
 
-    assertEq(result, true);
+    assertEq(areAllReservesBacked, true);
   }
 
   function testAreAllReservesBackedAaveBtc() public {
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
-    bool result = proofOfReserveExecutorV2.areAllReservesBacked();
+    bool areAllReservesBacked = proofOfReserveExecutorV2.areAllReservesBacked();
 
-    assertEq(result, true);
+    assertEq(areAllReservesBacked, true);
   }
 
   function testNotAllReservesBacked() public {
@@ -117,18 +116,18 @@ contract ProofOfReserveExecutorV2Test is Test {
       abi.encode(1, 1, 1, 1, 1)
     );
 
-    bool result = proofOfReserveExecutorV2.areAllReservesBacked();
+    bool isBorrowingEnabled = proofOfReserveExecutorV2.areAllReservesBacked();
 
-    assertEq(result, false);
+    assertEq(isBorrowingEnabled, false);
   }
 
   function testExecuteEmergencyActionAllBacked() public {
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
-    bool result = isBorrowingEnabledAtLeastOnOneAsset();
+    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
 
-    assertEq(result, true);
+    assertEq(isBorrowingEnabled, true);
   }
 
   function testExecuteEmergencyAction() public {
@@ -153,18 +152,17 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.expectEmit(true, false, false, true);
     emit AssetIsNotBacked(BTCB);
 
-    vm.expectEmit(true, false, false, true);
-    emit EmergencyActionExecuted(USER);
+    vm.expectEmit(false, false, false, true);
+    emit EmergencyActionExecuted();
 
     // TODO: change to risk admin
     setPoolAdmin();
 
-    vm.prank(USER);
     proofOfReserveExecutorV2.executeEmergencyAction();
 
-    bool result = isBorrowingEnabledAtLeastOnOneAsset();
+    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
 
-    assertEq(result, false);
+    assertEq(isBorrowingEnabled, false);
   }
 
   // emergency action - executed and events are emmited
@@ -190,7 +188,7 @@ contract ProofOfReserveExecutorV2Test is Test {
   function isBorrowingEnabledAtLeastOnOneAsset() private view returns (bool) {
     IPool pool = IPool(POOL);
     address[] memory allAssets = pool.getReservesList();
-    bool result = false;
+    bool isBorrowingEnabled = false;
 
     for (uint256 i; i < allAssets.length; i++) {
       ReserveConfigurationMap memory configuration = pool.getConfiguration(
@@ -201,9 +199,9 @@ contract ProofOfReserveExecutorV2Test is Test {
         configuration
       );
 
-      result = result || borrowingEnabled;
+      isBorrowingEnabled = isBorrowingEnabled || borrowingEnabled;
     }
 
-    return result;
+    return isBorrowingEnabled;
   }
 }

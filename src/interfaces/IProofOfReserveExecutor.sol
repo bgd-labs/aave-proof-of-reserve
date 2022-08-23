@@ -17,9 +17,8 @@ interface IProofOfReserveExecutor {
 
   /**
    * @dev emitted when borrowing of all assets on the market is disabled
-   * @param user the address of the user who inited the action
    */
-  event EmergencyActionExecuted(address indexed user);
+  event EmergencyActionExecuted();
 
   /**
    * @dev gets the list of the assets to check

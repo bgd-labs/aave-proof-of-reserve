@@ -28,10 +28,12 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() public {
-    (bool result, bool[] memory unbackedAssetsFlags) = _proofOfReserve
-      .areAllReservesBacked(_assets);
+    (
+      bool areAllReservesbacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
-    if (!result) {
+    if (!areAllReservesbacked) {
       address[] memory reservesList = _pool.getReservesList();
 
       IPoolAddressProvider addressProvider = _pool.getAddressesProvider();
@@ -40,6 +42,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
       );
 
       for (uint256 i = 0; i < reservesList.length; i++) {
+        configurator.disableReserveStableRate(reservesList[i]);
         configurator.disableBorrowingOnReserve(reservesList[i]);
       }
 
@@ -49,7 +52,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
         }
       }
 
-      emit EmergencyActionExecuted(msg.sender);
+      emit EmergencyActionExecuted();
     }
   }
 }
