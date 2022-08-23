@@ -18,7 +18,8 @@ contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
 
   uint256 private avalancheFork;
-  address private constant POOL = 0x794a61358D6845594F94dc1DB02A252b5b4814aD;
+  address private constant ADDRESS_PROVIDER =
+    0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
 
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
@@ -39,7 +40,7 @@ contract ProofOfReserveExecutorV3Test is Test {
     vm.selectFork(avalancheFork);
     proofOfReserve = new ProofOfReserve();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
-      POOL,
+      ADDRESS_PROVIDER,
       address(proofOfReserve)
     );
   }
@@ -99,15 +100,19 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function setRiskAdmin() private {
-    IPool pool = IPool(POOL);
-    IPoolAddressProvider addressProvider = pool.ADDRESSES_PROVIDER();
+    IPoolAddressProvider addressProvider = IPoolAddressProvider(
+      ADDRESS_PROVIDER
+    );
     IACLManager aclManager = IACLManager(addressProvider.getACLManager());
     vm.prank(addressProvider.getACLAdmin());
     aclManager.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
 
   function isBorrowingEnabledAtLeastOnOneAsset() private view returns (bool) {
-    IPool pool = IPool(POOL);
+    IPoolAddressProvider addressProvider = IPoolAddressProvider(
+      ADDRESS_PROVIDER
+    );
+    IPool pool = IPool(addressProvider.getPool());
     address[] memory allAssets = pool.getReservesList();
     bool isBorrowingEnabled = false;
 
