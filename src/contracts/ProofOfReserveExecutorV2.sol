@@ -14,16 +14,16 @@ import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   // AAVE v2 pool
-  IPool internal _pool;
+  IPoolAddressProvider internal _addressProvider;
 
   /**
    * @notice Constructor.
-   * @param poolAddress The address of the Aave's V2 pool
+   * @param poolAddressProviderAddress The address of the Aave's V2 pool address provider
    */
-  constructor(address poolAddress, address proofOfReserveAddress)
+  constructor(address poolAddressProviderAddress, address proofOfReserveAddress)
     ProofOfReserveExecutorBase(proofOfReserveAddress)
   {
-    _pool = IPool(poolAddress);
+    _addressProvider = IPoolAddressProvider(poolAddressProviderAddress);
   }
 
   /// @inheritdoc IProofOfReserveExecutor
@@ -34,11 +34,11 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
     if (!areAllReservesbacked) {
-      address[] memory reservesList = _pool.getReservesList();
+      IPool pool = IPool(_addressProvider.getLendingPool());
+      address[] memory reservesList = pool.getReservesList();
 
-      IPoolAddressProvider addressProvider = _pool.getAddressesProvider();
       IPoolConfigurator configurator = IPoolConfigurator(
-        addressProvider.getLendingPoolConfigurator()
+        _addressProvider.getLendingPoolConfigurator()
       );
 
       for (uint256 i = 0; i < reservesList.length; i++) {
