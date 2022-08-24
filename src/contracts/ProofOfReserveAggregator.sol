@@ -8,9 +8,9 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
 
 /**
  * @author BGD Labs
- * @dev Aave market-specific contract for Proof of Reserve validations:
- * - Stores list of token addresses that will be validated against their proof of reserve feed data
- * - Returns if all tokens of a list of assets are properly backed or not.
+ * @dev Aave aggregator contract for Proof of Reserve Feeds and validations based on them:
+ * - Indexes proof of reserve feed by token address
+ * - Returns if all tokens of a list of assets are properly backed with Proof of Reserve logic, or not.
  */
 contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   /// @dev token address => proof or reserve feed
