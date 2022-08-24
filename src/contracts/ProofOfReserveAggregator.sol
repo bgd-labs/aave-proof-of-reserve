@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
-import {IProofOfReserve} from '../interfaces/IProofOfReserve.sol';
+import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
  * @author BGD Labs
@@ -12,11 +12,11 @@ import {IProofOfReserve} from '../interfaces/IProofOfReserve.sol';
  * - Stores list of token addresses that will be validated against their proof of reserve feed data
  * - Returns if all tokens of a list of assets are properly backed or not.
  */
-contract ProofOfReserve is IProofOfReserve, Ownable {
+contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   /// @dev token address => proof or reserve feed
   mapping(address => address) internal _proofOfReserveList;
 
-  /// @inheritdoc IProofOfReserve
+  /// @inheritdoc IProofOfReserveAggregator
   function getProofOfReserveFeedForAsset(address asset)
     external
     view
@@ -25,7 +25,7 @@ contract ProofOfReserve is IProofOfReserve, Ownable {
     return _proofOfReserveList[asset];
   }
 
-  /// @inheritdoc IProofOfReserve
+  /// @inheritdoc IProofOfReserveAggregator
   function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
     external
     onlyOwner
@@ -34,13 +34,13 @@ contract ProofOfReserve is IProofOfReserve, Ownable {
     emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, true);
   }
 
-  /// @inheritdoc IProofOfReserve
+  /// @inheritdoc IProofOfReserveAggregator
   function disableProofOfReserveFeed(address asset) external onlyOwner {
     delete _proofOfReserveList[asset];
     emit ProofOfReserveFeedStateChanged(asset, address(0), false);
   }
 
-  /// @inheritdoc IProofOfReserve
+  /// @inheritdoc IProofOfReserveAggregator
   function areAllReservesBacked(address[] calldata assets)
     external
     view
@@ -49,21 +49,21 @@ contract ProofOfReserve is IProofOfReserve, Ownable {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areAllReservesbacked = true;
 
-    for (uint256 i = 0; i < assets.length; i++) {
-      unbackedAssetsFlags[i] = false;
+    unchecked {
+      for (uint256 i = 0; i < assets.length; i++) {
+        address assetAddress = assets[i];
+        address feedAddress = _proofOfReserveList[assetAddress];
 
-      address assetAddress = assets[i];
-      address feedAddress = _proofOfReserveList[assetAddress];
+        if (feedAddress != address(0)) {
+          (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
+            .latestRoundData();
 
-      if (feedAddress != address(0)) {
-        (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
-          .latestRoundData();
-
-        if (
-          answer < 0 || IERC20(assetAddress).totalSupply() > uint256(answer)
-        ) {
-          unbackedAssetsFlags[i] = true;
-          areAllReservesbacked = false;
+          if (
+            answer < 0 || IERC20(assetAddress).totalSupply() > uint256(answer)
+          ) {
+            unbackedAssetsFlags[i] = true;
+            areAllReservesbacked = false;
+          }
         }
       }
     }

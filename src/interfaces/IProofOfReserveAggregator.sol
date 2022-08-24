@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IProofOfReserve {
+interface IProofOfReserveAggregator {
   /**
    * @dev emitted when new asset and it's proof of reserve feed are enabled or disabled
    * @param asset the address of the asset

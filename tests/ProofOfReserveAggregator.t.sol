@@ -5,10 +5,10 @@ import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/Aggr
 
 import {Test} from 'forge-std/Test.sol';
 
-import {ProofOfReserve} from '../src/contracts/ProofOfReserve.sol';
+import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 
-contract ProofOfReserveTest is Test {
-  ProofOfReserve public proofOfReserve;
+contract ProofOfReserveAggregatorTest is Test {
+  ProofOfReserveAggregator public proofOfReserveAggregator;
   uint256 private avalancheFork;
 
   address private constant ASSET_1 = address(1234);
@@ -30,48 +30,59 @@ contract ProofOfReserveTest is Test {
   function setUp() public {
     avalancheFork = vm.createFork('https://avalancherpc.com');
     vm.selectFork(avalancheFork);
-    proofOfReserve = new ProofOfReserve();
+    proofOfReserveAggregator = new ProofOfReserveAggregator();
   }
 
   function testProoOfReserveFeedIsEnabled() public {
-    address proofOfReserveFeed = proofOfReserve.getProofOfReserveFeedForAsset(
-      ASSET_1
-    );
+    address proofOfReserveFeed = proofOfReserveAggregator
+      .getProofOfReserveFeedForAsset(ASSET_1);
     assertEq(proofOfReserveFeed, address(0));
 
     vm.expectEmit(true, true, false, true);
     emit ProofOfReserveFeedStateChanged(ASSET_1, PROOF_OF_RESERVE_FEED_1, true);
 
-    proofOfReserve.enableProofOfReserveFeed(ASSET_1, PROOF_OF_RESERVE_FEED_1);
-    proofOfReserveFeed = proofOfReserve.getProofOfReserveFeedForAsset(ASSET_1);
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      ASSET_1,
+      PROOF_OF_RESERVE_FEED_1
+    );
+    proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
+        ASSET_1
+      );
     assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
   }
 
   function testProoOfReserveFeedIsEnabledWhenNotOwner() public {
     vm.expectRevert(bytes('Ownable: caller is not the owner'));
     vm.prank(address(0));
-    proofOfReserve.enableProofOfReserveFeed(ASSET_1, PROOF_OF_RESERVE_FEED_1);
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      ASSET_1,
+      PROOF_OF_RESERVE_FEED_1
+    );
   }
 
   function testProoOfReserveFeedIsDisabled() public {
-    proofOfReserve.enableProofOfReserveFeed(ASSET_1, PROOF_OF_RESERVE_FEED_1);
-    address proofOfReserveFeed = proofOfReserve.getProofOfReserveFeedForAsset(
-      ASSET_1
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      ASSET_1,
+      PROOF_OF_RESERVE_FEED_1
     );
+    address proofOfReserveFeed = proofOfReserveAggregator
+      .getProofOfReserveFeedForAsset(ASSET_1);
     assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
 
     vm.expectEmit(true, true, false, true);
     emit ProofOfReserveFeedStateChanged(ASSET_1, address(0), false);
 
-    proofOfReserve.disableProofOfReserveFeed(ASSET_1);
-    proofOfReserveFeed = proofOfReserve.getProofOfReserveFeedForAsset(ASSET_1);
+    proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
+    proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
+        ASSET_1
+      );
     assertEq(proofOfReserveFeed, address(0));
   }
 
   function testProoOfReserveFeedIsDisabledWhenNotOwner() public {
     vm.expectRevert(bytes('Ownable: caller is not the owner'));
     vm.prank(address(0));
-    proofOfReserve.disableProofOfReserveFeed(ASSET_1);
+    proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
   }
 
   function testAreAllReservesBackedEmptyArray() public {
@@ -79,7 +90,7 @@ contract ProofOfReserveTest is Test {
     (
       bool areAllReservesbacked,
       bool[] memory unbackedAssetsFlags
-    ) = proofOfReserve.areAllReservesBacked(assets);
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 0);
     assertEq(areAllReservesbacked, true);
@@ -95,7 +106,7 @@ contract ProofOfReserveTest is Test {
     (
       bool areAllReservesbacked,
       bool[] memory unbackedAssetsFlags
-    ) = proofOfReserve.areAllReservesBacked(assets);
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], false);
@@ -113,7 +124,7 @@ contract ProofOfReserveTest is Test {
     (
       bool areAllReservesbacked,
       bool[] memory unbackedAssetsFlags
-    ) = proofOfReserve.areAllReservesBacked(assets);
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], false);
@@ -137,7 +148,7 @@ contract ProofOfReserveTest is Test {
     (
       bool areAllReservesbacked,
       bool[] memory unbackedAssetsFlags
-    ) = proofOfReserve.areAllReservesBacked(assets);
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], true);
@@ -146,7 +157,7 @@ contract ProofOfReserveTest is Test {
   }
 
   function addFeeds() private {
-    proofOfReserve.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
-    proofOfReserve.enableProofOfReserveFeed(BTCB, PORF_BTCB);
+    proofOfReserveAggregator.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
+    proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
   }
 }

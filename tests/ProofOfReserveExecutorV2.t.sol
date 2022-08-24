@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {Test} from 'forge-std/Test.sol';
 
-import {ProofOfReserve} from '../src/contracts/ProofOfReserve.sol';
+import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 
 import {IPool, ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
@@ -12,7 +12,7 @@ import {IPoolAddressProvider} from '../src/dependencies/IPoolAddressProvider.sol
 import {ReserveConfiguration} from './helpers/ReserveConfiguration.sol';
 
 contract ProofOfReserveExecutorV2Test is Test {
-  ProofOfReserve private proofOfReserve;
+  ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV2 private proofOfReserveExecutorV2;
   uint256 private avalancheFork;
   address private constant ADDRESS_PROVIDER =
@@ -35,10 +35,10 @@ contract ProofOfReserveExecutorV2Test is Test {
   function setUp() public {
     avalancheFork = vm.createFork('https://avalancherpc.com');
     vm.selectFork(avalancheFork);
-    proofOfReserve = new ProofOfReserve();
+    proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       ADDRESS_PROVIDER,
-      address(proofOfReserve)
+      address(proofOfReserveAggregator)
     );
   }
 
@@ -169,8 +169,8 @@ contract ProofOfReserveExecutorV2Test is Test {
   // emergency action - executed and events are emmited
 
   function enableFeedsOnRegistry() private {
-    proofOfReserve.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
-    proofOfReserve.enableProofOfReserveFeed(BTCB, PORF_BTCB);
+    proofOfReserveAggregator.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
+    proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
   }
 
   function enableAssetsOnExecutor() private {
