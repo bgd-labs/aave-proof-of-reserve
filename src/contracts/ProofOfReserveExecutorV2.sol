@@ -9,8 +9,8 @@ import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 
 /**
  * @author BGD Labs
- * @dev Contract to disable the borrowing for every asset listed on the AAVE V2 Pool,
- * when at least one of the monitored bridged assets is not backed.
+ * @dev Aave V2 contract for Proof of Reserve emergency action in case of any of bridged reserves is not backed:
+ * - Disables borrowing of every asset on the market, when any of them is not backed
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   // AAVE v2 pool

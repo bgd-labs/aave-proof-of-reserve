@@ -9,8 +9,9 @@ import {ProofOfReserveAggregator} from './ProofOfReserveAggregator.sol';
 
 /**
  * @author BGD Labs
- * @dev Contract that contains the registry of pairs asset/proof of reserve feed for the chain
- * and can check if any of the assets is not backed.
+ * @dev Aave market-specific contract for Proof of Reserve validations:
+ * - Stores list of token addresses that will be validated against their proof of reserve feed data
+ * - Returns if all tokens of a list of assets are properly backed or not.
  */
 abstract contract ProofOfReserveExecutorBase is
   IProofOfReserveExecutor,
