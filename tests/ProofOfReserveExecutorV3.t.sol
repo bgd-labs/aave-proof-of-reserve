@@ -5,7 +5,7 @@ import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/Aggr
 import {Test} from 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 
-import {ProofOfReserve} from '../src/contracts/ProofOfReserve.sol';
+import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 
 import {IPool, ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
@@ -14,7 +14,7 @@ import {IACLManager} from './helpers/IACLManager.sol';
 import {ReserveConfiguration} from './helpers/ReserveConfiguration.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
-  ProofOfReserve private proofOfReserve;
+  ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
 
   uint256 private avalancheFork;
@@ -38,10 +38,10 @@ contract ProofOfReserveExecutorV3Test is Test {
   function setUp() public {
     avalancheFork = vm.createFork('https://avalancherpc.com');
     vm.selectFork(avalancheFork);
-    proofOfReserve = new ProofOfReserve();
+    proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       ADDRESS_PROVIDER,
-      address(proofOfReserve)
+      address(proofOfReserveAggregator)
     );
   }
 
@@ -90,8 +90,8 @@ contract ProofOfReserveExecutorV3Test is Test {
   // emergency action - executed and events are emmited
 
   function enableFeedsOnRegistry() private {
-    proofOfReserve.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
-    proofOfReserve.enableProofOfReserveFeed(BTCB, PORF_BTCB);
+    proofOfReserveAggregator.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
+    proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
   }
 
   function enableAssetsOnExecutor() private {

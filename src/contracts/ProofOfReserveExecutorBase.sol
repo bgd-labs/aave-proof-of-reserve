@@ -5,7 +5,7 @@ import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/Aggr
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
-import {ProofOfReserve} from './ProofOfReserve.sol';
+import {ProofOfReserveAggregator} from './ProofOfReserveAggregator.sol';
 
 /**
  * @author BGD Labs
@@ -17,7 +17,7 @@ abstract contract ProofOfReserveExecutorBase is
   Ownable
 {
   /// @dev proof of reserve aggregator contract that
-  ProofOfReserve internal _proofOfReserveAggregator;
+  ProofOfReserveAggregator internal _proofOfReserveAggregator;
 
   /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
   address[] internal _assets;
@@ -26,7 +26,9 @@ abstract contract ProofOfReserveExecutorBase is
   mapping(address => bool) internal _assetsState;
 
   constructor(address proofOfReserveAggregatorAddress) {
-    _proofOfReserveAggregator = ProofOfReserve(proofOfReserveAggregatorAddress);
+    _proofOfReserveAggregator = ProofOfReserveAggregator(
+      proofOfReserveAggregatorAddress
+    );
   }
 
   /// @inheritdoc IProofOfReserveExecutor
