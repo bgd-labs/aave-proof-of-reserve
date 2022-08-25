@@ -15,19 +15,16 @@ contract Deploy is Script {
     vm.startBroadcast();
 
     ProofOfReserveAggregator proofOfReserveAggregator = new ProofOfReserveAggregator();
-    console.log('proofOfReserveAggregator:', address(proofOfReserveAggregator));
 
-    ProofOfReserveExecutorV2 proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
-        ADDRESS_PROVIDER_V2,
-        address(proofOfReserveAggregator)
-      );
-    console.log('proofOfReserveExecutorV2:', address(proofOfReserveExecutorV2));
+    new ProofOfReserveExecutorV2(
+      ADDRESS_PROVIDER_V2,
+      address(proofOfReserveAggregator)
+    );
 
-    ProofOfReserveExecutorV3 proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
-        ADDRESS_PROVIDER_V3,
-        address(proofOfReserveAggregator)
-      );
-    console.log('proofOfReserveExecutorV3:', address(proofOfReserveExecutorV3));
+    new ProofOfReserveExecutorV3(
+      ADDRESS_PROVIDER_V3,
+      address(proofOfReserveAggregator)
+    );
 
     vm.stopBroadcast();
   }
