@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import {Script} from 'forge-std/Script.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
+import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
+import {ProofOfReserveKeeper} from '../src/contracts/ProofOfReserveKeeper.sol';
 
 contract Deploy is Script {
   address public constant ADDRESS_PROVIDER_V2 =
@@ -25,6 +27,8 @@ contract Deploy is Script {
       ADDRESS_PROVIDER_V3,
       address(proofOfReserveAggregator)
     );
+
+    new ProofOfReserveKeeper();
 
     vm.stopBroadcast();
   }
