@@ -6,6 +6,7 @@ import {ILendingPoolAddressesProvider} from 'aave-address-book/AaveV2.sol';
 import {IACLManager} from 'aave-address-book/AaveV3.sol';
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
+import {StewardBase} from './StewardBase.sol';
 
 /**
  * @title ProposalPayloadProofOfReserve
@@ -19,7 +20,7 @@ import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol
  * - V3: enable tokens for checking against their proof of reserfe feed
  */
 
-contract ProposalPayloadProofOfReserve {
+contract ProposalPayloadProofOfReserve is StewardBase {
   bytes32 public constant PROOF_OF_RESERVE_ADMIN = 'PROOF_OF_RESERVE_ADMIN';
 
   address public constant LENDING_POOL_CONFIGURATOR_IMPL = address(0);
@@ -30,7 +31,12 @@ contract ProposalPayloadProofOfReserve {
   address[] public ASSETS = [address(0), address(1)];
   address[] public PROOF_OF_RESERVE_FEEDS = [address(10), address(11)];
 
-  function execute() external {
+  function execute()
+    external
+    withRennounceOfAllAavePermissions(AaveV3Avalanche.ACL_MANAGER)
+    withOwnershipBurning
+    onlyOwner
+  {
     // Aggregator
     IProofOfReserveAggregator aggregator = IProofOfReserveAggregator(
       PROOF_OF_RESERVE_AGGREGATOR
