@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
-import {IPool} from '../dependencies/IPool.sol';
+import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
+import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
 /**
  * @author BGD Labs
@@ -24,6 +25,28 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     ProofOfReserveExecutorBase(proofOfReserveAddress)
   {
     _addressProvider = IPoolAddressProvider(poolAddressProviderAddress);
+  }
+
+  /// @inheritdoc IProofOfReserveExecutor
+  function isBorrowingEnabledForAtLeastOneAsset() external view returns (bool) {
+    IPool pool = IPool(_addressProvider.getPool());
+    address[] memory allAssets = pool.getReservesList();
+
+    for (uint256 i; i < allAssets.length; i++) {
+      ReserveConfigurationMap memory configuration = pool.getConfiguration(
+        allAssets[i]
+      );
+
+      (, , bool borrowingEnabled, ) = ReserveConfiguration.getFlags(
+        configuration
+      );
+
+      if (borrowingEnabled) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /// @inheritdoc IProofOfReserveExecutor

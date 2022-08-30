@@ -7,9 +7,8 @@ import {Test} from 'forge-std/Test.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 
-import {IPool, ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
+import {IPool} from '../src/dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../src/dependencies/IPoolAddressProvider.sol';
-import {ReserveConfiguration} from './helpers/ReserveConfiguration.sol';
 
 contract ProofOfReserveExecutorV2Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
@@ -126,7 +125,8 @@ contract ProofOfReserveExecutorV2Test is Test {
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
-    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
+    bool isBorrowingEnabled = proofOfReserveExecutorV2
+      .isBorrowingEnabledForAtLeastOneAsset();
 
     assertEq(isBorrowingEnabled, true);
   }
@@ -161,7 +161,8 @@ contract ProofOfReserveExecutorV2Test is Test {
 
     proofOfReserveExecutorV2.executeEmergencyAction();
 
-    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
+    bool isBorrowingEnabled = proofOfReserveExecutorV2
+      .isBorrowingEnabledForAtLeastOneAsset();
 
     assertEq(isBorrowingEnabled, false);
   }
@@ -185,28 +186,5 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.prank(addressProvider.getPoolAdmin());
 
     addressProvider.setPoolAdmin(address(proofOfReserveExecutorV2));
-  }
-
-  function isBorrowingEnabledAtLeastOnOneAsset() private view returns (bool) {
-    IPoolAddressProvider addressProvider = IPoolAddressProvider(
-      ADDRESS_PROVIDER
-    );
-    IPool pool = IPool(addressProvider.getLendingPool());
-    address[] memory allAssets = pool.getReservesList();
-    bool isBorrowingEnabled = false;
-
-    for (uint256 i; i < allAssets.length; i++) {
-      ReserveConfigurationMap memory configuration = pool.getConfiguration(
-        allAssets[i]
-      );
-
-      (, , bool borrowingEnabled, ) = ReserveConfiguration.getFlags(
-        configuration
-      );
-
-      isBorrowingEnabled = isBorrowingEnabled || borrowingEnabled;
-    }
-
-    return isBorrowingEnabled;
   }
 }
