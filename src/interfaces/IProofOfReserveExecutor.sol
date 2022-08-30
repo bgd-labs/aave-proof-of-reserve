@@ -43,6 +43,11 @@ interface IProofOfReserveExecutor {
   function areAllReservesBacked() external view returns (bool);
 
   /**
+   * @dev returns if borrowing is enabled for at least one asset.
+   */
+  function isBorrowingEnabledForAtLeastOneAsset() external view returns (bool);
+
+  /**
    * @dev disable borrowing for all the assets on the pool when at least
    * one of the assets in the registry is not backed.
    */

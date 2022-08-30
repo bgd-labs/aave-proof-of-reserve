@@ -8,10 +8,9 @@ import 'forge-std/console.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 
-import {IPool, ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
+import {IPool} from '../src/dependencies/IPool.sol';
 import {IPoolAddressProvider} from '../src/dependencies/IPoolAddressProvider.sol';
 import {IACLManager} from './helpers/IACLManager.sol';
-import {ReserveConfiguration} from './helpers/ReserveConfiguration.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
@@ -49,7 +48,8 @@ contract ProofOfReserveExecutorV3Test is Test {
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
-    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
+    bool isBorrowingEnabled = proofOfReserveExecutorV3
+      .isBorrowingEnabledForAtLeastOneAsset();
 
     assertEq(isBorrowingEnabled, true);
   }
@@ -83,7 +83,8 @@ contract ProofOfReserveExecutorV3Test is Test {
 
     proofOfReserveExecutorV3.executeEmergencyAction();
 
-    bool isBorrowingEnabled = isBorrowingEnabledAtLeastOnOneAsset();
+    bool isBorrowingEnabled = proofOfReserveExecutorV3
+      .isBorrowingEnabledForAtLeastOneAsset();
     assertEq(isBorrowingEnabled, false);
   }
 
@@ -106,28 +107,5 @@ contract ProofOfReserveExecutorV3Test is Test {
     IACLManager aclManager = IACLManager(addressProvider.getACLManager());
     vm.prank(addressProvider.getACLAdmin());
     aclManager.addRiskAdmin(address(proofOfReserveExecutorV3));
-  }
-
-  function isBorrowingEnabledAtLeastOnOneAsset() private view returns (bool) {
-    IPoolAddressProvider addressProvider = IPoolAddressProvider(
-      ADDRESS_PROVIDER
-    );
-    IPool pool = IPool(addressProvider.getPool());
-    address[] memory allAssets = pool.getReservesList();
-    bool isBorrowingEnabled = false;
-
-    for (uint256 i; i < allAssets.length; i++) {
-      ReserveConfigurationMap memory configuration = pool.getConfiguration(
-        allAssets[i]
-      );
-
-      (, , bool borrowingEnabled, ) = ReserveConfiguration.getFlags(
-        configuration
-      );
-
-      isBorrowingEnabled = isBorrowingEnabled || borrowingEnabled;
-    }
-
-    return isBorrowingEnabled;
   }
 }

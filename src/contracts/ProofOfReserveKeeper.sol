@@ -27,7 +27,10 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
       executorAddress
     );
 
-    if (!proofOfreserveExecutor.areAllReservesBacked()) {
+    if (
+      !proofOfreserveExecutor.areAllReservesBacked() &&
+      proofOfreserveExecutor.isBorrowingEnabledForAtLeastOneAsset()
+    ) {
       return (true, checkData);
     }
 
