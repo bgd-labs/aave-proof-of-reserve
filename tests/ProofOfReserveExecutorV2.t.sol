@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {Test} from 'forge-std/Test.sol';
-
-import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
-import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 
 import {IPool} from '../src/dependencies/IPool.sol';
 import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider.sol';
+import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
+
+import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
+import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 
 contract ProofOfReserveExecutorV2Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;

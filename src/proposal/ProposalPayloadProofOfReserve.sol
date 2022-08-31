@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 import {ILendingPoolAddressesProvider} from 'aave-address-book/AaveV2.sol';
 import {IACLManager} from 'aave-address-book/AaveV3.sol';
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {StewardBase} from './StewardBase.sol';
+import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 
 /**
  * @title ProposalPayloadProofOfReserve

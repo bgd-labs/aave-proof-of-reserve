@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import 'chainlink-brownie-contracts/KeeperCompatible.sol';
-//
+import {KeeperCompatibleInterface} from 'chainlink-brownie-contracts/KeeperCompatible.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 
 /**
