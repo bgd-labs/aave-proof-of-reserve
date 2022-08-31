@@ -8,13 +8,13 @@ import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregato
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 
 import {IPool} from '../src/dependencies/IPool.sol';
-import {IPoolAddressProvider} from '../src/dependencies/IPoolAddressProvider.sol';
+import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider.sol';
 
 contract ProofOfReserveExecutorV2Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV2 private proofOfReserveExecutorV2;
   uint256 private avalancheFork;
-  address private constant ADDRESS_PROVIDER =
+  address private constant ADDRESSES_PROVIDER =
     0xb6A86025F0FE1862B372cb0ca18CE3EDe02A318f;
 
   address private constant ASSET_1 = address(1234);
@@ -36,7 +36,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.selectFork(avalancheFork);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
-      ADDRESS_PROVIDER,
+      ADDRESSES_PROVIDER,
       address(proofOfReserveAggregator)
     );
   }
@@ -180,11 +180,11 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function setPoolAdmin() private {
-    IPoolAddressProvider addressProvider = IPoolAddressProvider(
-      ADDRESS_PROVIDER
+    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
+      ADDRESSES_PROVIDER
     );
-    vm.prank(addressProvider.getPoolAdmin());
+    vm.prank(addressesProvider.getPoolAdmin());
 
-    addressProvider.setPoolAdmin(address(proofOfReserveExecutorV2));
+    addressesProvider.setPoolAdmin(address(proofOfReserveExecutorV2));
   }
 }

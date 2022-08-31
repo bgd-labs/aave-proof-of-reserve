@@ -47,16 +47,16 @@ contract ProposalPayloadProofOfReserve is StewardBase {
     }
 
     // V2
-    ILendingPoolAddressesProvider addressProvider = AaveV2Avalanche
+    ILendingPoolAddressesProvider addressesProvider = AaveV2Avalanche
       .POOL_ADDRESSES_PROVIDER;
 
     // set new implementation for pool configurator
-    addressProvider.setLendingPoolConfiguratorImpl(
+    addressesProvider.setLendingPoolConfiguratorImpl(
       LENDING_POOL_CONFIGURATOR_IMPL
     );
 
     // set executor v2 as proof of reserve admin
-    addressProvider.setAddress(
+    addressesProvider.setAddress(
       PROOF_OF_RESERVE_ADMIN,
       PROOF_OF_RESERVE_EXECUTOR_V2
     );
