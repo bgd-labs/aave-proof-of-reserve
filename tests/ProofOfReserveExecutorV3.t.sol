@@ -9,7 +9,7 @@ import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregato
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 
 import {IPool} from '../src/dependencies/IPool.sol';
-import {IPoolAddressProvider} from '../src/dependencies/IPoolAddressProvider.sol';
+import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider.sol';
 import {IACLManager} from './helpers/IACLManager.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
@@ -101,11 +101,11 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function setRiskAdmin() private {
-    IPoolAddressProvider addressProvider = IPoolAddressProvider(
+    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
       ADDRESS_PROVIDER
     );
-    IACLManager aclManager = IACLManager(addressProvider.getACLManager());
-    vm.prank(addressProvider.getACLAdmin());
+    IACLManager aclManager = IACLManager(addressesProvider.getACLManager());
+    vm.prank(addressesProvider.getACLAdmin());
     aclManager.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
 }

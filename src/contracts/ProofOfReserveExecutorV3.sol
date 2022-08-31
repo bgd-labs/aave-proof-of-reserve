@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
 import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
-import {IPoolAddressProvider} from '../dependencies/IPoolAddressProvider.sol';
+import {IPoolAddressesProvider} from '../dependencies/IPoolAddressesProvider.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
@@ -14,22 +14,29 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  * - Disables borrowing of every asset on the market, when any of them is not backed
  */
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
-  // AAVE v3 pool
-  IPoolAddressProvider internal _addressProvider;
+  // AAVE v3 pool address provider
+  IPoolAddressesProvider internal _addressesProvider;
 
   /**
    * @notice Constructor.
-   * @param poolAddressProviderAddress The address of the Aave's V3 pool address provider
+   * @param poolAddressesProviderAddress The address of the Aave's V3 pool addresses provider
+   * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
-  constructor(address poolAddressProviderAddress, address proofOfReserveAddress)
-    ProofOfReserveExecutorBase(proofOfReserveAddress)
-  {
-    _addressProvider = IPoolAddressProvider(poolAddressProviderAddress);
+  constructor(
+    address poolAddressesProviderAddress,
+    address proofOfReserveAggregatorAddress
+  ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
+    _addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isBorrowingEnabledForAtLeastOneAsset() external view returns (bool) {
-    IPool pool = IPool(_addressProvider.getPool());
+  function isBorrowingEnabledForAtLeastOneAsset()
+    external
+    view
+    override
+    returns (bool)
+  {
+    IPool pool = IPool(_addressesProvider.getPool());
     address[] memory allAssets = pool.getReservesList();
 
     for (uint256 i; i < allAssets.length; i++) {
@@ -50,18 +57,18 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function executeEmergencyAction() public {
+  function executeEmergencyAction() external override {
     (
       bool areAllReservesbacked,
       bool[] memory unbackedAssetsFlags
     ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
     if (!areAllReservesbacked) {
-      IPool pool = IPool(_addressProvider.getPool());
+      IPool pool = IPool(_addressesProvider.getPool());
       address[] memory reservesList = pool.getReservesList();
 
       IPoolConfigurator configurator = IPoolConfigurator(
-        _addressProvider.getPoolConfigurator()
+        _addressesProvider.getPoolConfigurator()
       );
 
       for (uint256 i = 0; i < reservesList.length; i++) {

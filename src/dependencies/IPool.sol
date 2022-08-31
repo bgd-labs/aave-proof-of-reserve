@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import {IPoolAddressProvider} from './IPoolAddressProvider.sol';
+import {IPoolAddressesProvider} from './IPoolAddressesProvider.sol';
 
 struct ReserveConfigurationMap {
   //bit 0-15: LTV
@@ -20,9 +20,12 @@ struct ReserveConfigurationMap {
 interface IPool {
   function getReservesList() external view returns (address[] memory);
 
-  function ADDRESSES_PROVIDER() external view returns (IPoolAddressProvider);
+  function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
 
-  function getAddressesProvider() external view returns (IPoolAddressProvider);
+  function getAddressesProvider()
+    external
+    view
+    returns (IPoolAddressesProvider);
 
   function getConfiguration(address asset)
     external

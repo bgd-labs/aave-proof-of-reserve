@@ -26,6 +26,10 @@ abstract contract ProofOfReserveExecutorBase is
   /// @dev token address = > is it contained in the list
   mapping(address => bool) internal _assetsState;
 
+  /**
+   * @notice Constructor.
+   * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
+   */
   constructor(address proofOfReserveAggregatorAddress) {
     _proofOfReserveAggregator = ProofOfReserveAggregator(
       proofOfReserveAggregatorAddress
@@ -57,7 +61,7 @@ abstract contract ProofOfReserveExecutorBase is
    * @dev delete asset from array.
    * @param asset the address to delete
    */
-  function _deleteAssetFromArray(address asset) private {
+  function _deleteAssetFromArray(address asset) internal {
     for (uint256 i = 0; i < _assets.length; i++) {
       if (_assets[i] == asset) {
         if (i != _assets.length - 1) {
@@ -81,4 +85,14 @@ abstract contract ProofOfReserveExecutorBase is
 
     return areAllReservesbacked;
   }
+
+  /// @inheritdoc IProofOfReserveExecutor
+  function executeEmergencyAction() external virtual;
+
+  /// @inheritdoc IProofOfReserveExecutor
+  function isBorrowingEnabledForAtLeastOneAsset()
+    external
+    view
+    virtual
+    returns (bool);
 }
