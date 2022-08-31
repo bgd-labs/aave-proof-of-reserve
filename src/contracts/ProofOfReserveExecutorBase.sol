@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
+import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
+import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
+import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {ProofOfReserveAggregator} from './ProofOfReserveAggregator.sol';
 
 /**

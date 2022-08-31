@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
-import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
 import {IPoolAddressesProvider} from '../dependencies/IPoolAddressesProvider.sol';
+import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
 import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
