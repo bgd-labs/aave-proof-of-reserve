@@ -14,12 +14,12 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  * - Disables borrowing of every asset on the market, when any of them is not backed
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
-  // AAVE v2 pool address provider
+  // AAVE v2 pool addresses provider
   IPoolAddressesProvider internal _addressesProvider;
 
   /**
    * @notice Constructor.
-   * @param poolAddressesProviderAddress The address of the Aave's V2 pool address provider
+   * @param poolAddressesProviderAddress The address of the Aave's V2 pool addresses provider
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
   constructor(
@@ -44,11 +44,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
         allAssets[i]
       );
 
-      (, , bool borrowingEnabled, ) = ReserveConfiguration.getFlags(
-        configuration
-      );
-
-      if (borrowingEnabled) {
+      if (ReserveConfiguration.getBorrowingEnabled(configuration)) {
         return true;
       }
     }

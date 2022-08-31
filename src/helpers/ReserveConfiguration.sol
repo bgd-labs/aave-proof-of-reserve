@@ -33,4 +33,17 @@ library ReserveConfiguration {
       (dataLocal & ~STABLE_BORROWING_MASK) != 0
     );
   }
+
+  /**
+   * @dev Gets the borrowing state of the reserve
+   * @param self The reserve configuration
+   * @return The borrowing state
+   **/
+  function getBorrowingEnabled(ReserveConfigurationMap memory self)
+    internal
+    pure
+    returns (bool)
+  {
+    return (self.data & ~BORROWING_MASK) != 0;
+  }
 }
