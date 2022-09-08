@@ -33,7 +33,7 @@ contract ProofOfReserveExecutorV3Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://avalancherpc.com');
+    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
     vm.selectFork(avalancheFork);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
