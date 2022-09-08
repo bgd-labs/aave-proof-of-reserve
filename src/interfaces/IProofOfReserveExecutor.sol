@@ -26,7 +26,7 @@ interface IProofOfReserveExecutor {
   function getAssets() external view returns (address[] memory);
 
   /**
-   * @dev add the asset and corresponding proof of reserve feed to the registry.
+   * @dev enable checking of proof of reserve for the asset
    * @param asset the address of the asset
    */
   function enableAsset(address asset) external;

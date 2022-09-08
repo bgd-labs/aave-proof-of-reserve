@@ -27,7 +27,7 @@ contract ProofOfReserveAggregatorTest is Test {
   );
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://avalancherpc.com');
+    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
     vm.selectFork(avalancheFork);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
   }
