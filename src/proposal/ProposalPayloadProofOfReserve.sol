@@ -29,36 +29,49 @@ import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBoo
 contract ProposalPayloadProofOfReserve is Ownable {
   bytes32 public constant PROOF_OF_RESERVE_ADMIN = 'PROOF_OF_RESERVE_ADMIN';
 
-  address public constant LENDING_POOL_CONFIGURATOR_IMPL = address(0);
-  address public constant PROOF_OF_RESERVE_AGGREGATOR = address(0);
-  address public constant PROOF_OF_RESERVE_EXECUTOR_V2 = address(0);
-  address public constant PROOF_OF_RESERVE_EXECUTOR_V3 = address(0);
-  address public constant PROOF_OF_RESERVE_KEEPER = address(0);
-
-  address[] public ASSETS = [address(0), address(1)];
-  address[] public PROOF_OF_RESERVE_FEEDS = [address(10), address(11)];
+  address public immutable LENDING_POOL_CONFIGURATOR_IMPL;
+  address public immutable PROOF_OF_RESERVE_AGGREGATOR;
+  address public immutable PROOF_OF_RESERVE_EXECUTOR_V2;
+  address public immutable PROOF_OF_RESERVE_EXECUTOR_V3;
+  address public immutable PROOF_OF_RESERVE_KEEPER;
 
   address public constant KEEPER_REGISTRAR =
     address(0xDb8e8e2ccb5C033938736aa89Fe4fa1eDfD15a1d);
 
-  ICollectorController public collectorController =
-    ICollectorController(address(0xaCbE7d574EF8dC39435577eb638167Aca74F79f0));
+  address public constant COLLECTOR_CONTROLLER =
+    address(0xaCbE7d574EF8dC39435577eb638167Aca74F79f0);
 
-  IERC20 public aavaLinkToken =
-    IERC20(address(0x191c10Aa4AF7C30e871E70C95dB0E4eb77237530));
+  address public constant AAVA_LINK_TOKEN =
+    address(0x191c10Aa4AF7C30e871E70C95dB0E4eb77237530);
 
   address public constant LINK_TOKEN =
     address(0x5947BB275c521040051D82396192181b413227A3);
 
-  LinkTokenInterface public linkToken =
-    LinkTokenInterface(address(0x5947BB275c521040051D82396192181b413227A3));
+  address public constant KEEPER_REGISTRY =
+    address(0x02777053d6764996e594c3E88AF1D58D5363a2e6);
 
-  KeeperRegistryInterface public keeperRegistry =
-    KeeperRegistryInterface(
-      address(0x02777053d6764996e594c3E88AF1D58D5363a2e6)
-    );
+  constructor(
+    address poolConfigurator,
+    address aggregator,
+    address executorV2,
+    address executorV3,
+    address keeper
+  ) {
+    LENDING_POOL_CONFIGURATOR_IMPL = poolConfigurator;
+    PROOF_OF_RESERVE_AGGREGATOR = aggregator;
+    PROOF_OF_RESERVE_EXECUTOR_V2 = executorV2;
+    PROOF_OF_RESERVE_EXECUTOR_V3 = executorV3;
+    PROOF_OF_RESERVE_KEEPER = keeper;
+  }
 
   function execute() external onlyOwner {
+    address[1] memory ASSETS = [
+      address(0x63a72806098Bd3D9520cC43356dD78afe5D386D9)
+    ];
+    address[1] memory PROOF_OF_RESERVE_FEEDS = [
+      address(0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7)
+    ];
+
     // Aggregator
     IProofOfReserveAggregator aggregator = IProofOfReserveAggregator(
       PROOF_OF_RESERVE_AGGREGATOR
@@ -110,6 +123,11 @@ contract ProposalPayloadProofOfReserve is Ownable {
     }
 
     // transfer aAvaLink token from the treasury to the current address
+    ICollectorController collectorController = ICollectorController(
+      AaveV3Avalanche.COLLECTOR_CONTROLLER
+    );
+    IERC20 aavaLinkToken = IERC20(AAVA_LINK_TOKEN);
+
     collectorController.transfer(
       aavaLinkToken,
       address(this),
@@ -151,6 +169,11 @@ contract ProposalPayloadProofOfReserve is Ownable {
     uint96 amount,
     uint8 source
   ) internal {
+    LinkTokenInterface linkToken = LinkTokenInterface(LINK_TOKEN);
+    KeeperRegistryInterface keeperRegistry = KeeperRegistryInterface(
+      KEEPER_REGISTRY
+    );
+
     (State memory state, Config memory _c, address[] memory _k) = keeperRegistry
       .getState();
     uint256 oldNonce = state.nonce;

@@ -156,7 +156,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.expectEmit(false, false, false, true);
     emit EmergencyActionExecuted();
 
-    // TODO: change to risk admin
+    // TODO: change to proof of reserve admin
     setPoolAdmin();
 
     proofOfReserveExecutorV2.executeEmergencyAction();
