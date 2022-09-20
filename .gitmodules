@@ -16,3 +16,6 @@
 [submodule "lib/aave-address-book"]
 	path = lib/aave-address-book
 	url = https://github.com/bgd-labs/aave-address-book
+[submodule "lib/protocol-v2"]
+	path = lib/protocol-v2
+	url = https://github.com/bgd-labs/protocol-v2
