@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 import {Test} from 'forge-std/Test.sol';
+import {console} from 'forge-std/console.sol';
 
 import {ICollectorController} from '../src/dependencies/ICollectorController.sol';
 import {ProposalPayloadProofOfReserve} from '../src/proposal/ProposalPayloadProofOfReserve.sol';
@@ -8,9 +9,9 @@ import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregato
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 import {ProofOfReserveKeeper} from '../src/contracts/ProofOfReserveKeeper.sol';
+import {ConfiguratorMock} from './helpers/ConfiguratorMock.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
-import {BaseProxy} from './helpers/BaseProxy.sol';
 
 contract ProposalPayloadProofOfReserveTest is Test {
   uint256 private avalancheFork;
@@ -24,6 +25,7 @@ contract ProposalPayloadProofOfReserveTest is Test {
 
   function testExecute() public {
     // deploy all contracts
+    ConfiguratorMock configurator = new ConfiguratorMock();
     ProofOfReserveAggregator aggregator = new ProofOfReserveAggregator();
     ProofOfReserveExecutorV2 executorV2 = new ProofOfReserveExecutorV2(
       address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
@@ -35,48 +37,49 @@ contract ProposalPayloadProofOfReserveTest is Test {
     );
     ProofOfReserveKeeper keeper = new ProofOfReserveKeeper();
 
-    // deploy proposal
+    // deploy the proposal
     ProposalPayloadProofOfReserve proposal = new ProposalPayloadProofOfReserve(
-      AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.getLendingPoolConfigurator(),
+      address(configurator),
       address(aggregator),
       address(executorV2),
       address(executorV3),
       address(keeper)
     );
 
-    // transfer ownership to proposal
+    // transfer ownership to the proposal
     aggregator.transferOwnership(address(proposal));
     executorV2.transferOwnership(address(proposal));
     executorV3.transferOwnership(address(proposal));
-    // TODO: transfer collectorController ownership to proposal
 
-    // currently v2 pool address provider has other owner
-    vm.startPrank(address(0x01244E7842254e3FD229CD263472076B1439D1Cd));
+    // currently v2 pool address provider has the other owner
+    vm.prank(address(0x01244E7842254e3FD229CD263472076B1439D1Cd));
 
-    // trasfer v2 Addreess Provider ownership to proposal
-    // TODO: check owner of immutable proxy
+    // trasfer v2 Addreess Provider ownership to the proposal
     Ownable(address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER)).transferOwnership(
         address(proposal)
       );
 
-    // vm.stopPrank();
-    // check that GUARDIAN is v3 risk admin and set risk admin to proposal
-    // vm.startPrank(GUARDIAN);
+    // Currrently only GUARDIAN is DEFAULT_ADMIN and is able to assign roles
+    // Give the proposal POOL_ADMIN role, and make POOL_ADMIN as role admin for RISK_ADMIN ability to assign roles
+    vm.startPrank(GUARDIAN);
 
-    // GUARDIAN is not v3 risk admin, should be added inside proposal (and then removed)
-    // AaveV3Avalanche.ACL_MANAGER.setRoleAdmin(address(proposal));
-    // assertTrue(AaveV3Avalanche.ACL_MANAGER.isRiskAdmin(GUARDIAN));
+    AaveV3Avalanche.ACL_MANAGER.addPoolAdmin(address(proposal));
+    AaveV3Avalanche.ACL_MANAGER.setRoleAdmin(
+      keccak256('RISK_ADMIN'),
+      keccak256('POOL_ADMIN')
+    );
 
-    // check that GUARDIAN is the owner of the Collector Controller and transfer ownership to proposal
-    // assertEq(GUARDIAN, Ownable(AaveV3Avalanche.COLLECTOR_CONTROLLER).owner());
-    // Ownable(AaveV3Avalanche.COLLECTOR_CONTROLLER).transferOwnership(
-    //   address(proposal)
-    // );
+    // transfer collectorController ownership to proposal
+    Ownable(AaveV3Avalanche.COLLECTOR_CONTROLLER).transferOwnership(
+      address(proposal)
+    );
 
-    // vm.stopPrank();
+    vm.stopPrank();
 
     // Execute proposal
-    // proposal.execute();
+    proposal.execute();
+
+    // check that something has changed
   }
 
   // function setRiskAdmin(address proposalAddress) private {

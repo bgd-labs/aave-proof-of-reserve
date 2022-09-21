@@ -90,7 +90,6 @@ contract ProposalPayloadProofOfReserve is Ownable {
     addressesProvider.setLendingPoolConfiguratorImpl(
       LENDING_POOL_CONFIGURATOR_IMPL
     );
-    // TODO: init and initReserves
 
     // set ProofOfReserveExecutorV2 as PROOF_OF_RESERVE_ADMIN
     addressesProvider.setAddress(
