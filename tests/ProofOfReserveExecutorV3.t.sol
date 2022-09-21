@@ -9,10 +9,12 @@ import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider
 import {IACLManager} from './helpers/IACLManager.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
+import {AvaBridgeWrapper} from '../src/contracts/AvaBridgeWrapper.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
+  AvaBridgeWrapper private bridgeWrapper;
 
   uint256 private avalancheFork;
   address private constant ADDRESS_PROVIDER =
@@ -22,6 +24,8 @@ contract ProofOfReserveExecutorV3Test is Test {
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
 
   address private constant AAVEE = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
+  address private constant AAVEE_DEPRECATED =
+    0x8cE2Dee54bB9921a2AE0A63dBb2DF8eD88B91dD9;
   address private constant PORF_AAVE =
     0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7;
   address private constant BTCB = 0x152b9d0FdC40C096757F570A51E494bd4b943E50;
@@ -40,6 +44,7 @@ contract ProofOfReserveExecutorV3Test is Test {
       ADDRESS_PROVIDER,
       address(proofOfReserveAggregator)
     );
+    bridgeWrapper = new AvaBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
 
   function testExecuteEmergencyActionAllBacked() public {
@@ -69,7 +74,7 @@ contract ProofOfReserveExecutorV3Test is Test {
     );
 
     vm.expectEmit(true, false, false, true);
-    emit AssetIsNotBacked(AAVEE);
+    emit AssetIsNotBacked(address(bridgeWrapper));
 
     vm.expectEmit(true, false, false, true);
     emit AssetIsNotBacked(BTCB);
@@ -89,12 +94,15 @@ contract ProofOfReserveExecutorV3Test is Test {
   // emergency action - executed and events are emmited
 
   function enableFeedsOnRegistry() private {
-    proofOfReserveAggregator.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      address(bridgeWrapper),
+      PORF_AAVE
+    );
     proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
   }
 
   function enableAssetsOnExecutor() private {
-    proofOfReserveExecutorV3.enableAsset(AAVEE);
+    proofOfReserveExecutorV3.enableAsset(address(bridgeWrapper));
     proofOfReserveExecutorV3.enableAsset(BTCB);
   }
 
