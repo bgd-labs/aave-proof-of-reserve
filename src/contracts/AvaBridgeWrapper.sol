@@ -11,10 +11,10 @@ import {IERC20Metadata} from 'solidity-utils/contracts/oz-common/interfaces/IERC
  * two bridges for one asset
  */
 contract AvaBridgeWrapper is IBridgeWrapper {
-  // IERC20 contract for the actual bridge
-  IERC20Metadata private _currentBridge;
-  // IERC20 contract for the deprecated bridge
-  IERC20Metadata private _deprecatedBridge;
+  // contract for the actual bridge
+  IERC20Metadata private immutable _currentBridge;
+  // contract for the deprecated bridge
+  IERC20 private immutable _deprecatedBridge;
 
   /**
    * @notice Constructor.
@@ -23,7 +23,7 @@ contract AvaBridgeWrapper is IBridgeWrapper {
    */
   constructor(address currentBridgeAddress, address deprecatedBridgeAddress) {
     _currentBridge = IERC20Metadata(currentBridgeAddress);
-    _deprecatedBridge = IERC20Metadata(deprecatedBridgeAddress);
+    _deprecatedBridge = IERC20(deprecatedBridgeAddress);
   }
 
   /// @inheritdoc IBridgeWrapper
