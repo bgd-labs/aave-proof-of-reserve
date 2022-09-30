@@ -23,40 +23,31 @@ contract AvaxBridgeWrapperTest is Test {
   }
 
   function testTotalSupplyAAVEe() public {
-    // Arrange
-    IERC20Metadata aavee = IERC20Metadata(AAVEE);
-    IERC20Metadata aaveeDeprecated = IERC20Metadata(AAVEE_DEPRECATED);
-    AvaxBridgeWrapper bridgeWrapper = new AvaxBridgeWrapper(
-      AAVEE,
-      AAVEE_DEPRECATED
-    );
-
-    // Act + Assert
-    assertEq(
-      bridgeWrapper.totalSupply(),
-      aavee.totalSupply() + aaveeDeprecated.totalSupply()
-    );
-    assertEq(bridgeWrapper.name(), aavee.name());
-    assertEq(bridgeWrapper.symbol(), aavee.symbol());
-    assertEq(bridgeWrapper.decimals(), aavee.decimals());
+    checkTotalSupplyAndMetadata(AAVEE, AAVEE_DEPRECATED);
   }
 
   function testTotalSupplyDAIe() public {
+    checkTotalSupplyAndMetadata(DAIE, DAIE_DEPRECATED);
+  }
+
+  function checkTotalSupplyAndMetadata(address token, address deprecatedToken)
+    private
+  {
     // Arrange
-    IERC20Metadata daie = IERC20Metadata(DAIE);
-    IERC20Metadata daieDeprecated = IERC20Metadata(DAIE_DEPRECATED);
+    IERC20Metadata bridge = IERC20Metadata(token);
+    IERC20Metadata deprecatedBridge = IERC20Metadata(deprecatedToken);
     AvaxBridgeWrapper bridgeWrapper = new AvaxBridgeWrapper(
-      DAIE,
-      DAIE_DEPRECATED
+      token,
+      deprecatedToken
     );
 
     // Act + Assert
     assertEq(
       bridgeWrapper.totalSupply(),
-      daie.totalSupply() + daieDeprecated.totalSupply()
+      bridge.totalSupply() + deprecatedBridge.totalSupply()
     );
-    assertEq(bridgeWrapper.name(), daie.name());
-    assertEq(bridgeWrapper.symbol(), daie.symbol());
-    assertEq(bridgeWrapper.decimals(), daie.decimals());
+    assertEq(bridgeWrapper.name(), bridge.name());
+    assertEq(bridgeWrapper.symbol(), bridge.symbol());
+    assertEq(bridgeWrapper.decimals(), bridge.decimals());
   }
 }
