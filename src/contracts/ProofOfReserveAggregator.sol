@@ -47,7 +47,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     returns (bool, bool[] memory)
   {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
-    bool areAllReservesbacked = true;
+    bool areAllReservesBacked = true;
 
     unchecked {
       for (uint256 i = 0; i < assets.length; i++) {
@@ -62,12 +62,12 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
             answer < 0 || IERC20(assetAddress).totalSupply() > uint256(answer)
           ) {
             unbackedAssetsFlags[i] = true;
-            areAllReservesbacked = false;
+            areAllReservesBacked = false;
           }
         }
       }
     }
 
-    return (areAllReservesbacked, unbackedAssetsFlags);
+    return (areAllReservesBacked, unbackedAssetsFlags);
   }
 }
