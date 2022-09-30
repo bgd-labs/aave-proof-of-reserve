@@ -20,7 +20,7 @@ import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBoo
  * - Add pairs of token and its proof of reserves to Proof Of Reserves Aggregator
  * - V2: upgrade implementation of LendingPoolConfigurator to enable new PROOF_OF_RESERVE_ADMIN role usage
  * - V2: assign PROOF_OF_RESERVE_ADMIN role to ProofOfReserveExecutorV2 in AddressProvider
- * - V2: enable tokens for checking against their proof of reserfe feed
+ * - V2: enable tokens for checking against their proof of reserve feed
  * - V3: assign Risk admin role to ProofOfReserveExecutorV3
  * - Transfer aAvaLINK tokens from AAVE treasury to the current address, then withdraw them to get LINK.e
  * - Register V2 and V3 upkeeps for the Chainlink Keeper
@@ -29,10 +29,13 @@ import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBoo
 contract ProposalPayloadProofOfReserve is Ownable {
   bytes32 public constant PROOF_OF_RESERVE_ADMIN = 'PROOF_OF_RESERVE_ADMIN';
 
+  IProofOfReserveAggregator public immutable aggregator;
+  IProofOfReserveExecutor public immutable executorV2;
+  IProofOfReserveExecutor public immutable executorV3;
+  ICollectorController public immutable collectorController;
+  LinkTokenInterface public immutable linkToken;
+
   address public immutable LENDING_POOL_CONFIGURATOR_IMPL;
-  address public immutable PROOF_OF_RESERVE_AGGREGATOR;
-  address public immutable PROOF_OF_RESERVE_EXECUTOR_V2;
-  address public immutable PROOF_OF_RESERVE_EXECUTOR_V3;
   address public immutable PROOF_OF_RESERVE_KEEPER;
 
   address public constant KEEPER_REGISTRAR =
@@ -52,79 +55,65 @@ contract ProposalPayloadProofOfReserve is Ownable {
 
   constructor(
     address poolConfigurator,
-    address aggregator,
-    address executorV2,
-    address executorV3,
-    address keeper
+    address aggregatorAddress,
+    address executorV2Address,
+    address executorV3Address,
+    address keeperAddress
   ) {
     LENDING_POOL_CONFIGURATOR_IMPL = poolConfigurator;
-    PROOF_OF_RESERVE_AGGREGATOR = aggregator;
-    PROOF_OF_RESERVE_EXECUTOR_V2 = executorV2;
-    PROOF_OF_RESERVE_EXECUTOR_V3 = executorV3;
-    PROOF_OF_RESERVE_KEEPER = keeper;
+
+    aggregator = IProofOfReserveAggregator(aggregatorAddress);
+    executorV2 = IProofOfReserveExecutor(executorV2Address);
+    executorV3 = IProofOfReserveExecutor(executorV3Address);
+    linkToken = LinkTokenInterface(LINK_TOKEN);
+    collectorController = ICollectorController(
+      AaveV3Avalanche.COLLECTOR_CONTROLLER
+    );
+
+    PROOF_OF_RESERVE_KEEPER = keeperAddress;
   }
 
   function execute() external onlyOwner {
-    address[1] memory ASSETS = [
+    address[1] memory assets = [
       address(0x63a72806098Bd3D9520cC43356dD78afe5D386D9)
     ];
-    address[1] memory PROOF_OF_RESERVE_FEEDS = [
+    address[1] memory proofOfReserveFeeds = [
       address(0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7)
     ];
 
-    // Aggregator
-    IProofOfReserveAggregator aggregator = IProofOfReserveAggregator(
-      PROOF_OF_RESERVE_AGGREGATOR
-    );
-
     // Add pairs of token and its proof of reserves to Proof Of Reserves Aggregator
-    for (uint256 i; i < ASSETS.length; i++) {
-      aggregator.enableProofOfReserveFeed(ASSETS[i], PROOF_OF_RESERVE_FEEDS[i]);
+    for (uint256 i; i < assets.length; i++) {
+      aggregator.enableProofOfReserveFeed(assets[i], proofOfReserveFeeds[i]);
     }
 
     // V2
-    ILendingPoolAddressesProvider addressesProvider = AaveV2Avalanche
-      .POOL_ADDRESSES_PROVIDER;
 
     // set the new implementation for Pool Configurator to enable PROOF_OF_RESERVE_ADMIN
-    addressesProvider.setLendingPoolConfiguratorImpl(
+    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setLendingPoolConfiguratorImpl(
       LENDING_POOL_CONFIGURATOR_IMPL
     );
 
     // set ProofOfReserveExecutorV2 as PROOF_OF_RESERVE_ADMIN
-    addressesProvider.setAddress(
+    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setAddress(
       PROOF_OF_RESERVE_ADMIN,
-      PROOF_OF_RESERVE_EXECUTOR_V2
-    );
-
-    IProofOfReserveExecutor executorV2 = IProofOfReserveExecutor(
-      PROOF_OF_RESERVE_EXECUTOR_V2
+      address(executorV2)
     );
 
     // enable checking of proof of reserve for the assets
-    for (uint256 i; i < ASSETS.length; i++) {
-      executorV2.enableAsset(ASSETS[i]);
+    for (uint256 i; i < assets.length; i++) {
+      executorV2.enableAsset(assets[i]);
     }
 
     // V3
-    IACLManager aclManager = AaveV3Avalanche.ACL_MANAGER;
-
     // assign RiskAdmin role to ProofOfReserveExecutorV3
-    aclManager.addRiskAdmin(PROOF_OF_RESERVE_EXECUTOR_V3);
-
-    IProofOfReserveExecutor executorV3 = IProofOfReserveExecutor(
-      PROOF_OF_RESERVE_EXECUTOR_V3
-    );
+    AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(executorV3));
 
     // enable checking of proof of reserve for the assets
-    for (uint256 i; i < ASSETS.length; i++) {
-      executorV3.enableAsset(ASSETS[i]);
+    for (uint256 i; i < assets.length; i++) {
+      executorV3.enableAsset(assets[i]);
     }
 
     // transfer aAvaLink token from the treasury to the current address
-    ICollectorController collectorController = ICollectorController(
-      AaveV3Avalanche.COLLECTOR_CONTROLLER
-    );
     IERC20 aavaLinkToken = IERC20(AAVA_LINK_TOKEN);
 
     collectorController.transfer(
@@ -142,7 +131,7 @@ contract ProposalPayloadProofOfReserve is Ownable {
       PROOF_OF_RESERVE_KEEPER,
       2500000,
       address(this),
-      abi.encode(PROOF_OF_RESERVE_EXECUTOR_V2),
+      abi.encode(address(executorV2)),
       5000000000000000000,
       0
     );
@@ -153,7 +142,7 @@ contract ProposalPayloadProofOfReserve is Ownable {
       PROOF_OF_RESERVE_KEEPER,
       2500000,
       address(this),
-      abi.encode(PROOF_OF_RESERVE_EXECUTOR_V3),
+      abi.encode(address(executorV3)),
       5000000000000000000,
       0
     );
@@ -168,7 +157,6 @@ contract ProposalPayloadProofOfReserve is Ownable {
     uint96 amount,
     uint8 source
   ) internal {
-    LinkTokenInterface linkToken = LinkTokenInterface(LINK_TOKEN);
     KeeperRegistryInterface keeperRegistry = KeeperRegistryInterface(
       KEEPER_REGISTRY
     );

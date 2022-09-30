@@ -32,7 +32,7 @@ contract ProofOfReserveAggregatorTest is Test {
     proofOfReserveAggregator = new ProofOfReserveAggregator();
   }
 
-  function testProoOfReserveFeedIsEnabled() public {
+  function testProofOfReserveFeedIsEnabled() public {
     address proofOfReserveFeed = proofOfReserveAggregator
       .getProofOfReserveFeedForAsset(ASSET_1);
     assertEq(proofOfReserveFeed, address(0));
@@ -50,7 +50,7 @@ contract ProofOfReserveAggregatorTest is Test {
     assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
   }
 
-  function testProoOfReserveFeedIsEnabledWhenNotOwner() public {
+  function testProofOfReserveFeedIsEnabledWhenNotOwner() public {
     vm.expectRevert(bytes('Ownable: caller is not the owner'));
     vm.prank(address(0));
     proofOfReserveAggregator.enableProofOfReserveFeed(
@@ -87,12 +87,12 @@ contract ProofOfReserveAggregatorTest is Test {
   function testAreAllReservesBackedEmptyArray() public {
     address[] memory assets = new address[](0);
     (
-      bool areAllReservesbacked,
+      bool areAllReservesBacked,
       bool[] memory unbackedAssetsFlags
     ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 0);
-    assertEq(areAllReservesbacked, true);
+    assertEq(areAllReservesBacked, true);
   }
 
   function testAreAllReservesBackedDifferentAssets() public {
@@ -103,14 +103,14 @@ contract ProofOfReserveAggregatorTest is Test {
     assets[1] = address(1);
 
     (
-      bool areAllReservesbacked,
+      bool areAllReservesBacked,
       bool[] memory unbackedAssetsFlags
     ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], false);
     assertEq(unbackedAssetsFlags[1], false);
-    assertEq(areAllReservesbacked, true);
+    assertEq(areAllReservesBacked, true);
   }
 
   function testAreAllReservesBackedAaveBtc() public {
@@ -121,14 +121,14 @@ contract ProofOfReserveAggregatorTest is Test {
     assets[1] = BTCB;
 
     (
-      bool areAllReservesbacked,
+      bool areAllReservesBacked,
       bool[] memory unbackedAssetsFlags
     ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], false);
     assertEq(unbackedAssetsFlags[1], false);
-    assertEq(areAllReservesbacked, true);
+    assertEq(areAllReservesBacked, true);
   }
 
   function testNotAllReservesBacked() public {
@@ -145,14 +145,14 @@ contract ProofOfReserveAggregatorTest is Test {
     );
 
     (
-      bool areAllReservesbacked,
+      bool areAllReservesBacked,
       bool[] memory unbackedAssetsFlags
     ) = proofOfReserveAggregator.areAllReservesBacked(assets);
 
     assertEq(unbackedAssetsFlags.length, 2);
     assertEq(unbackedAssetsFlags[0], true);
     assertEq(unbackedAssetsFlags[1], false);
-    assertEq(areAllReservesbacked, false);
+    assertEq(areAllReservesBacked, false);
   }
 
   function addFeeds() private {

@@ -45,7 +45,7 @@ interface IProofOfReserveExecutor {
   /**
    * @dev returns if borrowing is enabled for at least one asset.
    * This is not checked in executeEmergencyAction(), but is used
-   * to prevent infinite execution of performUpckeep() inside the Keeper contract.
+   * to prevent infinite execution of performUpkeep() inside the Keeper contract.
    */
   function isBorrowingEnabledForAtLeastOneAsset() external view returns (bool);
 

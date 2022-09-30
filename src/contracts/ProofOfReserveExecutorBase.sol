@@ -18,7 +18,7 @@ abstract contract ProofOfReserveExecutorBase is
   IProofOfReserveExecutor,
   Ownable
 {
-  /// @dev proof of reserve aggregator contract that
+  /// @dev proof of reserve aggregator contract that holds 
   ProofOfReserveAggregator internal _proofOfReserveAggregator;
 
   /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
