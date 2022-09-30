@@ -23,13 +23,13 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
     returns (bool, bytes memory)
   {
     address executorAddress = abi.decode(checkData, (address));
-    IProofOfReserveExecutor proofOfreserveExecutor = IProofOfReserveExecutor(
+    IProofOfReserveExecutor proofOfReserveExecutor = IProofOfReserveExecutor(
       executorAddress
     );
 
     if (
-      !proofOfreserveExecutor.areAllReservesBacked() &&
-      proofOfreserveExecutor.isBorrowingEnabledForAtLeastOneAsset()
+      !proofOfReserveExecutor.areAllReservesBacked() &&
+      proofOfReserveExecutor.isBorrowingEnabledForAtLeastOneAsset()
     ) {
       return (true, checkData);
     }
@@ -44,12 +44,10 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
   function performUpkeep(bytes calldata performData) external override {
     address executorAddress = abi.decode(performData, (address));
 
-    IProofOfReserveExecutor proofOfreserveExecutor = IProofOfReserveExecutor(
+    IProofOfReserveExecutor proofOfReserveExecutor = IProofOfReserveExecutor(
       executorAddress
     );
 
-    if (!proofOfreserveExecutor.areAllReservesBacked()) {
-      proofOfreserveExecutor.executeEmergencyAction();
-    }
+    proofOfReserveExecutor.executeEmergencyAction();
   }
 }

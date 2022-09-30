@@ -55,11 +55,11 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() external override {
     (
-      bool areAllReservesbacked,
+      bool areAllReservesBacked,
       bool[] memory unbackedAssetsFlags
     ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
-    if (!areAllReservesbacked) {
+    if (!areAllReservesBacked) {
       IPool pool = IPool(_addressesProvider.getPool());
       address[] memory reservesList = pool.getReservesList();
 
