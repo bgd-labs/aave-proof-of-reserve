@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IBridgeWrapper} from '../interfaces/IBridgeWrapper.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IERC20Metadata} from 'solidity-utils/contracts/oz-common/interfaces/IERC20Metadata.sol';
+
+import {IBridgeWrapper} from '../interfaces/IBridgeWrapper.sol';
 
 /**
  * @author BGD Labs
