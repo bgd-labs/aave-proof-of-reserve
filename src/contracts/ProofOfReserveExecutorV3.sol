@@ -52,33 +52,19 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     return false;
   }
 
-  /// @inheritdoc IProofOfReserveExecutor
-  function executeEmergencyAction() external override {
-    (
-      bool areAllReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+  /// @inheritdoc ProofOfReserveExecutorBase
+  function _disableBorrowing() internal override {
+    IPool pool = IPool(_addressesProvider.getPool());
+    address[] memory reservesList = pool.getReservesList();
 
-    if (!areAllReservesBacked) {
-      IPool pool = IPool(_addressesProvider.getPool());
-      address[] memory reservesList = pool.getReservesList();
+    IPoolConfigurator configurator = IPoolConfigurator(
+      _addressesProvider.getPoolConfigurator()
+    );
 
-      IPoolConfigurator configurator = IPoolConfigurator(
-        _addressesProvider.getPoolConfigurator()
-      );
-
-      for (uint256 i = 0; i < reservesList.length; i++) {
-        configurator.setReserveStableRateBorrowing(reservesList[i], false);
-        configurator.setReserveBorrowing(reservesList[i], false);
-      }
-
-      for (uint256 i = 0; i < _assets.length; i++) {
-        if (unbackedAssetsFlags[i]) {
-          emit AssetIsNotBacked(_assets[i]);
-        }
-      }
-
-      emit EmergencyActionExecuted();
+    // disable borrowing for all the reserves on the market
+    for (uint256 i = 0; i < reservesList.length; i++) {
+      configurator.setReserveStableRateBorrowing(reservesList[i], false);
+      configurator.setReserveBorrowing(reservesList[i], false);
     }
   }
 }

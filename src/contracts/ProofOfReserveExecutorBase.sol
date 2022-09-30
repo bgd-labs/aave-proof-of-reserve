@@ -18,7 +18,7 @@ abstract contract ProofOfReserveExecutorBase is
   IProofOfReserveExecutor,
   Ownable
 {
-  /// @dev proof of reserve aggregator contract that holds 
+  /// @dev proof of reserve aggregator contract that holds
   ProofOfReserveAggregator internal _proofOfReserveAggregator;
 
   /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
@@ -88,7 +88,29 @@ abstract contract ProofOfReserveExecutorBase is
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function executeEmergencyAction() external virtual;
+  function executeEmergencyAction() external {
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+
+    if (!areReservesBacked) {
+      _disableBorrowing();
+
+      for (uint256 i = 0; i < _assets.length; i++) {
+        if (unbackedAssetsFlags[i]) {
+          emit AssetIsNotBacked(_assets[i]);
+        }
+      }
+
+      emit EmergencyActionExecuted();
+    }
+  }
+
+  /**
+   * @dev disable borrowing for every asset on the market.
+   */
+  function _disableBorrowing() internal virtual;
 
   /// @inheritdoc IProofOfReserveExecutor
   function isBorrowingEnabledForAtLeastOneAsset()
