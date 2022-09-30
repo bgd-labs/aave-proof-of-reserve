@@ -53,6 +53,16 @@ contract ProposalPayloadProofOfReserve is Ownable {
   address public constant KEEPER_REGISTRY =
     address(0x02777053d6764996e594c3E88AF1D58D5363a2e6);
 
+  /**
+   * @dev emitted when the new upkeep is registered in Chainlink
+   * @param name name of the upkeep
+   * @param upkeepId id of the upkeep in chainlink
+   */
+  event ChainlinkUpkeepRegistered(
+    string indexed name,
+    uint256 indexed upkeepId
+  );
+
   constructor(
     address poolConfigurator,
     address aggregatorAddress,
@@ -186,18 +196,18 @@ contract ProposalPayloadProofOfReserve is Ownable {
 
     (state, _c, _k) = keeperRegistry.getState();
 
-    uint256 newNonce = state.nonce;
-    if (newNonce == oldNonce + 1) {
-      // uint256 upkeepID = uint256(
-      //   keccak256(
-      //     abi.encodePacked(
-      //       blockhash(block.number - 1),
-      //       address(keeperRegistry),
-      //       uint32(oldNonce)
-      //     )
-      //   )
-      // );
-      // TODO: do we need to save upkeepId somewhere ?
+    if (state.nonce == oldNonce + 1) {
+      uint256 upkeepID = uint256(
+        keccak256(
+          abi.encodePacked(
+            blockhash(block.number - 1),
+            address(keeperRegistry),
+            uint32(oldNonce)
+          )
+        )
+      );
+
+      emit ChainlinkUpkeepRegistered(name, upkeepID);
     } else {
       revert('auto-approve disabled');
     }
