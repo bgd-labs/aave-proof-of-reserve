@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
 import {IERC20Metadata} from 'solidity-utils/contracts/oz-common/interfaces/IERC20Metadata.sol';
-import {AvaBridgeWrapper} from '../src/contracts/AvaBridgeWrapper.sol';
+import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 
-contract AvaBridgeWrapperTest is Test {
+contract AvaxBridgeWrapperTest is Test {
   uint256 private avalancheFork;
 
   address private constant AAVEE =
@@ -26,7 +26,7 @@ contract AvaBridgeWrapperTest is Test {
     // Arrange
     IERC20Metadata aavee = IERC20Metadata(AAVEE);
     IERC20Metadata aaveeDeprecated = IERC20Metadata(AAVEE_DEPRECATED);
-    AvaBridgeWrapper bridgeWrapper = new AvaBridgeWrapper(
+    AvaxBridgeWrapper bridgeWrapper = new AvaxBridgeWrapper(
       AAVEE,
       AAVEE_DEPRECATED
     );
@@ -45,7 +45,7 @@ contract AvaBridgeWrapperTest is Test {
     // Arrange
     IERC20Metadata daie = IERC20Metadata(DAIE);
     IERC20Metadata daieDeprecated = IERC20Metadata(DAIE_DEPRECATED);
-    AvaBridgeWrapper bridgeWrapper = new AvaBridgeWrapper(
+    AvaxBridgeWrapper bridgeWrapper = new AvaxBridgeWrapper(
       DAIE,
       DAIE_DEPRECATED
     );
