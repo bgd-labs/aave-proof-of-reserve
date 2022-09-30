@@ -9,12 +9,12 @@ import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/Aggr
 
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
-import {AvaBridgeWrapper} from '../src/contracts/AvaBridgeWrapper.sol';
+import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 
 contract ProofOfReserveExecutorV2Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV2 private proofOfReserveExecutorV2;
-  AvaBridgeWrapper private bridgeWrapper;
+  AvaxBridgeWrapper private bridgeWrapper;
 
   uint256 private avalancheFork;
   address private constant ADDRESSES_PROVIDER =
@@ -45,7 +45,7 @@ contract ProofOfReserveExecutorV2Test is Test {
       ADDRESSES_PROVIDER,
       address(proofOfReserveAggregator)
     );
-    bridgeWrapper = new AvaBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
+    bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
 
   function testAssetIsEnabled() public {

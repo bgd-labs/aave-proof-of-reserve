@@ -11,7 +11,7 @@ import {IBridgeWrapper} from '../interfaces/IBridgeWrapper.sol';
  * @dev Contract to wrap total supply of bridged tokens on Avalanche as there can possibly be
  * two bridges for one asset
  */
-contract AvaBridgeWrapper is IBridgeWrapper {
+contract AvaxBridgeWrapper is IBridgeWrapper {
   // contract for the actual bridge
   IERC20Metadata private immutable _currentBridge;
   // contract for the deprecated bridge

@@ -9,12 +9,12 @@ import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider
 import {IACLManager} from './helpers/IACLManager.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
-import {AvaBridgeWrapper} from '../src/contracts/AvaBridgeWrapper.sol';
+import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
-  AvaBridgeWrapper private bridgeWrapper;
+  AvaxBridgeWrapper private bridgeWrapper;
 
   uint256 private avalancheFork;
   address private constant ADDRESS_PROVIDER =
@@ -44,7 +44,7 @@ contract ProofOfReserveExecutorV3Test is Test {
       ADDRESS_PROVIDER,
       address(proofOfReserveAggregator)
     );
-    bridgeWrapper = new AvaBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
+    bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
 
   function testExecuteEmergencyActionAllBacked() public {
