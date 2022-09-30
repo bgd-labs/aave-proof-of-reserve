@@ -18,6 +18,11 @@ contract ProposalPayloadProofOfReserveTest is Test {
   address public constant GUARDIAN =
     address(0xa35b76E4935449E33C56aB24b23fcd3246f13470);
 
+  event ChainlinkUpkeepRegistered(
+    string indexed name,
+    uint256 indexed upkeedId
+  );
+
   function setUp() public {
     avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
     vm.selectFork(avalancheFork);
@@ -75,6 +80,12 @@ contract ProposalPayloadProofOfReserveTest is Test {
     );
 
     vm.stopPrank();
+
+    vm.expectEmit(true, false, false, false);
+    emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV2', 0);
+
+    vm.expectEmit(true, false, false, false);
+    emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV3', 0);
 
     // Execute proposal
     proposal.execute();
