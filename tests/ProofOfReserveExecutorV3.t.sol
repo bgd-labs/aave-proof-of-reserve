@@ -102,8 +102,11 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function enableAssetsOnExecutor() private {
-    proofOfReserveExecutorV3.enableAsset(address(bridgeWrapper));
-    proofOfReserveExecutorV3.enableAsset(BTCB);
+    address[] memory assets = new address[](2);
+    assets[0] = address(bridgeWrapper);
+    assets[1] = BTCB;
+
+    proofOfReserveExecutorV3.enableAssets(assets);
   }
 
   function setRiskAdmin() private {

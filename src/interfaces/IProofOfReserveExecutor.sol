@@ -26,16 +26,16 @@ interface IProofOfReserveExecutor {
   function getAssets() external view returns (address[] memory);
 
   /**
-   * @dev enable checking of proof of reserve for the asset
-   * @param asset the address of the asset
+   * @dev enable checking of proof of reserve for the passed list of assets
+   * @param assets the addresses of the assets
    */
-  function enableAsset(address asset) external;
+  function enableAssets(address[] memory assets) external;
 
   /**
-   * @dev delete the asset and the proof of reserve feed from the registry.
-   * @param asset address of the asset
+   * @dev delete the assets and the proof of reserve feeds from the registry.
+   * @param assets addresses of the assets
    */
-  function disableAsset(address asset) external;
+  function disableAssets(address[] memory assets) external;
 
   /**
    * @dev returns if all the assets in the registry are backed.

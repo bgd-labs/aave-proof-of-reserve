@@ -48,54 +48,82 @@ contract ProofOfReserveExecutorV2Test is Test {
     bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
 
-  function testAssetIsEnabled() public {
+  function testAssetsAreEnabled() public {
     address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
     assertEq(enabledAssets.length, 0);
 
     vm.expectEmit(true, false, false, true);
     emit AssetStateChanged(ASSET_1, true);
 
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
+    vm.expectEmit(true, false, false, true);
+    emit AssetStateChanged(AAVEE, true);
+
+    address[] memory assets = new address[](2);
+    assets[0] = ASSET_1;
+    assets[1] = AAVEE;
+
+    proofOfReserveExecutorV2.enableAssets(assets);
 
     enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 1);
+    assertEq(enabledAssets.length, 2);
     assertEq(enabledAssets[0], ASSET_1);
+    assertEq(enabledAssets[1], AAVEE);
   }
 
-  function testAssetIsEnabledTwice() public {
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
+  function testAssetAreEnabledTwice() public {
+    address[] memory assets1 = new address[](1);
+    address[] memory assets2 = new address[](1);
+    assets1[0] = ASSET_1;
+    assets2[0] = ASSET_1;
+
+    proofOfReserveExecutorV2.enableAssets(assets1);
+    proofOfReserveExecutorV2.enableAssets(assets2);
 
     address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
     assertEq(enabledAssets.length, 1);
     assertEq(enabledAssets[0], ASSET_1);
   }
 
-  function testAssetIsEnabledWhenNotOwner() public {
+  function testAssetsAreEnabledWhenNotOwner() public {
     vm.expectRevert(bytes('Ownable: caller is not the owner'));
     vm.prank(address(0));
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
+
+    address[] memory assets = new address[](1);
+    assets[0] = ASSET_1;
+
+    proofOfReserveExecutorV2.enableAssets(assets);
   }
 
-  function testAssetIsDisabled() public {
-    proofOfReserveExecutorV2.enableAsset(ASSET_1);
+  function testAssetsAreDisabled() public {
+    address[] memory assets = new address[](2);
+    assets[0] = ASSET_1;
+    assets[1] = AAVEE;
+
+    proofOfReserveExecutorV2.enableAssets(assets);
 
     address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
 
     assertEq(enabledAssets[0], ASSET_1);
+    assertEq(enabledAssets[1], AAVEE);
 
     vm.expectEmit(true, false, false, true);
     emit AssetStateChanged(ASSET_1, false);
 
-    proofOfReserveExecutorV2.disableAsset(ASSET_1);
+    vm.expectEmit(true, false, false, true);
+    emit AssetStateChanged(AAVEE, false);
+
+    proofOfReserveExecutorV2.disableAssets(assets);
     enabledAssets = proofOfReserveExecutorV2.getAssets();
     assertEq(enabledAssets.length, 0);
   }
 
-  function testAssetIsDisabledWhenNotOwner() public {
+  function testAssetAreDisabledWhenNotOwner() public {
     vm.expectRevert(bytes('Ownable: caller is not the owner'));
     vm.prank(address(0));
-    proofOfReserveExecutorV2.disableAsset(ASSET_1);
+
+    address[] memory assets = new address[](1);
+    assets[0] = ASSET_1;
+    proofOfReserveExecutorV2.disableAssets(assets);
   }
 
   function testAreAllReservesBackedEmptyArray() public {
@@ -185,8 +213,11 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function enableAssetsOnExecutor() private {
-    proofOfReserveExecutorV2.enableAsset(address(bridgeWrapper));
-    proofOfReserveExecutorV2.enableAsset(BTCB);
+    address[] memory assets = new address[](2);
+    assets[0] = address(bridgeWrapper);
+    assets[1] = BTCB;
+
+    proofOfReserveExecutorV2.enableAssets(assets);
   }
 
   function setPoolAdmin() private {
