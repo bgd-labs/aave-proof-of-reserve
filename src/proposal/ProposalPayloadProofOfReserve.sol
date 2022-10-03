@@ -84,12 +84,13 @@ contract ProposalPayloadProofOfReserve is Ownable {
   }
 
   function execute() external onlyOwner {
-    address[1] memory assets = [
-      address(0x63a72806098Bd3D9520cC43356dD78afe5D386D9)
-    ];
-    address[1] memory proofOfReserveFeeds = [
-      address(0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7)
-    ];
+    address[] memory assets = new address[](1);
+    assets[0] = address(0x63a72806098Bd3D9520cC43356dD78afe5D386D9);
+
+    address[] memory proofOfReserveFeeds = new address[](1);
+    proofOfReserveFeeds[0] = address(
+      0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7
+    );
 
     // Add pairs of token and its proof of reserves to Proof Of Reserves Aggregator
     for (uint256 i; i < assets.length; i++) {
@@ -110,18 +111,14 @@ contract ProposalPayloadProofOfReserve is Ownable {
     );
 
     // enable checking of proof of reserve for the assets
-    for (uint256 i; i < assets.length; i++) {
-      executorV2.enableAsset(assets[i]);
-    }
+    executorV2.enableAssets(assets);
 
     // V3
     // assign RiskAdmin role to ProofOfReserveExecutorV3
     AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(executorV3));
 
     // enable checking of proof of reserve for the assets
-    for (uint256 i; i < assets.length; i++) {
-      executorV3.enableAsset(assets[i]);
-    }
+    executorV3.enableAssets(assets);
 
     // transfer aAvaLink token from the treasury to the current address
     IERC20 aavaLinkToken = IERC20(AAVA_LINK_TOKEN);
