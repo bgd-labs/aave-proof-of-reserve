@@ -32,6 +32,8 @@ This contract is common, to be used by both Aave v2 and v3 systems, each one wit
 
 [ProofOfReserveKeeper](./src/contracts/ProofOfReserveKeeper.sol) contract which is compatible with [Chainlink ~~Keeper~~ Automation](https://docs.chain.link/docs/chainlink-automation/introduction/) to add more assurances on the execution timing.
 
+> `performUpkeep()` won't be executed if it will consume more than 5m gas. Currently gas consumption is about 500k for six assets; eye should be kept on this metric upon adding of every new asset.
+
 ## AvaxBridgeWrapper
 
 As for several assets on the Avalanche network deprecated bridge co-exist with the actual one, [AvaxBridgeWrapper](./src/contracts/AvaxBridgeWrapper.sol) was implemented to return the sum of supplies.

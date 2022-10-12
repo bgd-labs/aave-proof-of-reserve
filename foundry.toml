@@ -3,6 +3,7 @@ src = 'src'
 test = 'tests'
 out = 'out'
 libs = ['lib']
+gas_reports = ["ProofOfReserveExecutorV3"]
 remappings = [
     'forge-std/=lib/forge-std/src/',
     'solidity-utils/=lib/solidity-utils/src/',
