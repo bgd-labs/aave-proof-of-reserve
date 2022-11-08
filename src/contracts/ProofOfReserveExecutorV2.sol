@@ -15,7 +15,7 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   // AAVE v2 pool addresses provider
-  IPoolAddressesProvider internal _addressesProvider;
+  IPoolAddressesProvider internal immutable _addressesProvider;
 
   /**
    * @notice Constructor.
@@ -39,7 +39,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     IPool pool = IPool(_addressesProvider.getLendingPool());
     address[] memory allAssets = pool.getReservesList();
 
-    for (uint256 i; i < allAssets.length; i++) {
+    for (uint256 i; i < allAssets.length; ++i) {
       ReserveConfigurationMap memory configuration = pool.getConfiguration(
         allAssets[i]
       );
@@ -62,7 +62,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     );
 
     // disable borrowing for all the reserves on the market
-    for (uint256 i = 0; i < reservesList.length; i++) {
+    for (uint256 i = 0; i < reservesList.length; ++i) {
       configurator.disableReserveStableRate(reservesList[i]);
       configurator.disableBorrowingOnReserve(reservesList[i]);
     }
