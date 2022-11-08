@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
+import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
@@ -31,6 +31,8 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     external
     onlyOwner
   {
+    require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
+
     _proofOfReserveList[asset] = proofOfReserveFeed;
     emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, true);
   }
@@ -51,7 +53,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     bool areReservesBacked = true;
 
     unchecked {
-      for (uint256 i = 0; i < assets.length; i++) {
+      for (uint256 i = 0; i < assets.length; ++i) {
         address assetAddress = assets[i];
         address feedAddress = _proofOfReserveList[assetAddress];
 

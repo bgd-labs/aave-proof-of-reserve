@@ -93,7 +93,7 @@ contract ProposalPayloadProofOfReserve is Ownable {
     );
 
     // Add pairs of token and its proof of reserves to Proof Of Reserves Aggregator
-    for (uint256 i; i < assets.length; i++) {
+    for (uint256 i; i < assets.length; ++i) {
       aggregator.enableProofOfReserveFeed(assets[i], proofOfReserveFeeds[i]);
     }
 
