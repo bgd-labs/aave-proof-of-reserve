@@ -30,6 +30,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   }
 
   /// @inheritdoc IProofOfReserveExecutor
+  // TODO: not needed in current impl
   function isBorrowingEnabledForAtLeastOneAsset()
     external
     view
@@ -52,19 +53,51 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     return false;
   }
 
-  /// @inheritdoc ProofOfReserveExecutorBase
-  function _disableBorrowing() internal override {
-    IPool pool = IPool(_addressesProvider.getPool());
-    address[] memory reservesList = pool.getReservesList();
+  /// @inheritdoc IProofOfReserveExecutor
+  function executeEmergencyAction() external override {
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
-    IPoolConfigurator configurator = IPoolConfigurator(
-      _addressesProvider.getPoolConfigurator()
-    );
+    if (!areReservesBacked) {
+      IPool pool = IPool(_addressesProvider.getPool());
+      IPoolConfigurator configurator = IPoolConfigurator(
+        _addressesProvider.getPoolConfigurator()
+      );
 
-    // disable borrowing for all the reserves on the market
-    for (uint256 i = 0; i < reservesList.length; ++i) {
-      configurator.setReserveStableRateBorrowing(reservesList[i], false);
-      configurator.setReserveBorrowing(reservesList[i], false);
+      uint256 assetsLength = _assets.length;
+
+      for (uint256 i = 0; i < assetsLength; ++i) {
+        if (unbackedAssetsFlags[i]) {
+          address dualBridgeAsset = _bridgedAssets[_assets[i]];
+
+          address asset = dualBridgeAsset != address(0)
+            ? dualBridgeAsset
+            : _assets[i];
+
+          ReserveConfigurationMap memory configuration = pool.getConfiguration(
+            asset
+          );
+          (
+            ,
+            uint256 liquidationThreshold,
+            uint256 liquidationBonus
+          ) = ReserveConfiguration.getLtvAndLiquidationParams(configuration);
+
+          // set LTV to 0
+          configurator.configureReserveAsCollateral(
+            asset,
+            0,
+            liquidationThreshold,
+            liquidationBonus
+          );
+
+          emit AssetIsNotBacked(asset);
+        }
+      }
+
+      emit EmergencyActionExecuted();
     }
   }
 }

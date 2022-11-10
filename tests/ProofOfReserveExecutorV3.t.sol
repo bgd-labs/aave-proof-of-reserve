@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import {Test} from 'forge-std/Test.sol';
 
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
-import {IPool} from '../src/dependencies/IPool.sol';
-import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider.sol';
-import {IACLManager} from './helpers/IACLManager.sol';
+import {AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {IPool, ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
+import {ReserveConfiguration} from '../src/helpers/ReserveConfiguration.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
@@ -17,8 +17,6 @@ contract ProofOfReserveExecutorV3Test is Test {
   AvaxBridgeWrapper private bridgeWrapper;
 
   uint256 private avalancheFork;
-  address private constant ADDRESS_PROVIDER =
-    0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
 
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
@@ -57,23 +55,34 @@ contract ProofOfReserveExecutorV3Test is Test {
     vm.selectFork(avalancheFork);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
-      ADDRESS_PROVIDER,
+      address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
       address(proofOfReserveAggregator)
     );
+
+    setRiskAdmin();
+
     bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
 
   function testExecuteEmergencyActionAllBacked() public {
+    // Arrange
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
-    bool isBorrowingEnabled = proofOfReserveExecutorV3
-      .isBorrowingEnabledForAtLeastOneAsset();
+    // Act
+    proofOfReserveExecutorV3.executeEmergencyAction();
 
-    assertEq(isBorrowingEnabled, true);
+    // Assert
+    assertTrue(getLtv(AAVEE) > 0);
+    assertTrue(getLtv(BTCB) > 0);
+    assertTrue(getLtv(WBTCE) > 0);
+    assertTrue(getLtv(DAIE) > 0);
+    assertTrue(getLtv(WETHE) > 0);
+    assertTrue(getLtv(LINKE) > 0);
   }
 
   function testExecuteEmergencyActionV3() public {
+    // Arrange
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
@@ -90,7 +99,7 @@ contract ProofOfReserveExecutorV3Test is Test {
     );
 
     vm.expectEmit(true, false, false, true);
-    emit AssetIsNotBacked(address(bridgeWrapper));
+    emit AssetIsNotBacked(AAVEE);
 
     vm.expectEmit(true, false, false, true);
     emit AssetIsNotBacked(BTCB);
@@ -98,16 +107,13 @@ contract ProofOfReserveExecutorV3Test is Test {
     vm.expectEmit(false, false, false, true);
     emit EmergencyActionExecuted();
 
-    setRiskAdmin();
-
+    // Act
     proofOfReserveExecutorV3.executeEmergencyAction();
 
-    bool isBorrowingEnabled = proofOfReserveExecutorV3
-      .isBorrowingEnabledForAtLeastOneAsset();
-    assertEq(isBorrowingEnabled, false);
+    // Assert
+    assertEq(getLtv(AAVEE), 0);
+    assertEq(getLtv(BTCB), 0);
   }
-
-  // emergency action - executed and events are emmited
 
   function enableFeedsOnRegistry() private {
     proofOfReserveAggregator.enableProofOfReserveFeed(
@@ -122,23 +128,36 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function enableAssetsOnExecutor() private {
-    address[] memory assets = new address[](6);
-    assets[0] = address(bridgeWrapper);
-    assets[1] = BTCB;
-    assets[2] = WBTCE;
-    assets[3] = DAIE;
-    assets[4] = WETHE;
-    assets[5] = LINKE;
+    address[] memory assets = new address[](5);
+    assets[0] = BTCB;
+    assets[1] = WBTCE;
+    assets[2] = DAIE;
+    assets[3] = WETHE;
+    assets[4] = LINKE;
 
+    proofOfReserveExecutorV3.enableDualBridgeAsset(
+      address(bridgeWrapper),
+      AAVEE
+    );
     proofOfReserveExecutorV3.enableAssets(assets);
   }
 
   function setRiskAdmin() private {
-    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
-      ADDRESS_PROVIDER
-    );
-    IACLManager aclManager = IACLManager(addressesProvider.getACLManager());
-    vm.prank(addressesProvider.getACLAdmin());
-    aclManager.addRiskAdmin(address(proofOfReserveExecutorV3));
+    vm.prank(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER.getACLAdmin());
+    AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
+
+  function getLtv(address asset) private view returns (uint256) {
+    ReserveConfigurationMap memory configuration = IPool(
+      address(AaveV3Avalanche.POOL)
+    ).getConfiguration(asset);
+
+    (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
+      configuration
+    );
+
+    return ltv;
+  }
+
+  function checkLtv() private {}
 }
