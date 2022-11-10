@@ -5,10 +5,10 @@ import {Test} from 'forge-std/Test.sol';
 
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+import {DataTypes} from 'aave-address-book/AaveV3.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
-import {IPool, ReserveConfigurationMap} from '../src/dependencies/IPool.sol';
 import {ReserveConfiguration} from '../src/helpers/ReserveConfiguration.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
@@ -146,9 +146,9 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function getLtv(address asset) private view returns (uint256) {
-    ReserveConfigurationMap memory configuration = IPool(
-      address(AaveV3Avalanche.POOL)
-    ).getConfiguration(asset);
+    DataTypes.ReserveConfigurationMap memory configuration = AaveV3Avalanche
+      .POOL
+      .getConfiguration(asset);
 
     (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
       configuration

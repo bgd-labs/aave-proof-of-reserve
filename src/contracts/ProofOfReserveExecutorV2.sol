@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
+import {DataTypes, ILendingPoolAddressesProvider, ILendingPool, ILendingPoolConfigurator} from 'aave-address-book/AaveV2.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
-import {IPoolAddressesProvider} from '../dependencies/IPoolAddressesProvider.sol';
-import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
-import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
+import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
 /**
@@ -15,11 +13,11 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   // AAVE v2 pool addresses provider
-  IPoolAddressesProvider internal immutable _addressesProvider;
+  ILendingPoolAddressesProvider internal immutable _addressesProvider;
   // AAVE v2 pool
-  IPool internal immutable _pool;
+  ILendingPool internal immutable _pool;
   // AAVE v2 pool configurator
-  IPoolConfigurator internal immutable _configurator;
+  ILendingPoolConfigurator internal immutable _configurator;
 
   /**
    * @notice Constructor.
@@ -30,9 +28,11 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
-    _addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
-    _pool = IPool(_addressesProvider.getLendingPool());
-    _configurator = IPoolConfigurator(
+    _addressesProvider = ILendingPoolAddressesProvider(
+      poolAddressesProviderAddress
+    );
+    _pool = ILendingPool(_addressesProvider.getLendingPool());
+    _configurator = ILendingPoolConfigurator(
       _addressesProvider.getLendingPoolConfigurator()
     );
   }
@@ -42,9 +42,8 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     address[] memory allAssets = _pool.getReservesList();
 
     for (uint256 i; i < allAssets.length; ++i) {
-      ReserveConfigurationMap memory configuration = _pool.getConfiguration(
-        allAssets[i]
-      );
+      DataTypes.ReserveConfigurationMap memory configuration = _pool
+        .getConfiguration(allAssets[i]);
 
       if (ReserveConfiguration.getBorrowingEnabled(configuration)) {
         return true;

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
 
-import {ReserveConfigurationMap} from '../../src/dependencies/IPool.sol';
+import {DataTypes as DataTypesV2} from 'aave-address-book/AaveV2.sol';
+import {DataTypes as DataTypesV3} from 'aave-address-book/AaveV3.sol';
 
 library ReserveConfiguration {
   uint256 internal constant LTV_MASK =                   0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000; // prettier-ignore
@@ -35,32 +36,12 @@ library ReserveConfiguration {
   uint256 internal constant UNBACKED_MINT_CAP_START_BIT_POSITION = 176;
   uint256 internal constant DEBT_CEILING_START_BIT_POSITION = 212;
 
-  function getFlags(ReserveConfigurationMap memory configuration)
-    internal
-    pure
-    returns (
-      bool,
-      bool,
-      bool,
-      bool
-    )
-  {
-    uint256 dataLocal = configuration.data;
-
-    return (
-      (dataLocal & ~ACTIVE_MASK) != 0,
-      (dataLocal & ~FROZEN_MASK) != 0,
-      (dataLocal & ~BORROWING_MASK) != 0,
-      (dataLocal & ~STABLE_BORROWING_MASK) != 0
-    );
-  }
-
   /**
    * @dev Gets the borrowing state of the reserve
    * @param self The reserve configuration
    * @return The borrowing state
    **/
-  function getBorrowingEnabled(ReserveConfigurationMap memory self)
+  function getBorrowingEnabled(DataTypesV2.ReserveConfigurationMap memory self)
     internal
     pure
     returns (bool)
@@ -75,7 +56,9 @@ library ReserveConfiguration {
    * @return The state param representing liquidation threshold
    * @return The state param representing liquidation bonus
    **/
-  function getLtvAndLiquidationParams(ReserveConfigurationMap memory self)
+  function getLtvAndLiquidationParams(
+    DataTypesV3.ReserveConfigurationMap memory self
+  )
     internal
     pure
     returns (

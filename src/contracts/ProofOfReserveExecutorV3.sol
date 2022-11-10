@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
+import {DataTypes, IPoolAddressesProvider, IPool, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
-import {IPoolAddressesProvider} from '../dependencies/IPoolAddressesProvider.sol';
-import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
-import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
+import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
 /**
@@ -53,9 +51,8 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
             ? dualBridgeAsset
             : _assets[i];
 
-          ReserveConfigurationMap memory configuration = _pool.getConfiguration(
-            asset
-          );
+          DataTypes.ReserveConfigurationMap memory configuration = _pool
+            .getConfiguration(asset);
 
           (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
             configuration
@@ -89,9 +86,8 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
             ? dualBridgeAsset
             : _assets[i];
 
-          ReserveConfigurationMap memory configuration = _pool.getConfiguration(
-            asset
-          );
+          DataTypes.ReserveConfigurationMap memory configuration = _pool
+            .getConfiguration(asset);
           (
             ,
             uint256 liquidationThreshold,
