@@ -27,6 +27,9 @@ abstract contract ProofOfReserveExecutorBase is
   /// @dev token address = > is it contained in the list
   mapping(address => bool) internal _assetsState;
 
+  /// @dev bridge wrapper address = > original asset address
+  mapping(address => address) internal _bridgedAssets;
+
   /**
    * @notice Constructor.
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
@@ -54,11 +57,29 @@ abstract contract ProofOfReserveExecutorBase is
   }
 
   /// @inheritdoc IProofOfReserveExecutor
+  function enableDualBridgeAsset(address bridgeWrapper, address originalAsset)
+    external
+    onlyOwner
+  {
+    if (!_assetsState[bridgeWrapper]) {
+      _assets.push(bridgeWrapper);
+      _assetsState[bridgeWrapper] = true;
+
+      _bridgedAssets[bridgeWrapper] = originalAsset;
+
+      emit AssetStateChanged(bridgeWrapper, true);
+    }
+  }
+
+  /// @inheritdoc IProofOfReserveExecutor
   function disableAssets(address[] memory assets) external onlyOwner {
     for (uint256 i = 0; i < assets.length; ++i) {
       if (_assetsState[assets[i]]) {
         _deleteAssetFromArray(assets[i]);
+
         delete _assetsState[assets[i]];
+        delete _bridgedAssets[assets[i]];
+
         emit AssetStateChanged(assets[i], false);
       }
     }
@@ -95,33 +116,6 @@ abstract contract ProofOfReserveExecutorBase is
 
     return areReservesBacked;
   }
-
-  /// @inheritdoc IProofOfReserveExecutor
-  function executeEmergencyAction() external {
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
-
-    if (!areReservesBacked) {
-      _disableBorrowing();
-
-      uint256 assetsLength = _assets.length;
-
-      for (uint256 i = 0; i < assetsLength; ++i) {
-        if (unbackedAssetsFlags[i]) {
-          emit AssetIsNotBacked(_assets[i]);
-        }
-      }
-
-      emit EmergencyActionExecuted();
-    }
-  }
-
-  /**
-   * @dev disable borrowing for every asset on the market.
-   */
-  function _disableBorrowing() internal virtual;
 
   /// @inheritdoc IProofOfReserveExecutor
   function isBorrowingEnabledForAtLeastOneAsset()

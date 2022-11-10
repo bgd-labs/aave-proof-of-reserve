@@ -52,8 +52,32 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     return false;
   }
 
-  /// @inheritdoc ProofOfReserveExecutorBase
-  function _disableBorrowing() internal override {
+  /// @inheritdoc IProofOfReserveExecutor
+  function executeEmergencyAction() external override {
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+
+    if (!areReservesBacked) {
+      _disableBorrowing();
+
+      uint256 assetsLength = _assets.length;
+
+      for (uint256 i = 0; i < assetsLength; ++i) {
+        if (unbackedAssetsFlags[i]) {
+          emit AssetIsNotBacked(_assets[i]);
+        }
+      }
+
+      emit EmergencyActionExecuted();
+    }
+  }
+
+  /**
+   * @dev disable borrowing for every asset on the market.
+   */
+  function _disableBorrowing() internal {
     IPool pool = IPool(_addressesProvider.getLendingPool());
     address[] memory reservesList = pool.getReservesList();
 

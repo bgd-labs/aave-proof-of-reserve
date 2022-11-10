@@ -9,4 +9,11 @@ interface IPoolConfigurator {
   function disableBorrowingOnReserve(address asset) external;
 
   function disableReserveStableRate(address asset) external;
+
+  function configureReserveAsCollateral(
+    address asset,
+    uint256 ltv,
+    uint256 liquidationThreshold,
+    uint256 liquidationBonus
+  ) external;
 }
