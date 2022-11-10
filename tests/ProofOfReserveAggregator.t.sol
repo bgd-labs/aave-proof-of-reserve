@@ -8,7 +8,6 @@ import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregato
 
 contract ProofOfReserveAggregatorTest is Test {
   ProofOfReserveAggregator public proofOfReserveAggregator;
-  uint256 private avalancheFork;
 
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
@@ -27,8 +26,7 @@ contract ProofOfReserveAggregatorTest is Test {
   );
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
-    vm.selectFork(avalancheFork);
+    vm.createSelectFork('avalanche');
     proofOfReserveAggregator = new ProofOfReserveAggregator();
   }
 

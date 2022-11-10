@@ -16,8 +16,6 @@ contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
   AvaxBridgeWrapper private bridgeWrapper;
 
-  uint256 private avalancheFork;
-
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
 
@@ -51,8 +49,7 @@ contract ProofOfReserveExecutorV3Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
-    vm.selectFork(avalancheFork);
+    vm.createSelectFork('avalanche');
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
