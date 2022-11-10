@@ -15,8 +15,9 @@ interface IProofOfReserveAggregator {
   );
 
   /**
-   * @dev add the asset and corresponding proof of reserve feed to the registry.
+   * @dev gets the address of the proof of reserve feed for the passed asset.
    * @param asset the address of the asset
+   * @return address proof of reserve feed address.
    */
   function getProofOfReserveFeedForAsset(address asset)
     external
@@ -40,6 +41,8 @@ interface IProofOfReserveAggregator {
   /**
    * @dev returns if all the assets that have been passed are backed;
    * @param assets list of the assets to check
+   * @return bool true if all of the assets are backed.
+   * @return flags of the unbacked assets.
    */
   function areAllReservesBacked(address[] calldata assets)
     external

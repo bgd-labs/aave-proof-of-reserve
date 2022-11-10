@@ -22,6 +22,7 @@ interface IProofOfReserveExecutor {
 
   /**
    * @dev gets the list of the assets to check
+   * @return returns all the assets that were enabled
    */
   function getAssets() external view returns (address[] memory);
 
@@ -49,6 +50,7 @@ interface IProofOfReserveExecutor {
 
   /**
    * @dev returns if all the assets in the registry are backed.
+   * @return bool returns true if all reserves are backed, otherwise false
    */
   function areAllReservesBacked() external view returns (bool);
 
@@ -56,6 +58,7 @@ interface IProofOfReserveExecutor {
    * @dev returns if emergency action parameters are not already adjusted.
    * This is not checked in executeEmergencyAction(), but is used
    * to prevent infinite execution of performUpkeep() inside the Keeper contract.
+   * @return bool if it makes sense to execute the emergency action
    */
   function isEmergencyActionAppliable() external view returns (bool);
 
