@@ -118,9 +118,5 @@ abstract contract ProofOfReserveExecutorBase is
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isBorrowingEnabledForAtLeastOneAsset()
-    external
-    view
-    virtual
-    returns (bool);
+  function isEmergencyActionAppliable() external view virtual returns (bool);
 }

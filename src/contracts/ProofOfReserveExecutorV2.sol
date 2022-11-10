@@ -16,6 +16,10 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   // AAVE v2 pool addresses provider
   IPoolAddressesProvider internal immutable _addressesProvider;
+  // AAVE v2 pool
+  IPool internal immutable _pool;
+  // AAVE v2 pool configurator
+  IPoolConfigurator internal immutable _configurator;
 
   /**
    * @notice Constructor.
@@ -27,20 +31,18 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
     _addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
+    _pool = IPool(_addressesProvider.getLendingPool());
+    _configurator = IPoolConfigurator(
+      _addressesProvider.getLendingPoolConfigurator()
+    );
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isBorrowingEnabledForAtLeastOneAsset()
-    external
-    view
-    override
-    returns (bool)
-  {
-    IPool pool = IPool(_addressesProvider.getLendingPool());
-    address[] memory allAssets = pool.getReservesList();
+  function isEmergencyActionAppliable() external view override returns (bool) {
+    address[] memory allAssets = _pool.getReservesList();
 
     for (uint256 i; i < allAssets.length; ++i) {
-      ReserveConfigurationMap memory configuration = pool.getConfiguration(
+      ReserveConfigurationMap memory configuration = _pool.getConfiguration(
         allAssets[i]
       );
 
@@ -78,17 +80,12 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
    * @dev disable borrowing for every asset on the market.
    */
   function _disableBorrowing() internal {
-    IPool pool = IPool(_addressesProvider.getLendingPool());
-    address[] memory reservesList = pool.getReservesList();
-
-    IPoolConfigurator configurator = IPoolConfigurator(
-      _addressesProvider.getLendingPoolConfigurator()
-    );
+    address[] memory reservesList = _pool.getReservesList();
 
     // disable borrowing for all the reserves on the market
     for (uint256 i = 0; i < reservesList.length; ++i) {
-      configurator.disableReserveStableRate(reservesList[i]);
-      configurator.disableBorrowingOnReserve(reservesList[i]);
+      _configurator.disableReserveStableRate(reservesList[i]);
+      _configurator.disableBorrowingOnReserve(reservesList[i]);
     }
   }
 }

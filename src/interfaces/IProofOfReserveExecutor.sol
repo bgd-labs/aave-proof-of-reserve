@@ -53,11 +53,11 @@ interface IProofOfReserveExecutor {
   function areAllReservesBacked() external view returns (bool);
 
   /**
-   * @dev returns if borrowing is enabled for at least one asset.
+   * @dev returns if emergency action parameters are not already adjusted.
    * This is not checked in executeEmergencyAction(), but is used
    * to prevent infinite execution of performUpkeep() inside the Keeper contract.
    */
-  function isBorrowingEnabledForAtLeastOneAsset() external view returns (bool);
+  function isEmergencyActionAppliable() external view returns (bool);
 
   /**
    * @dev disable borrowing for all the assets on the pool when at least

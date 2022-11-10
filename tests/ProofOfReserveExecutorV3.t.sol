@@ -111,8 +111,9 @@ contract ProofOfReserveExecutorV3Test is Test {
     proofOfReserveExecutorV3.executeEmergencyAction();
 
     // Assert
-    assertEq(getLtv(AAVEE), 0);
-    assertEq(getLtv(BTCB), 0);
+    bool isLtvNotZero = proofOfReserveExecutorV3.isEmergencyActionAppliable();
+
+    assertEq(isLtvNotZero, false);
   }
 
   function enableFeedsOnRegistry() private {

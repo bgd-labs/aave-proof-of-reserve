@@ -16,6 +16,10 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   // AAVE v3 pool addresses provider
   IPoolAddressesProvider internal immutable _addressesProvider;
+  // AAVE v3 pool
+  IPool internal immutable _pool;
+  // AAVE v3 pool configurator
+  IPoolConfigurator internal immutable _configurator;
 
   /**
    * @notice Constructor.
@@ -27,26 +31,40 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
     _addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
+    _pool = IPool(_addressesProvider.getPool());
+    _configurator = IPoolConfigurator(_addressesProvider.getPoolConfigurator());
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  // TODO: not needed in current impl
-  function isBorrowingEnabledForAtLeastOneAsset()
-    external
-    view
-    override
-    returns (bool)
-  {
-    IPool pool = IPool(_addressesProvider.getPool());
-    address[] memory allAssets = pool.getReservesList();
+  function isEmergencyActionAppliable() external view override returns (bool) {
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
-    for (uint256 i; i < allAssets.length; ++i) {
-      ReserveConfigurationMap memory configuration = pool.getConfiguration(
-        allAssets[i]
-      );
+    if (!areReservesBacked) {
+      uint256 assetsLength = _assets.length;
 
-      if (ReserveConfiguration.getBorrowingEnabled(configuration)) {
-        return true;
+      for (uint256 i = 0; i < assetsLength; ++i) {
+        if (unbackedAssetsFlags[i]) {
+          address dualBridgeAsset = _bridgedAssets[_assets[i]];
+
+          address asset = dualBridgeAsset != address(0)
+            ? dualBridgeAsset
+            : _assets[i];
+
+          ReserveConfigurationMap memory configuration = _pool.getConfiguration(
+            asset
+          );
+
+          (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
+            configuration
+          );
+
+          if (ltv > 0) {
+            return true;
+          }
+        }
       }
     }
 
@@ -61,11 +79,6 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
     if (!areReservesBacked) {
-      IPool pool = IPool(_addressesProvider.getPool());
-      IPoolConfigurator configurator = IPoolConfigurator(
-        _addressesProvider.getPoolConfigurator()
-      );
-
       uint256 assetsLength = _assets.length;
 
       for (uint256 i = 0; i < assetsLength; ++i) {
@@ -76,7 +89,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
             ? dualBridgeAsset
             : _assets[i];
 
-          ReserveConfigurationMap memory configuration = pool.getConfiguration(
+          ReserveConfigurationMap memory configuration = _pool.getConfiguration(
             asset
           );
           (
@@ -86,7 +99,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
           ) = ReserveConfiguration.getLtvAndLiquidationParams(configuration);
 
           // set LTV to 0
-          configurator.configureReserveAsCollateral(
+          _configurator.configureReserveAsCollateral(
             asset,
             0,
             liquidationThreshold,
