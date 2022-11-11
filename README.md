@@ -17,7 +17,8 @@ Below is the general flow of the proof of reserve check:
 
 ## Aggregator
 
-A common [ProofOfReserveAggregator](./src/contracts/ProofOfReserveAggregator.sol) smart contract, acting as a registry of pairs (asset address, proof of reserve feed address) and also implementing and exposing a areAllReservesBacked() function, which, for a list of asset addresses does the validation of **proof of reserve feed value ≥ total supply of the asset**. If any asset passed on the list of inputs will not fulfill that requirement, the result of areAllReservesBacked() will be false.
+A common [ProofOfReserveAggregator](./src/contracts/ProofOfReserveAggregator.sol) smart contract, acting as a registry of pairs (asset address, proof of reserve feed address) and also implementing and exposing a areAllReservesBacked() function, which, for a list of asset addresses does the validation of **proof of reserve feed value ≥ total supply of the asset**. If any asset passed on the list of inputs will not fulfill that requirement, the result of areAllReservesBacked() will be false. It is also possible to use the bridge wrapper to get the total supply, if the asset has two bridges on the network.
+
 This contract is common, to be used by both Aave v2 and v3 systems, each one with different pool logic.
 
 ## Executors

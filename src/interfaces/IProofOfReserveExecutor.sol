@@ -33,16 +33,6 @@ interface IProofOfReserveExecutor {
   function enableAssets(address[] memory assets) external;
 
   /**
-   * @dev enable checking of proof of reserve for the passed bridge wrapper
-   * - checking will be performed on the bridgeWrapper
-   * - original asset will be used for mapping to perform emergency action for it
-   * @param bridgeWrapper the address of the bridge wrapper
-   * @param originalAsset the address of the asset
-   */
-  function enableDualBridgeAsset(address bridgeWrapper, address originalAsset)
-    external;
-
-  /**
    * @dev delete the assets and the proof of reserve feeds from the registry.
    * @param assets addresses of the assets
    */

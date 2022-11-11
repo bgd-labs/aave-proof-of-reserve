@@ -9,7 +9,7 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 /**
  * @author BGD Labs
  * @dev Aave V3 contract for Proof of Reserve emergency action in case of any of bridged reserves is not backed:
- * - Disables borrowing of every asset on the market, when any of them is not backed
+ * - Sets LTV to 0 for the every asset, which is not backed
  */
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   // AAVE v3 pool addresses provider
@@ -45,11 +45,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
       for (uint256 i = 0; i < assetsLength; ++i) {
         if (unbackedAssetsFlags[i]) {
-          address dualBridgeAsset = _bridgedAssets[_assets[i]];
-
-          address asset = dualBridgeAsset != address(0)
-            ? dualBridgeAsset
-            : _assets[i];
+          address asset = _assets[i];
 
           DataTypes.ReserveConfigurationMap memory configuration = _pool
             .getConfiguration(asset);
@@ -80,12 +76,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
       for (uint256 i = 0; i < assetsLength; ++i) {
         if (unbackedAssetsFlags[i]) {
-          address dualBridgeAsset = _bridgedAssets[_assets[i]];
-
-          address asset = dualBridgeAsset != address(0)
-            ? dualBridgeAsset
-            : _assets[i];
-
+          address asset = _assets[i];
           DataTypes.ReserveConfigurationMap memory configuration = _pool
             .getConfiguration(asset);
           (

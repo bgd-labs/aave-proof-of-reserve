@@ -6,6 +6,7 @@ import {Test} from 'forge-std/Test.sol';
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
 import {AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 import {DataTypes} from 'aave-address-book/AaveV3.sol';
+import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
@@ -86,7 +87,13 @@ contract ProofOfReserveExecutorV3Test is Test {
     vm.mockCall(
       PORF_AAVE,
       abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
-      abi.encode(1, 1, 1, 1, 1)
+      abi.encode(1, 99, 1, 1, 1)
+    );
+
+    vm.mockCall(
+      address(bridgeWrapper),
+      abi.encodeWithSelector(IERC20.totalSupply.selector),
+      abi.encode(100)
     );
 
     vm.mockCall(
@@ -114,9 +121,10 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function enableFeedsOnRegistry() private {
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(bridgeWrapper),
-      PORF_AAVE
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      AAVEE,
+      PORF_AAVE,
+      address(bridgeWrapper)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
     proofOfReserveAggregator.enableProofOfReserveFeed(WBTCE, PORF_WBTCE);
@@ -126,17 +134,14 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function enableAssetsOnExecutor() private {
-    address[] memory assets = new address[](5);
-    assets[0] = BTCB;
-    assets[1] = WBTCE;
-    assets[2] = DAIE;
-    assets[3] = WETHE;
-    assets[4] = LINKE;
+    address[] memory assets = new address[](6);
+    assets[0] = AAVEE;
+    assets[1] = BTCB;
+    assets[2] = WBTCE;
+    assets[3] = DAIE;
+    assets[4] = WETHE;
+    assets[5] = LINKE;
 
-    proofOfReserveExecutorV3.enableDualBridgeAsset(
-      address(bridgeWrapper),
-      AAVEE
-    );
     proofOfReserveExecutorV3.enableAssets(assets);
   }
 

@@ -4,9 +4,8 @@ pragma solidity ^0.8.0;
 import {Test} from 'forge-std/Test.sol';
 
 import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
-
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
-
+import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
@@ -93,67 +92,33 @@ contract ProofOfReserveExecutorV2Test is Test {
     proofOfReserveExecutorV2.enableAssets(assets);
   }
 
-  function testDualBridgeAssetIsEnabled() public {
-    address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 0);
-
-    vm.expectEmit(true, false, false, true);
-    emit AssetStateChanged(address(bridgeWrapper), true);
-
-    proofOfReserveExecutorV2.enableDualBridgeAsset(
-      address(bridgeWrapper),
-      AAVEE
-    );
-
-    enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 1);
-    assertEq(enabledAssets[0], address(bridgeWrapper));
-  }
-
-  function testDualBridgeAssetIsEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
-    vm.prank(address(0));
-
-    proofOfReserveExecutorV2.enableDualBridgeAsset(
-      address(bridgeWrapper),
-      AAVEE
-    );
-  }
-
   function testAssetsAreDisabled() public {
-    address[] memory assets = new address[](2);
+    address[] memory assets = new address[](3);
     assets[0] = ASSET_1;
     assets[1] = BTCB;
+    assets[2] = AAVEE;
 
     proofOfReserveExecutorV2.enableAssets(assets);
-    proofOfReserveExecutorV2.enableDualBridgeAsset(
-      address(bridgeWrapper),
-      AAVEE
-    );
-
     address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
 
     assertEq(enabledAssets[0], ASSET_1);
     assertEq(enabledAssets[1], BTCB);
-    assertEq(enabledAssets[2], address(bridgeWrapper));
+    assertEq(enabledAssets[2], AAVEE);
 
     vm.expectEmit(true, false, false, true);
     emit AssetStateChanged(ASSET_1, false);
 
     vm.expectEmit(true, false, false, true);
-    emit AssetStateChanged(BTCB, false);
+    emit AssetStateChanged(AAVEE, false);
 
-    vm.expectEmit(true, false, false, true);
-    emit AssetStateChanged(address(bridgeWrapper), false);
-
-    address[] memory assetsToDisable = new address[](3);
+    address[] memory assetsToDisable = new address[](2);
     assetsToDisable[0] = ASSET_1;
-    assetsToDisable[1] = BTCB;
-    assetsToDisable[2] = address(bridgeWrapper);
+    assetsToDisable[1] = AAVEE;
 
     proofOfReserveExecutorV2.disableAssets(assetsToDisable);
     enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 0);
+    assertEq(enabledAssets.length, 1);
+    assertEq(enabledAssets[0], BTCB);
   }
 
   function testAssetAreDisabledWhenNotOwner() public {
@@ -209,7 +174,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     assertEq(isBorrowingEnabled, true);
   }
 
-  function testExecuteEmergencyAction() public {
+  function testExecuteEmergencyActionV2() public {
     // Arrange
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
@@ -217,7 +182,13 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.mockCall(
       PORF_AAVE,
       abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
-      abi.encode(1, 1, 1, 1, 1)
+      abi.encode(1, 99, 1, 1, 1)
+    );
+
+    vm.mockCall(
+      address(bridgeWrapper),
+      abi.encodeWithSelector(IERC20.totalSupply.selector),
+      abi.encode(100)
     );
 
     vm.mockCall(
@@ -227,7 +198,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     );
 
     vm.expectEmit(true, false, false, true);
-    emit AssetIsNotBacked(address(bridgeWrapper));
+    emit AssetIsNotBacked(AAVEE);
 
     vm.expectEmit(true, false, false, true);
     emit AssetIsNotBacked(BTCB);
@@ -248,16 +219,17 @@ contract ProofOfReserveExecutorV2Test is Test {
   // emergency action - executed and events are emmited
 
   function enableFeedsOnRegistry() private {
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(bridgeWrapper),
-      PORF_AAVE
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      AAVEE,
+      PORF_AAVE,
+      address(bridgeWrapper)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
   }
 
   function enableAssetsOnExecutor() private {
     address[] memory assets = new address[](2);
-    assets[0] = address(bridgeWrapper);
+    assets[0] = AAVEE;
     assets[1] = BTCB;
 
     proofOfReserveExecutorV2.enableAssets(assets);
