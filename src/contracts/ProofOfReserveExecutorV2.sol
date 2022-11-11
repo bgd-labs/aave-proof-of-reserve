@@ -38,7 +38,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isEmergencyActionAppliable() external view override returns (bool) {
+  function isEmergencyActionPossible() external view override returns (bool) {
     address[] memory allAssets = _pool.getReservesList();
 
     for (uint256 i; i < allAssets.length; ++i) {

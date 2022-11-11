@@ -34,7 +34,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isEmergencyActionAppliable() external view override returns (bool) {
+  function isEmergencyActionPossible() external view override returns (bool) {
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags

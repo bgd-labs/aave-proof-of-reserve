@@ -115,7 +115,7 @@ contract ProofOfReserveExecutorV3Test is Test {
     proofOfReserveExecutorV3.executeEmergencyAction();
 
     // Assert
-    bool isLtvNotZero = proofOfReserveExecutorV3.isEmergencyActionAppliable();
+    bool isLtvNotZero = proofOfReserveExecutorV3.isEmergencyActionPossible();
 
     assertEq(isLtvNotZero, false);
   }

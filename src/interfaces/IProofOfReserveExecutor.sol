@@ -50,7 +50,7 @@ interface IProofOfReserveExecutor {
    * to prevent infinite execution of performUpkeep() inside the Keeper contract.
    * @return bool if it makes sense to execute the emergency action
    */
-  function isEmergencyActionAppliable() external view returns (bool);
+  function isEmergencyActionPossible() external view returns (bool);
 
   /**
    * @dev disable borrowing for all the assets on the pool when at least

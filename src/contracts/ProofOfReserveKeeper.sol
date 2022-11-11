@@ -29,7 +29,7 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
 
     if (
       !proofOfReserveExecutor.areAllReservesBacked() &&
-      proofOfReserveExecutor.isEmergencyActionAppliable()
+      proofOfReserveExecutor.isEmergencyActionPossible()
     ) {
       return (true, checkData);
     }

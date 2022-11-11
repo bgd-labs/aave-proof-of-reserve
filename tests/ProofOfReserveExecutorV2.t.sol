@@ -169,7 +169,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     proofOfReserveExecutorV2.executeEmergencyAction();
 
     bool isBorrowingEnabled = proofOfReserveExecutorV2
-      .isEmergencyActionAppliable();
+      .isEmergencyActionPossible();
 
     assertEq(isBorrowingEnabled, true);
   }
@@ -211,7 +211,7 @@ contract ProofOfReserveExecutorV2Test is Test {
 
     // Assert
     bool isBorrowingEnabled = proofOfReserveExecutorV2
-      .isEmergencyActionAppliable();
+      .isEmergencyActionPossible();
 
     assertEq(isBorrowingEnabled, false);
   }

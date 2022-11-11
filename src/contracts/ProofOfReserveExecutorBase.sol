@@ -97,5 +97,5 @@ abstract contract ProofOfReserveExecutorBase is
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isEmergencyActionAppliable() external view virtual returns (bool);
+  function isEmergencyActionPossible() external view virtual returns (bool);
 }
