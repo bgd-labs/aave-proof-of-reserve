@@ -6,8 +6,6 @@ import {IERC20Metadata} from 'solidity-utils/contracts/oz-common/interfaces/IERC
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 
 contract AvaxBridgeWrapperTest is Test {
-  uint256 private avalancheFork;
-
   address private constant AAVEE =
     address(0x63a72806098Bd3D9520cC43356dD78afe5D386D9);
   address private constant AAVEE_DEPRECATED =
@@ -18,8 +16,7 @@ contract AvaxBridgeWrapperTest is Test {
     address(0xbA7dEebBFC5fA1100Fb055a87773e1E99Cd3507a);
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
-    vm.selectFork(avalancheFork);
+    vm.createSelectFork('avalanche');
   }
 
   function testTotalSupplyAAVEe() public {

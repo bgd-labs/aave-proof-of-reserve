@@ -13,7 +13,6 @@ import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 
 contract ProposalPayloadProofOfReserveTest is Test {
-  uint256 private avalancheFork;
   address public constant GUARDIAN =
     address(0xa35b76E4935449E33C56aB24b23fcd3246f13470);
 
@@ -23,8 +22,7 @@ contract ProposalPayloadProofOfReserveTest is Test {
   );
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
-    vm.selectFork(avalancheFork);
+    vm.createSelectFork('avalanche');
   }
 
   function testExecute() public {

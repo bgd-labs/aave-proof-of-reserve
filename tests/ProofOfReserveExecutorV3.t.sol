@@ -4,21 +4,18 @@ pragma solidity ^0.8.0;
 import {Test} from 'forge-std/Test.sol';
 
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
-import {IPool} from '../src/dependencies/IPool.sol';
-import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider.sol';
-import {IACLManager} from './helpers/IACLManager.sol';
+import {AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+import {DataTypes} from 'aave-address-book/AaveV3.sol';
+import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {ReserveConfiguration} from '../src/helpers/ReserveConfiguration.sol';
 
 contract ProofOfReserveExecutorV3Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
   AvaxBridgeWrapper private bridgeWrapper;
-
-  uint256 private avalancheFork;
-  address private constant ADDRESS_PROVIDER =
-    0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb;
 
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
@@ -53,34 +50,50 @@ contract ProofOfReserveExecutorV3Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
-    vm.selectFork(avalancheFork);
+    vm.createSelectFork('avalanche');
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
-      ADDRESS_PROVIDER,
+      address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
       address(proofOfReserveAggregator)
     );
+
+    setRiskAdmin();
+
     bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
 
   function testExecuteEmergencyActionAllBacked() public {
+    // Arrange
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
-    bool isBorrowingEnabled = proofOfReserveExecutorV3
-      .isBorrowingEnabledForAtLeastOneAsset();
+    // Act
+    proofOfReserveExecutorV3.executeEmergencyAction();
 
-    assertEq(isBorrowingEnabled, true);
+    // Assert
+    assertTrue(getLtv(AAVEE) > 0);
+    assertTrue(getLtv(BTCB) > 0);
+    assertTrue(getLtv(WBTCE) > 0);
+    assertTrue(getLtv(DAIE) > 0);
+    assertTrue(getLtv(WETHE) > 0);
+    assertTrue(getLtv(LINKE) > 0);
   }
 
   function testExecuteEmergencyActionV3() public {
+    // Arrange
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
     vm.mockCall(
       PORF_AAVE,
       abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
-      abi.encode(1, 1, 1, 1, 1)
+      abi.encode(1, 99, 1, 1, 1)
+    );
+
+    vm.mockCall(
+      address(bridgeWrapper),
+      abi.encodeWithSelector(IERC20.totalSupply.selector),
+      abi.encode(100)
     );
 
     vm.mockCall(
@@ -90,7 +103,7 @@ contract ProofOfReserveExecutorV3Test is Test {
     );
 
     vm.expectEmit(true, false, false, true);
-    emit AssetIsNotBacked(address(bridgeWrapper));
+    emit AssetIsNotBacked(AAVEE);
 
     vm.expectEmit(true, false, false, true);
     emit AssetIsNotBacked(BTCB);
@@ -98,21 +111,20 @@ contract ProofOfReserveExecutorV3Test is Test {
     vm.expectEmit(false, false, false, true);
     emit EmergencyActionExecuted();
 
-    setRiskAdmin();
-
+    // Act
     proofOfReserveExecutorV3.executeEmergencyAction();
 
-    bool isBorrowingEnabled = proofOfReserveExecutorV3
-      .isBorrowingEnabledForAtLeastOneAsset();
-    assertEq(isBorrowingEnabled, false);
+    // Assert
+    bool isLtvNotZero = proofOfReserveExecutorV3.isEmergencyActionPossible();
+
+    assertEq(isLtvNotZero, false);
   }
 
-  // emergency action - executed and events are emmited
-
   function enableFeedsOnRegistry() private {
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(bridgeWrapper),
-      PORF_AAVE
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      AAVEE,
+      PORF_AAVE,
+      address(bridgeWrapper)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
     proofOfReserveAggregator.enableProofOfReserveFeed(WBTCE, PORF_WBTCE);
@@ -123,7 +135,7 @@ contract ProofOfReserveExecutorV3Test is Test {
 
   function enableAssetsOnExecutor() private {
     address[] memory assets = new address[](6);
-    assets[0] = address(bridgeWrapper);
+    assets[0] = AAVEE;
     assets[1] = BTCB;
     assets[2] = WBTCE;
     assets[3] = DAIE;
@@ -134,11 +146,21 @@ contract ProofOfReserveExecutorV3Test is Test {
   }
 
   function setRiskAdmin() private {
-    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
-      ADDRESS_PROVIDER
-    );
-    IACLManager aclManager = IACLManager(addressesProvider.getACLManager());
-    vm.prank(addressesProvider.getACLAdmin());
-    aclManager.addRiskAdmin(address(proofOfReserveExecutorV3));
+    vm.prank(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER.getACLAdmin());
+    AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
+
+  function getLtv(address asset) private view returns (uint256) {
+    DataTypes.ReserveConfigurationMap memory configuration = AaveV3Avalanche
+      .POOL
+      .getConfiguration(asset);
+
+    (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
+      configuration
+    );
+
+    return ltv;
+  }
+
+  function checkLtv() private {}
 }

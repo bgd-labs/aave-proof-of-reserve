@@ -1,21 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
+import {DataTypes, IPoolAddressesProvider, IPool, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
-import {IPoolAddressesProvider} from '../dependencies/IPoolAddressesProvider.sol';
-import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
-import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
+import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
 /**
  * @author BGD Labs
  * @dev Aave V3 contract for Proof of Reserve emergency action in case of any of bridged reserves is not backed:
- * - Disables borrowing of every asset on the market, when any of them is not backed
+ * - Sets LTV to 0 for the every asset, which is not backed
  */
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   // AAVE v3 pool addresses provider
   IPoolAddressesProvider internal immutable _addressesProvider;
+  // AAVE v3 pool
+  IPool internal immutable _pool;
+  // AAVE v3 pool configurator
+  IPoolConfigurator internal immutable _configurator;
 
   /**
    * @notice Constructor.
@@ -27,44 +29,75 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
     _addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
+    _pool = IPool(_addressesProvider.getPool());
+    _configurator = IPoolConfigurator(_addressesProvider.getPoolConfigurator());
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isBorrowingEnabledForAtLeastOneAsset()
-    external
-    view
-    override
-    returns (bool)
-  {
-    IPool pool = IPool(_addressesProvider.getPool());
-    address[] memory allAssets = pool.getReservesList();
+  function isEmergencyActionPossible() external view override returns (bool) {
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
-    for (uint256 i; i < allAssets.length; ++i) {
-      ReserveConfigurationMap memory configuration = pool.getConfiguration(
-        allAssets[i]
-      );
+    if (!areReservesBacked) {
+      uint256 assetsLength = _assets.length;
 
-      if (ReserveConfiguration.getBorrowingEnabled(configuration)) {
-        return true;
+      for (uint256 i = 0; i < assetsLength; ++i) {
+        if (unbackedAssetsFlags[i]) {
+          address asset = _assets[i];
+
+          DataTypes.ReserveConfigurationMap memory configuration = _pool
+            .getConfiguration(asset);
+
+          (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
+            configuration
+          );
+
+          if (ltv > 0) {
+            return true;
+          }
+        }
       }
     }
 
     return false;
   }
 
-  /// @inheritdoc ProofOfReserveExecutorBase
-  function _disableBorrowing() internal override {
-    IPool pool = IPool(_addressesProvider.getPool());
-    address[] memory reservesList = pool.getReservesList();
+  /// @inheritdoc IProofOfReserveExecutor
+  function executeEmergencyAction() external override {
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
-    IPoolConfigurator configurator = IPoolConfigurator(
-      _addressesProvider.getPoolConfigurator()
-    );
+    if (!areReservesBacked) {
+      uint256 assetsLength = _assets.length;
 
-    // disable borrowing for all the reserves on the market
-    for (uint256 i = 0; i < reservesList.length; ++i) {
-      configurator.setReserveStableRateBorrowing(reservesList[i], false);
-      configurator.setReserveBorrowing(reservesList[i], false);
+      for (uint256 i = 0; i < assetsLength; ++i) {
+        if (unbackedAssetsFlags[i]) {
+          address asset = _assets[i];
+          DataTypes.ReserveConfigurationMap memory configuration = _pool
+            .getConfiguration(asset);
+          (
+            ,
+            uint256 liquidationThreshold,
+            uint256 liquidationBonus
+          ) = ReserveConfiguration.getLtvAndLiquidationParams(configuration);
+
+          // set LTV to 0
+          _configurator.configureReserveAsCollateral(
+            asset,
+            0,
+            liquidationThreshold,
+            liquidationBonus
+          );
+
+          emit AssetIsNotBacked(asset);
+        }
+      }
+
+      emit EmergencyActionExecuted();
     }
   }
 }
