@@ -40,7 +40,22 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
     address[] memory allAssets = _pool.getReservesList();
+    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+      .areAllReservesBacked(_assets);
 
+    // check if unbacked reserves are not frozen
+    for (uint256 i; i < _assets.length; ++i) {
+      if (unbackedAssetsFlags[i]) {
+        DataTypes.ReserveConfigurationMap memory configuration = _pool
+          .getConfiguration(_assets[i]);
+
+        if (!ReserveConfiguration.getIsFrozen(configuration)) {
+          return true;
+        }
+      }
+    }
+
+    // check if any of the reserves is not backed
     for (uint256 i; i < allAssets.length; ++i) {
       DataTypes.ReserveConfigurationMap memory configuration = _pool
         .getConfiguration(allAssets[i]);
@@ -67,6 +82,9 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
 
       for (uint256 i = 0; i < assetsLength; ++i) {
         if (unbackedAssetsFlags[i]) {
+          // freeze reserve
+          _configurator.freezeReserve(_assets[i]);
+
           emit AssetIsNotBacked(_assets[i]);
         }
       }

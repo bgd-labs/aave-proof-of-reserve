@@ -210,10 +210,10 @@ contract ProofOfReserveExecutorV2Test is Test {
     proofOfReserveExecutorV2.executeEmergencyAction();
 
     // Assert
-    bool isBorrowingEnabled = proofOfReserveExecutorV2
+    bool isEmergencyActionPossible = proofOfReserveExecutorV2
       .isEmergencyActionPossible();
 
-    assertEq(isBorrowingEnabled, false);
+    assertEq(isEmergencyActionPossible, false);
   }
 
   // emergency action - executed and events are emmited

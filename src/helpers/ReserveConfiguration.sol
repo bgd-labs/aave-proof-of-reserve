@@ -50,6 +50,19 @@ library ReserveConfiguration {
   }
 
   /**
+   * @dev Gets the frozen state of the reserve
+   * @param self The reserve configuration
+   * @return The frozen state
+   **/
+  function getIsFrozen(DataTypesV2.ReserveConfigurationMap memory self)
+    internal
+    pure
+    returns (bool)
+  {
+    return (self.data & ~FROZEN_MASK) != 0;
+  }
+
+  /**
    * @notice Gets the configuration parameters of the reserve from storage
    * @param self The reserve configuration
    * @return The state param representing ltv
