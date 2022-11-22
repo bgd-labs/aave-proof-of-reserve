@@ -10,8 +10,10 @@ build  :; forge build --sizes --via-ir
 test   :; forge test -vvv
 
 # Deploy
+deploy-proof-of-reserve-avalanche :;  forge script script/DeployProofOfReserveAvax.s.sol:DeployProofOfReserveAvax --rpc-url avalanche --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
 deploy-proof-of-reserve-ledger :; forge script script/DeployProofOfReserveAvax.s.sol:DeployProofOfReserveAvax --rpc-url ${RPC_URL} --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
 deploy-proof-of-reserve-pk :; forge script script/DeployProofOfReserveAvax.s.sol:DeployProofOfReserveAvax --rpc-url ${RPC_URL} --broadcast --legacy --private-key ${PRIVATE_KEY} --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
 
 # verify
+verify-proof-of-reserve-avalanche :;  forge script script/DeployProofOfReserveAvax.s.sol:DeployProofOfReserveAvax --rpc-url avalanche --legacy --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
 verify-proof-of-reserve :;  forge script script/DeployProofOfReserveAvax.s.sol:DeployProofOfReserveAvax --rpc-url ${RPC_URL} --legacy --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv

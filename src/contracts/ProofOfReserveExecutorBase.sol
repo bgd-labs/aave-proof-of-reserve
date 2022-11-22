@@ -97,36 +97,5 @@ abstract contract ProofOfReserveExecutorBase is
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function executeEmergencyAction() external {
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
-
-    if (!areReservesBacked) {
-      _disableBorrowing();
-
-      uint256 assetsLength = _assets.length;
-
-      for (uint256 i = 0; i < assetsLength; ++i) {
-        if (unbackedAssetsFlags[i]) {
-          emit AssetIsNotBacked(_assets[i]);
-        }
-      }
-
-      emit EmergencyActionExecuted();
-    }
-  }
-
-  /**
-   * @dev disable borrowing for every asset on the market.
-   */
-  function _disableBorrowing() internal virtual;
-
-  /// @inheritdoc IProofOfReserveExecutor
-  function isBorrowingEnabledForAtLeastOneAsset()
-    external
-    view
-    virtual
-    returns (bool);
+  function isEmergencyActionPossible() external view virtual returns (bool);
 }

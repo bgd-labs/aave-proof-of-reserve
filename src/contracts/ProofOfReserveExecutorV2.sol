@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
+import {DataTypes, ILendingPoolAddressesProvider, ILendingPool, ILendingPoolConfigurator} from 'aave-address-book/AaveV2.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
-import {IPoolAddressesProvider} from '../dependencies/IPoolAddressesProvider.sol';
-import {IPool, ReserveConfigurationMap} from '../dependencies/IPool.sol';
-import {IPoolConfigurator} from '../dependencies/IPoolConfigurator.sol';
+import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
 /**
@@ -15,7 +13,11 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   // AAVE v2 pool addresses provider
-  IPoolAddressesProvider internal immutable _addressesProvider;
+  ILendingPoolAddressesProvider internal immutable _addressesProvider;
+  // AAVE v2 pool
+  ILendingPool internal immutable _pool;
+  // AAVE v2 pool configurator
+  ILendingPoolConfigurator internal immutable _configurator;
 
   /**
    * @notice Constructor.
@@ -26,23 +28,22 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
-    _addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
+    _addressesProvider = ILendingPoolAddressesProvider(
+      poolAddressesProviderAddress
+    );
+    _pool = ILendingPool(_addressesProvider.getLendingPool());
+    _configurator = ILendingPoolConfigurator(
+      _addressesProvider.getLendingPoolConfigurator()
+    );
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function isBorrowingEnabledForAtLeastOneAsset()
-    external
-    view
-    override
-    returns (bool)
-  {
-    IPool pool = IPool(_addressesProvider.getLendingPool());
-    address[] memory allAssets = pool.getReservesList();
+  function isEmergencyActionPossible() external view override returns (bool) {
+    address[] memory allAssets = _pool.getReservesList();
 
     for (uint256 i; i < allAssets.length; ++i) {
-      ReserveConfigurationMap memory configuration = pool.getConfiguration(
-        allAssets[i]
-      );
+      DataTypes.ReserveConfigurationMap memory configuration = _pool
+        .getConfiguration(allAssets[i]);
 
       if (ReserveConfiguration.getBorrowingEnabled(configuration)) {
         return true;
@@ -52,19 +53,38 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     return false;
   }
 
-  /// @inheritdoc ProofOfReserveExecutorBase
-  function _disableBorrowing() internal override {
-    IPool pool = IPool(_addressesProvider.getLendingPool());
-    address[] memory reservesList = pool.getReservesList();
+  /// @inheritdoc IProofOfReserveExecutor
+  function executeEmergencyAction() external override {
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
-    IPoolConfigurator configurator = IPoolConfigurator(
-      _addressesProvider.getLendingPoolConfigurator()
-    );
+    if (!areReservesBacked) {
+      _disableBorrowing();
+
+      uint256 assetsLength = _assets.length;
+
+      for (uint256 i = 0; i < assetsLength; ++i) {
+        if (unbackedAssetsFlags[i]) {
+          emit AssetIsNotBacked(_assets[i]);
+        }
+      }
+
+      emit EmergencyActionExecuted();
+    }
+  }
+
+  /**
+   * @dev disable borrowing for every asset on the market.
+   */
+  function _disableBorrowing() internal {
+    address[] memory reservesList = _pool.getReservesList();
 
     // disable borrowing for all the reserves on the market
     for (uint256 i = 0; i < reservesList.length; ++i) {
-      configurator.disableReserveStableRate(reservesList[i]);
-      configurator.disableBorrowingOnReserve(reservesList[i]);
+      _configurator.disableReserveStableRate(reservesList[i]);
+      _configurator.disableBorrowingOnReserve(reservesList[i]);
     }
   }
 }

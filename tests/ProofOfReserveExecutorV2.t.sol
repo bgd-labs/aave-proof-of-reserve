@@ -3,10 +3,9 @@ pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
 
-import {IPool} from '../src/dependencies/IPool.sol';
-import {IPoolAddressesProvider} from '../src/dependencies/IPoolAddressesProvider.sol';
+import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
-
+import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
@@ -15,10 +14,6 @@ contract ProofOfReserveExecutorV2Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV2 private proofOfReserveExecutorV2;
   AvaxBridgeWrapper private bridgeWrapper;
-
-  uint256 private avalancheFork;
-  address private constant ADDRESSES_PROVIDER =
-    0xb6A86025F0FE1862B372cb0ca18CE3EDe02A318f;
 
   address private constant ASSET_1 = address(1234);
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
@@ -38,13 +33,16 @@ contract ProofOfReserveExecutorV2Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    avalancheFork = vm.createFork('https://api.avax.network/ext/bc/C/rpc');
-    vm.selectFork(avalancheFork);
+    vm.createSelectFork('avalanche');
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
-      ADDRESSES_PROVIDER,
+      address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
       address(proofOfReserveAggregator)
     );
+
+    // TODO: change to proof of reserve admin
+    setPoolAdmin();
+
     bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
 
@@ -95,16 +93,17 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetsAreDisabled() public {
-    address[] memory assets = new address[](2);
+    address[] memory assets = new address[](3);
     assets[0] = ASSET_1;
-    assets[1] = AAVEE;
+    assets[1] = BTCB;
+    assets[2] = AAVEE;
 
     proofOfReserveExecutorV2.enableAssets(assets);
-
     address[] memory enabledAssets = proofOfReserveExecutorV2.getAssets();
 
     assertEq(enabledAssets[0], ASSET_1);
-    assertEq(enabledAssets[1], AAVEE);
+    assertEq(enabledAssets[1], BTCB);
+    assertEq(enabledAssets[2], AAVEE);
 
     vm.expectEmit(true, false, false, true);
     emit AssetStateChanged(ASSET_1, false);
@@ -112,9 +111,14 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.expectEmit(true, false, false, true);
     emit AssetStateChanged(AAVEE, false);
 
-    proofOfReserveExecutorV2.disableAssets(assets);
+    address[] memory assetsToDisable = new address[](2);
+    assetsToDisable[0] = ASSET_1;
+    assetsToDisable[1] = AAVEE;
+
+    proofOfReserveExecutorV2.disableAssets(assetsToDisable);
     enabledAssets = proofOfReserveExecutorV2.getAssets();
-    assertEq(enabledAssets.length, 0);
+    assertEq(enabledAssets.length, 1);
+    assertEq(enabledAssets[0], BTCB);
   }
 
   function testAssetAreDisabledWhenNotOwner() public {
@@ -151,6 +155,8 @@ contract ProofOfReserveExecutorV2Test is Test {
       abi.encode(1, 1, 1, 1, 1)
     );
 
+    proofOfReserveExecutorV2.executeEmergencyAction();
+
     bool isBorrowingEnabled = proofOfReserveExecutorV2.areAllReservesBacked();
 
     assertEq(isBorrowingEnabled, false);
@@ -160,20 +166,29 @@ contract ProofOfReserveExecutorV2Test is Test {
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
+    proofOfReserveExecutorV2.executeEmergencyAction();
+
     bool isBorrowingEnabled = proofOfReserveExecutorV2
-      .isBorrowingEnabledForAtLeastOneAsset();
+      .isEmergencyActionPossible();
 
     assertEq(isBorrowingEnabled, true);
   }
 
-  function testExecuteEmergencyAction() public {
+  function testExecuteEmergencyActionV2() public {
+    // Arrange
     enableFeedsOnRegistry();
     enableAssetsOnExecutor();
 
     vm.mockCall(
       PORF_AAVE,
       abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
-      abi.encode(1, 1, 1, 1, 1)
+      abi.encode(1, 99, 1, 1, 1)
+    );
+
+    vm.mockCall(
+      address(bridgeWrapper),
+      abi.encodeWithSelector(IERC20.totalSupply.selector),
+      abi.encode(100)
     );
 
     vm.mockCall(
@@ -183,7 +198,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     );
 
     vm.expectEmit(true, false, false, true);
-    emit AssetIsNotBacked(address(bridgeWrapper));
+    emit AssetIsNotBacked(AAVEE);
 
     vm.expectEmit(true, false, false, true);
     emit AssetIsNotBacked(BTCB);
@@ -191,13 +206,12 @@ contract ProofOfReserveExecutorV2Test is Test {
     vm.expectEmit(false, false, false, true);
     emit EmergencyActionExecuted();
 
-    // TODO: change to proof of reserve admin
-    setPoolAdmin();
-
+    // Act
     proofOfReserveExecutorV2.executeEmergencyAction();
 
+    // Assert
     bool isBorrowingEnabled = proofOfReserveExecutorV2
-      .isBorrowingEnabledForAtLeastOneAsset();
+      .isEmergencyActionPossible();
 
     assertEq(isBorrowingEnabled, false);
   }
@@ -205,27 +219,27 @@ contract ProofOfReserveExecutorV2Test is Test {
   // emergency action - executed and events are emmited
 
   function enableFeedsOnRegistry() private {
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(bridgeWrapper),
-      PORF_AAVE
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      AAVEE,
+      PORF_AAVE,
+      address(bridgeWrapper)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
   }
 
   function enableAssetsOnExecutor() private {
     address[] memory assets = new address[](2);
-    assets[0] = address(bridgeWrapper);
+    assets[0] = AAVEE;
     assets[1] = BTCB;
 
     proofOfReserveExecutorV2.enableAssets(assets);
   }
 
   function setPoolAdmin() private {
-    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
-      ADDRESSES_PROVIDER
-    );
-    vm.prank(addressesProvider.getPoolAdmin());
+    vm.prank(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.getPoolAdmin());
 
-    addressesProvider.setPoolAdmin(address(proofOfReserveExecutorV2));
+    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setPoolAdmin(
+      address(proofOfReserveExecutorV2)
+    );
   }
 }
