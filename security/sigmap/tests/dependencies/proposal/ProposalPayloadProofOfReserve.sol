@@ -8,7 +8,7 @@ import {ILendingPoolAddressesProvider} from 'aave-address-book/AaveV2.sol';
 import {IACLManager} from 'aave-address-book/AaveV3.sol';
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
-import {ICollectorController} from '../dependencies/ICollectorController.sol';
+import {ICollectorController} from '../ICollectorController.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';

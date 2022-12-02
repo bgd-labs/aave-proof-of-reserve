@@ -12,8 +12,6 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  * - Sets LTV to 0 for the every asset, which is not backed
  */
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
-  // AAVE v3 pool addresses provider
-  IPoolAddressesProvider internal immutable _addressesProvider;
   // AAVE v3 pool
   IPool internal immutable _pool;
   // AAVE v3 pool configurator
@@ -28,35 +26,31 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
-    _addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
-    _pool = IPool(_addressesProvider.getPool());
-    _configurator = IPoolConfigurator(_addressesProvider.getPoolConfigurator());
+    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
+      poolAddressesProviderAddress
+    );
+    _pool = IPool(addressesProvider.getPool());
+    _configurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
   }
 
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+      .areAllReservesBacked(_assets);
 
-    if (!areReservesBacked) {
-      uint256 assetsLength = _assets.length;
+    uint256 assetsLength = _assets.length;
 
-      for (uint256 i = 0; i < assetsLength; ++i) {
-        if (unbackedAssetsFlags[i]) {
-          address asset = _assets[i];
+    for (uint256 i = 0; i < assetsLength; ++i) {
+      if (unbackedAssetsFlags[i]) {
+        DataTypes.ReserveConfigurationMap memory configuration = _pool
+          .getConfiguration(_assets[i]);
 
-          DataTypes.ReserveConfigurationMap memory configuration = _pool
-            .getConfiguration(asset);
+        (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
+          configuration
+        );
 
-          (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
-            configuration
-          );
-
-          if (ltv > 0) {
-            return true;
-          }
+        if (ltv > 0) {
+          return true;
         }
       }
     }

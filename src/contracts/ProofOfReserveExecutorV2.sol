@@ -12,8 +12,6 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  * - Disables borrowing of every asset on the market, when any of them is not backed
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
-  // AAVE v2 pool addresses provider
-  ILendingPoolAddressesProvider internal immutable _addressesProvider;
   // AAVE v2 pool
   ILendingPool internal immutable _pool;
   // AAVE v2 pool configurator
@@ -28,12 +26,12 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
-    _addressesProvider = ILendingPoolAddressesProvider(
-      poolAddressesProviderAddress
-    );
-    _pool = ILendingPool(_addressesProvider.getLendingPool());
+    ILendingPoolAddressesProvider addressesProvider = ILendingPoolAddressesProvider(
+        poolAddressesProviderAddress
+      );
+    _pool = ILendingPool(addressesProvider.getLendingPool());
     _configurator = ILendingPoolConfigurator(
-      _addressesProvider.getLendingPoolConfigurator()
+      addressesProvider.getLendingPoolConfigurator()
     );
   }
 
@@ -55,7 +53,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
       }
     }
 
-    // check if any of the reserves is not backed
+    // check if borrowing is enabled for any of the reserves
     for (uint256 i; i < allAssets.length; ++i) {
       DataTypes.ReserveConfigurationMap memory configuration = _pool
         .getConfiguration(allAssets[i]);
