@@ -59,6 +59,20 @@ contract ProofOfReserveAggregatorTest is Test {
     assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
   }
 
+  function testProofOfReserveFeedIsEnabledWhenAlreadyEnabled() public {
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      ASSET_1,
+      PROOF_OF_RESERVE_FEED_1
+    );
+
+    vm.expectRevert(bytes('FEED_ALREADY_ENABLED'));
+    proofOfReserveAggregator.enableProofOfReserveFeed(ASSET_1, PORF_AAVE);
+
+    address proofOfReserveFeed = proofOfReserveAggregator
+      .getProofOfReserveFeedForAsset(ASSET_1);
+    assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
+  }
+
   function testProofOfReserveFeedIsEnabledWithZeroAsserAddress() public {
     vm.expectRevert(bytes('INVALID_ASSET'));
     proofOfReserveAggregator.enableProofOfReserveFeed(
@@ -103,6 +117,27 @@ contract ProofOfReserveAggregatorTest is Test {
         AAVEE
       );
     assertEq(proofOfReserveFeed, PORF_AAVE);
+  }
+
+  function testProofOfReserveFeedWithBridgeWrapperIsEnabledWhenAlreadyEnabled()
+    public
+  {
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      AAVEE,
+      PROOF_OF_RESERVE_FEED_1
+    );
+
+    vm.expectRevert(bytes('FEED_ALREADY_ENABLED'));
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      AAVEE,
+      PORF_AAVE,
+      address(bridgeWrapper)
+    );
+
+    address proofOfReserveFeed = proofOfReserveAggregator
+      .getProofOfReserveFeedForAsset(AAVEE);
+
+    assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
   }
 
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroAsserAddress()

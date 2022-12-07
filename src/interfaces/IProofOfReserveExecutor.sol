@@ -16,7 +16,7 @@ interface IProofOfReserveExecutor {
   event AssetIsNotBacked(address indexed asset);
 
   /**
-   * @dev emitted when borrowing of all assets on the market is disabled
+   * @dev emitted when the emergency action is activated
    */
   event EmergencyActionExecuted();
 
@@ -53,8 +53,10 @@ interface IProofOfReserveExecutor {
   function isEmergencyActionPossible() external view returns (bool);
 
   /**
-   * @dev disable borrowing for all the assets on the pool when at least
+   * @dev executes pool-specific action when at least
    * one of the assets in the registry is not backed.
+   * v2: disables all borrowing and freezes the exploited assets
+   * v3: set ltv to 0 for the broken assets
    */
   function executeEmergencyAction() external;
 }

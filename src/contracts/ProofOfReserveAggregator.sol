@@ -45,6 +45,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   {
     require(asset != address(0), 'INVALID_ASSET');
     require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
+    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
     emit ProofOfReserveFeedStateChanged(
@@ -64,6 +65,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     require(asset != address(0), 'INVALID_ASSET');
     require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
     require(bridgeWrapper != address(0), 'INVALID_BRIDGE_WRAPPER');
+    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
     _bridgeWrapperList[asset] = bridgeWrapper;
