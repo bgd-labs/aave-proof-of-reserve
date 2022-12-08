@@ -10,7 +10,7 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
 
 /**
  * @author BGD Labs
- * @dev Aave market-specific contract for Proof of Reserve validations:
+ * @dev Aave pool-specific contract for Proof of Reserve validations:
  * - Stores list of token addresses that will be validated against their proof of reserve feed data
  * - Returns if all tokens of a list of assets are properly backed or not.
  */

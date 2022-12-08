@@ -9,7 +9,7 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 /**
  * @author BGD Labs
  * @dev Aave V2 contract for Proof of Reserve emergency action in case of any of bridged reserves is not backed:
- * - Disables borrowing of every asset on the market, when any of them is not backed
+ * - Disables borrowing of every asset on the pool, when any of them is not backed
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   // AAVE v2 pool

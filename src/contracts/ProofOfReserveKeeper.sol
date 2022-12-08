@@ -9,11 +9,11 @@ import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol
  * @author BGD Labs
  * @dev Aave chainlink keeper-compatible contract for proof of reserve:
  * - checks in simulation whether all reserves are backed
- * - executes emergency action for market
+ * - executes emergency action for pool
  */
 contract ProofOfReserveKeeper is KeeperCompatibleInterface {
   /**
-   * @dev run off-chain, checks if all reserves are backed on passed market and decides whether to run emergency action on-chain
+   * @dev run off-chain, checks if all reserves are backed on passed pool and decides whether to run emergency action on-chain
    * @param checkData address of the ProofOfReserveExecutor contract
    */
   function checkUpkeep(bytes calldata checkData)
@@ -38,7 +38,7 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
   }
 
   /**
-   * @dev if not all reserves are backed - executes emergency action for the market
+   * @dev if not all reserves are backed - executes emergency action for the pool
    * @param performData address of the ProofOfReserveExecutor contract
    */
   function performUpkeep(bytes calldata performData) external override {
