@@ -68,16 +68,16 @@ library ReserveConfiguration {
    * @return The state param representing ltv
    * @return The state param representing liquidation threshold
    * @return The state param representing liquidation bonus
+   * @return The state param representing frozen state
    **/
-  function getLtvAndLiquidationParams(
-    DataTypesV3.ReserveConfigurationMap memory self
-  )
+  function getReserveParams(DataTypesV3.ReserveConfigurationMap memory self)
     internal
     pure
     returns (
       uint256,
       uint256,
-      uint256
+      uint256,
+      bool
     )
   {
     uint256 dataLocal = self.data;
@@ -87,7 +87,8 @@ library ReserveConfiguration {
       (dataLocal & ~LIQUIDATION_THRESHOLD_MASK) >>
         LIQUIDATION_THRESHOLD_START_BIT_POSITION,
       (dataLocal & ~LIQUIDATION_BONUS_MASK) >>
-        LIQUIDATION_BONUS_START_BIT_POSITION
+        LIQUIDATION_BONUS_START_BIT_POSITION,
+      (dataLocal & ~FROZEN_MASK) != 0
     );
   }
 }

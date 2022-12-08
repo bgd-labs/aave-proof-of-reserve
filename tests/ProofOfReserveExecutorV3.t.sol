@@ -71,12 +71,12 @@ contract ProofOfReserveExecutorV3Test is Test {
     proofOfReserveExecutorV3.executeEmergencyAction();
 
     // Assert
-    assertTrue(getLtv(AAVEE) > 0);
-    assertTrue(getLtv(BTCB) > 0);
-    assertTrue(getLtv(WBTCE) > 0);
-    assertTrue(getLtv(DAIE) > 0);
-    assertTrue(getLtv(WETHE) > 0);
-    assertTrue(getLtv(LINKE) > 0);
+    assertLtvAndIsFrozen(AAVEE);
+    assertLtvAndIsFrozen(BTCB);
+    assertLtvAndIsFrozen(WBTCE);
+    assertLtvAndIsFrozen(DAIE);
+    assertLtvAndIsFrozen(WETHE);
+    assertLtvAndIsFrozen(LINKE);
   }
 
   function testExecuteEmergencyActionV3() public {
@@ -111,13 +111,18 @@ contract ProofOfReserveExecutorV3Test is Test {
     vm.expectEmit(false, false, false, true);
     emit EmergencyActionExecuted();
 
+    bool isEmergencyActionPossible = proofOfReserveExecutorV3
+      .isEmergencyActionPossible();
+    assertEq(isEmergencyActionPossible, true);
+
     // Act
     proofOfReserveExecutorV3.executeEmergencyAction();
 
     // Assert
-    bool isLtvNotZero = proofOfReserveExecutorV3.isEmergencyActionPossible();
+    isEmergencyActionPossible = proofOfReserveExecutorV3
+      .isEmergencyActionPossible();
 
-    assertEq(isLtvNotZero, false);
+    assertEq(isEmergencyActionPossible, false);
   }
 
   function enableFeedsOnRegistry() private {
@@ -150,17 +155,25 @@ contract ProofOfReserveExecutorV3Test is Test {
     AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
 
-  function getLtv(address asset) private view returns (uint256) {
+  function getLtvAndIsFrozen(address asset)
+    private
+    view
+    returns (uint256, bool)
+  {
     DataTypes.ReserveConfigurationMap memory configuration = AaveV3Avalanche
       .POOL
       .getConfiguration(asset);
 
-    (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
+    (uint256 ltv, , , bool isFrozen) = ReserveConfiguration.getReserveParams(
       configuration
     );
 
-    return ltv;
+    return (ltv, isFrozen);
   }
 
-  function checkLtv() private {}
+  function assertLtvAndIsFrozen(address asset) private {
+    (uint256 ltv, bool isFrozen) = getLtvAndIsFrozen(asset);
+    assertTrue(ltv > 0);
+    assertTrue(!isFrozen);
+  }
 }

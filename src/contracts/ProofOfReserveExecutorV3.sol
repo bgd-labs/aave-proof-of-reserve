@@ -9,7 +9,7 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 /**
  * @author BGD Labs
  * @dev Aave V3 contract for Proof of Reserve emergency action in case of any of bridged reserves is not backed:
- * - Sets LTV to 0 for the every asset, which is not backed
+ * - Sets LTV to 0 for the every asset, which is not backed and freezes it
  */
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   // AAVE v3 pool
@@ -45,11 +45,10 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
         DataTypes.ReserveConfigurationMap memory configuration = _pool
           .getConfiguration(_assets[i]);
 
-        (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
-          configuration
-        );
+        (uint256 ltv, , , bool isFrozen) = ReserveConfiguration
+          .getReserveParams(configuration);
 
-        if (ltv > 0) {
+        if (ltv > 0 || !isFrozen) {
           return true;
         }
       }
@@ -71,13 +70,16 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
       for (uint256 i = 0; i < assetsLength; ++i) {
         if (unbackedAssetsFlags[i]) {
           address asset = _assets[i];
+
+          // get asset configuration
           DataTypes.ReserveConfigurationMap memory configuration = _pool
             .getConfiguration(asset);
           (
             ,
             uint256 liquidationThreshold,
-            uint256 liquidationBonus
-          ) = ReserveConfiguration.getLtvAndLiquidationParams(configuration);
+            uint256 liquidationBonus,
+
+          ) = ReserveConfiguration.getReserveParams(configuration);
 
           // set LTV to 0
           _configurator.configureReserveAsCollateral(
@@ -86,6 +88,9 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
             liquidationThreshold,
             liquidationBonus
           );
+
+          // freeze reserve
+          _configurator.setReserveFreeze(asset, true);
 
           emit AssetIsNotBacked(asset);
         }

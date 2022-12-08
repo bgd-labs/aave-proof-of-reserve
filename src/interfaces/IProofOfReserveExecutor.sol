@@ -55,8 +55,8 @@ interface IProofOfReserveExecutor {
   /**
    * @dev executes pool-specific action when at least
    * one of the assets in the registry is not backed.
-   * v2: disables all borrowing and freezes the exploited assets
-   * v3: set ltv to 0 for the broken assets
+   * v2: disable all borrowing and freeze the exploited assets
+   * v3: set ltv to 0 for the broken assets and freeze them
    */
   function executeEmergencyAction() external;
 }

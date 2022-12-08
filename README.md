@@ -13,7 +13,7 @@ Below is the general flow of the proof of reserve check:
 3. Aggregator compares total supply against Chainlink's Proof of Reserve feed for every token enabled in prior.
 4. If at least one reserve is compromised, then
    - for Aave V2 Executor disables borrowing for every asset on the pool and freezes only the exploited assets.
-   - for V3 LTV is set to 0 for the broken asset.
+   - for V3 the broken asset is freezed and it's LTV is set to 0.
 
 ## Aggregator
 
@@ -27,7 +27,7 @@ This contract is common, to be used by both Aave v2 and v3 systems, each one wit
   1. areAllReservesBacked(). Returning at any time if all the assets with a proof of reserve feed associated are properly backed.
   2. executeEmergencyAction(). Callable by anybody and allowing to execute the appropriate protective actions on the Aave pool if areAllReservesBacked() would be returning a false value.
 - The action to be executed on v2 is stopping borrowing of all the assets and freezing only the assets which did not pass proof of reserve validation.
-- on v3 LTV will be set to 0 for the assets which did not pass proof of reserve validations.
+- on v3 the assets which did not pass proof of reserve validations will be freezed and their LTV will be set to 0.
 - The [ProofOfReserveExecutorV3](./src/contracts/ProofOfReserveExecutorV3.sol) of Aave v3 will have riskAdmin permissions from the Aave v3 protocol, allowing this way to adjust LTV when the defined conditions are met.
 - To allow the [ProofOfReserveExecutorV2](./src/contracts/ProofOfReserveExecutorV2.sol) of Aave v2 to halt borrowing and freeze exploited reserves, as the permissions system on Aave v2 is less granular than in v3, we have added a new role PROOF_OF_RESERVE_ADMIN on the v2 addresses provider smart contract, and updated the pool configurator contract to allow both the pool admin (previously) and the new proof of reserve admin (the ProofOfReserveExecutor of v2) to disable borrowing and freeze reserve.
 - The addition/removal of assets with a proof of reserve will be controlled via the standard Aave governance procedures. Everything else (monitoring if all reserves are backed, execute the emergency action if not) is completely permissionless, algorithmically defined.
