@@ -46,4 +46,14 @@ contract AvaxBridgeWrapper is IBridgeWrapper {
   function decimals() external view returns (uint8) {
     return _currentBridge.decimals();
   }
+
+  /// @inheritdoc IBridgeWrapper
+  function getCurrentBridge() external view returns (address) {
+    return address(_currentBridge);
+  }
+
+  /// @inheritdoc IBridgeWrapper
+  function getDeprecatedBridge() external view returns (address) {
+    return address(_deprecatedBridge);
+  }
 }

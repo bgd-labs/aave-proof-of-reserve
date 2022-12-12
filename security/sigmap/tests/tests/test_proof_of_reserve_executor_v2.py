@@ -103,7 +103,7 @@ def test_are_all_reserves_backed_empty(owner, pool_addresses_provider_v2, ProofO
 
 
 # Tests `executeEmergencyAction()` 
-def test_execute_emergency_admin(owner, usdc, usdt, pool_addresses_provider_v2, ProofOfReserveAggregator, MockAggregator, ProofOfReserveExecutorV2):
+def test_execute_emergency_action(owner, usdc, usdt, pool_addresses_provider_v2, pool_v2, ProofOfReserveAggregator, MockAggregator, ProofOfReserveExecutorV2, ReserveConfiguration):
     ## Setup
     # Deployments
     proof_of_reserve_aggregator = owner.deploy(ProofOfReserveAggregator)
@@ -137,6 +137,11 @@ def test_execute_emergency_admin(owner, usdc, usdt, pool_addresses_provider_v2, 
     assert 'EmergencyActionExecuted' in tx.events
     assert tx.events['AssetIsNotBacked']['asset'] == usdc
 
+    # Verify pool is frozen
+    assert tx.events['ReserveFrozen']['asset'] == usdc
+    config = pool_v2.getConfiguration(usdc)[0]
+    assert not config & (1 << 57) == 0
+
     reserves = [
         '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab',
         '0xd586e7f844cea2f87f50152665bcbc2c279d8d70',
@@ -155,7 +160,7 @@ def test_execute_emergency_admin(owner, usdc, usdt, pool_addresses_provider_v2, 
 
 
 # Tests `executeEmergencyAction()` when all reserves as backed
-def test_execute_emergency_admin_backed(owner, usdc, usdt, pool_addresses_provider_v2, ProofOfReserveAggregator, MockAggregator, ProofOfReserveExecutorV2):
+def test_execute_emergency_action_backed(owner, usdc, usdt, pool_addresses_provider_v2, ProofOfReserveAggregator, MockAggregator, ProofOfReserveExecutorV2):
     ## Setup
     # Deployments
     proof_of_reserve_aggregator = owner.deploy(ProofOfReserveAggregator)
@@ -193,3 +198,118 @@ def test_execute_emergency_admin_backed(owner, usdc, usdt, pool_addresses_provid
 
     assert tx.gas_used < 5_000_000
 
+
+# Tests `isEmergencyActionPossible()` 
+def test_is_emergency_action_possible(owner, usdc, usdt, pool_addresses_provider_v2, ProofOfReserveAggregator, MockAggregator, ProofOfReserveExecutorV2):
+    ## Setup
+    # Deployments
+    proof_of_reserve_aggregator = owner.deploy(ProofOfReserveAggregator)
+    proof_of_reserve_feed_usdc = owner.deploy(MockAggregator)
+    proof_of_reserve_feed_usdt = owner.deploy(MockAggregator)
+    proof_of_reserve_executor_v2 = owner.deploy(ProofOfReserveExecutorV2, pool_addresses_provider_v2, proof_of_reserve_aggregator)
+
+    # Enable PoR feeds
+    proof_of_reserve_aggregator.enableProofOfReserveFeed(usdc, proof_of_reserve_feed_usdc, {'from': owner})
+    proof_of_reserve_aggregator.enableProofOfReserveFeed(usdt, proof_of_reserve_feed_usdt, {'from': owner})
+
+    # Set feed answers
+    feed_answer_usdc = usdc.totalSupply() - 1000 # Reserve not backed
+    proof_of_reserve_feed_usdc.setAnswer(feed_answer_usdc)
+
+    feed_answer_usdt = usdt.totalSupply()
+    proof_of_reserve_feed_usdt.setAnswer(feed_answer_usdt)
+
+    # Enable [USDC, USDT] in Executor V2
+    proof_of_reserve_executor_v2.enableAssets([usdc, usdt], {'from': owner})
+
+    # Change `PROOF_OF_RESERVE_ADMIN` to new executor v2
+    provider_owner = '0x01244e7842254e3fd229cd263472076b1439d1cd'
+    pool_addresses_provider_v2.setPoolAdmin(proof_of_reserve_executor_v2, {'from': provider_owner})
+
+    ## Action
+    # `isEmergencyActionPossible()`
+    is_possible = proof_of_reserve_executor_v2.isEmergencyActionPossible()
+
+    ## Verification
+    assert is_possible
+
+    ## Setup
+    # `executeEmergencyAction()` to freeze reserve and disable borrowings
+    proof_of_reserve_executor_v2.executeEmergencyAction()
+
+    ## Action
+    # `isEmergencyActionPossible()`
+    is_possible = proof_of_reserve_executor_v2.isEmergencyActionPossible()
+
+    ## Verification
+    assert not is_possible
+
+# Tests `isEmergencyActionPossible()` when borrowing is disabled but not fozen
+def test_is_emergency_action_possible_when_borrowing_disabled(owner, usdc, usdt, pool_addresses_provider_v2, pool_configurator_v2, ProofOfReserveAggregator, MockAggregator, ProofOfReserveExecutorV2):
+    ## Setup
+    # Deployments
+    proof_of_reserve_aggregator = owner.deploy(ProofOfReserveAggregator)
+    proof_of_reserve_feed_usdc = owner.deploy(MockAggregator)
+    proof_of_reserve_feed_usdt = owner.deploy(MockAggregator)
+    proof_of_reserve_executor_v2 = owner.deploy(ProofOfReserveExecutorV2, pool_addresses_provider_v2, proof_of_reserve_aggregator)
+
+    # Enable PoR feeds
+    proof_of_reserve_aggregator.enableProofOfReserveFeed(usdc, proof_of_reserve_feed_usdc, {'from': owner})
+    proof_of_reserve_aggregator.enableProofOfReserveFeed(usdt, proof_of_reserve_feed_usdt, {'from': owner})
+
+    # Set feed answers
+    feed_answer_usdc = usdc.totalSupply() - 1000 # Reserve not backed
+    proof_of_reserve_feed_usdc.setAnswer(feed_answer_usdc)
+
+    feed_answer_usdt = usdt.totalSupply()
+    proof_of_reserve_feed_usdt.setAnswer(feed_answer_usdt)
+
+    # Enable [USDC, USDT] in Executor V2
+    proof_of_reserve_executor_v2.enableAssets([usdc, usdt], {'from': owner})
+
+    # Disable borrowing
+    pool_admin = pool_addresses_provider_v2.getPoolAdmin()
+    pool_configurator_v2.disableBorrowingOnReserve(usdc, {'from': pool_admin})
+
+    ## Action
+    # `isEmergencyActionPossible()`
+    is_possible = proof_of_reserve_executor_v2.isEmergencyActionPossible()
+
+    ## Verification
+    assert is_possible
+
+
+# Tests `isEmergencyActionPossible()` when frozen but borrowing is not disabled
+def test_is_emergency_action_possible_when_frozen(owner, usdc, usdt, pool_addresses_provider_v2, pool_configurator_v2, ProofOfReserveAggregator, MockAggregator, ProofOfReserveExecutorV2):
+    ## Setup
+    # Deployments
+    proof_of_reserve_aggregator = owner.deploy(ProofOfReserveAggregator)
+    proof_of_reserve_feed_usdc = owner.deploy(MockAggregator)
+    proof_of_reserve_feed_usdt = owner.deploy(MockAggregator)
+    proof_of_reserve_executor_v2 = owner.deploy(ProofOfReserveExecutorV2, pool_addresses_provider_v2, proof_of_reserve_aggregator)
+
+    # Enable PoR feeds
+    proof_of_reserve_aggregator.enableProofOfReserveFeed(usdc, proof_of_reserve_feed_usdc, {'from': owner})
+    proof_of_reserve_aggregator.enableProofOfReserveFeed(usdt, proof_of_reserve_feed_usdt, {'from': owner})
+
+    # Set feed answers
+    feed_answer_usdc = usdc.totalSupply() - 1000 # Reserve not backed
+    proof_of_reserve_feed_usdc.setAnswer(feed_answer_usdc)
+
+    feed_answer_usdt = usdt.totalSupply()
+    proof_of_reserve_feed_usdt.setAnswer(feed_answer_usdt)
+
+    # Enable [USDC, USDT] in Executor V2
+    proof_of_reserve_executor_v2.enableAssets([usdc, usdt], {'from': owner})
+
+    # Disable borrowing only for USDC and USDT
+    pool_admin = pool_addresses_provider_v2.getPoolAdmin()
+    pool_configurator_v2.freezeReserve(usdc, {'from': pool_admin})
+    pool_configurator_v2.freezeReserve(usdt, {'from': pool_admin})
+
+    ## Action
+    # `isEmergencyActionPossible()`
+    is_possible = proof_of_reserve_executor_v2.isEmergencyActionPossible()
+
+    ## Verification
+    assert is_possible

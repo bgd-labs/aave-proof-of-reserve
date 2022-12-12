@@ -121,10 +121,15 @@ def usdt(interface):
 def aave_token(interface):
     return interface.IERC20("0x63a72806098Bd3D9520cC43356dD78afe5D386D9")
 
-# Instance of `PoolAddressesProvider` V2 as `IPoolAddressesProvider`
+# Instance of `DAI.e` token as `IERC20`
+@pytest.fixture(scope='session', autouse=True)
+def dai(interface):
+    return interface.IERC20("0xd586E7F844cEa2F87f50152665BCbc2C279D8d70")
+
+# Instance of `PoolAddressesProvider` V2 as `ILendingPoolAddressesProvider`
 @pytest.fixture(scope='session', autouse=True)
 def pool_addresses_provider_v2(interface):
-    return interface.IPoolAddressesProvider("0xb6A86025F0FE1862B372cb0ca18CE3EDe02A318f")
+    return interface.ILendingPoolAddressesProvider("0xb6A86025F0FE1862B372cb0ca18CE3EDe02A318f")
 
 # Instance of `PoolAddressesProvider` V3 as `IPoolAddressesProvider`
 @pytest.fixture(scope='session', autouse=True)
@@ -136,4 +141,17 @@ def pool_addresses_provider_v3(interface):
 def acl_manager_v3(interface):
     return interface.IACLManager("0xa72636CbcAa8F5FF95B2cc47F3CDEe83F3294a0B")
 
+# Instance of `LendingPoolConfigurator` V2 as `ILendingPoolConfigurator`
+@pytest.fixture(scope='session', autouse=True)
+def pool_configurator_v2(interface):
+    return interface.ILendingPoolConfigurator("0x230B618aD4C475393A7239aE03630042281BD86e")
 
+# Instance of `PoolConfigurator` V3 as `IPoolConfigurator`
+@pytest.fixture(scope='session', autouse=True)
+def pool_configurator_v3(interface):
+    return interface.IPoolConfigurator("0x8145eddDf43f50276641b55bd3AD95944510021E")
+
+# Instance of `LendingPool` V2 as `IPool`
+@pytest.fixture(scope='session', autouse=True)
+def pool_v2(interface):
+    return interface.IPool("0x4F01AeD16D97E3aB5ab2B501154DC9bb0F1A5A2C")

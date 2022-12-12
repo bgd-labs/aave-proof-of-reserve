@@ -15,6 +15,8 @@ project.
 ### Overview
 
 The review covers the introduction of the Proof of Reserve functionality.
+The review is targeted at commit [23a1340](https://github.com/bgd-labs/aave-proof-of-reserve/tree/23a13401162a259495deacd46ee743510c382ca6).
+
 Proof of Reserve is a risk mitigation technique. 
 The system uses a Chainlink oracle to fetch quantity of the underlying asset stored by the bridge.
 Using the total supply of the bridged ERC20 token it may then determine if the bridged token is fully backed by the underlying token.

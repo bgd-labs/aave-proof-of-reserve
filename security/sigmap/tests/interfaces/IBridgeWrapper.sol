@@ -21,4 +21,14 @@ interface IBridgeWrapper {
    * @dev Returns the decimals places of the token.
    */
   function decimals() external view returns (uint8);
+
+  /**
+   * @dev Returns the address of the current bridge.
+   */
+  function getCurrentBridge() external view returns (address);
+
+  /**
+   * @dev Returns the address of the deprecated bridge.
+   */
+  function getDeprecatedBridge() external view returns (address);
 }
