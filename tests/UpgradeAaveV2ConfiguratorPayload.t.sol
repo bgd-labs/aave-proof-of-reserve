@@ -7,6 +7,7 @@ import {Deploy} from '../scripts/DeployProofOfReserveAvax.s.sol';
 import {MockExecutor} from './MockExecutor.sol';
 import {ConfiguratorMock} from './helpers/ConfiguratorMock.sol';
 import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+import {ProxyHelpers} from 'aave-helpers/ProxyHelpers.sol';
 
 contract ProposalPayloadProofOfReserveTest is Test {
   address public constant GUARDIAN =
@@ -36,15 +37,28 @@ contract ProposalPayloadProofOfReserveTest is Test {
     address executorV2 = address(script.executorV2());
     address proposal = script.upgradeV2ConfigurtorAddress();
 
+    address implBefore = ProxyHelpers
+      .getInitializableAdminUpgradeabilityProxyImplementation(
+        vm,
+        address(AaveV2Avalanche.POOL_CONFIGURATOR)
+      );
+
     // Execute proposal
     _executor.execute(address(proposal));
 
     // Assert
+    address implAfter = ProxyHelpers
+      .getInitializableAdminUpgradeabilityProxyImplementation(
+        vm,
+        address(AaveV2Avalanche.POOL_CONFIGURATOR)
+      );
+    // implementation should change
+    assertTrue(implBefore != implAfter);
+
+    // check that executorV2 is proof of reserve admin
     address proofOfReserveAdmin = AaveV2Avalanche
       .POOL_ADDRESSES_PROVIDER
       .getAddress('PROOF_OF_RESERVE_ADMIN');
     assertEq(proofOfReserveAdmin, executorV2);
-    // check that impl is different
-    // check that executorV2 is admin
   }
 }
