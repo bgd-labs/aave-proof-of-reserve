@@ -19,7 +19,7 @@ contract UpgradeAaveV2ConfiguratorPayload {
 
   ILendingPoolAddressesProvider public immutable POOL_ADDRESSES_PROVIDER;
 
-  constructor(address executorV2) {
+  constructor(address executorV2) public {
     EXECUTOR_V2 = executorV2;
     POOL_ADDRESSES_PROVIDER = ILendingPoolAddressesProvider(
       0xb6A86025F0FE1862B372cb0ca18CE3EDe02A318f // Avalanche V2 Addresses Provider
