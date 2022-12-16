@@ -42,12 +42,30 @@ This contract is common, to be used by both Aave v2 and v3 systems, each one wit
 
 As for several assets on the Avalanche network deprecated bridge co-exist with the actual one, [AvaxBridgeWrapper](./src/contracts/AvaxBridgeWrapper.sol) was implemented to return the sum of supplies.
 
+# Assets to be protected by PoR
+
+| Asset                                                                           |                                                          PoR feed                                                          | Bridge Wrapper |
+| ------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------: | -------------: |
+| [AAVE.e](https://snowtrace.io/token/0x63a72806098bd3d9520cc43356dd78afe5d386d9) |   [0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7](https://snowtrace.io/address/0x14c4c668e34c09e1fba823ad5db47f60aebdd4f7)    | To be deployed |
+| [WETH.e](https://snowtrace.io/token/0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab) | [0xDDaf9290D057BfA12d7576e6dADC109421F31948](https://snowtrace.io/address/0xddaf9290d057bfa12d7576e6dadc109421f31948#code) | To be deployed |
+| [DAI.e](https://snowtrace.io/token/0xd586e7f844cea2f87f50152665bcbc2c279d8d70)  |   [0x976D7fAc81A49FA71EF20694a3C56B9eFB93c30B](https://snowtrace.io/address/0x976d7fac81a49fa71ef20694a3c56b9efb93c30b)    | To be deployed |
+| [LINK.e](https://snowtrace.io/token/0x5947bb275c521040051d82396192181b413227a3) |   [0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6](https://snowtrace.io/address/0x943cef1b112ca9fd7edadc9a46477d3812a382b6)    | To be deployed |
+| [WBTC.e](https://snowtrace.io/token/0x50b7545627a5162f82a992c33b87adc75187b218) |   [0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87](https://snowtrace.io/address/0xebefeaa58636df9b20a4fad78fad8759e6a20e87)    | To be deployed |
+| [BTC.b](https://snowtrace.io/token/0x152b9d0FdC40C096757F570A51E494bd4b943E50)  |   [0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9](https://snowtrace.io/address/0x99311b4bf6d8e3d3b4b9fbdd09a1b0f4ad8e06e9)    |              - |
+
 # Deployment
 
-1. Changes to V2 pool to be deployed in advance.
-2. [DeployProofOfReserveAvax.s.sol](./scripts/DeployProofOfReserveAvax.s.sol): This script will deploy Aggregator, Executors and Keeper contracts.
-3. AvaxBridgeWrappers need to be deployed in advance for the every dual-bridge asset AAVE supports.
-4. [ProposalPayloadProofOfReserve](./src/proposal/ProposalPayloadProofOfReserve.sol) will transfer all the permissions, enable assets for checking and register Upkeeps in Chainlink Automation.
+1. [DeployProofOfReserveAvax.s.sol](./scripts/DeployProofOfReserveAvax.s.sol): This script will deploy Aggregator, Executors, Keeper, all Bridge Wrappers and two proposal contracts.
+2. [ProposalPayloadProofOfReserve](./src/proposal/ProposalPayloadProofOfReserve.sol) will
+
+- enable proof of reserve feeds and assets in Aggregator, ExecutorV2 and ExecutorV3 contracts
+- set ExecutorV3 as the Risk Admin
+- register Chainlink Automation for v2 and v3
+
+3. [UpgradeAaveV2ConfiguratorPayload](./src/proposal/UpgradeAaveV2ConfiguratorPayload.sol) will
+
+- deploy new implementation of the V2 Pool Configurator contract
+- set ExecutorV2 as PROOF_OF_RESERVE_ADMIN
 
 # SetUp
 
