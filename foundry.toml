@@ -9,6 +9,7 @@ remappings = [
     'solidity-utils/=lib/solidity-utils/src/',
     'chainlink-brownie-contracts/=lib/chainlink-brownie-contracts/contracts/src/v0.8/',
     'aave-address-book/=lib/aave-address-book/src/',
+    '@aave/core-v2=lib/protocol-v2/'
 ]
 [rpc_endpoints]
 ethereum="${RPC_ETHEREUM}"

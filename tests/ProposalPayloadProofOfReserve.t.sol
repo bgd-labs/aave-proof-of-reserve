@@ -11,8 +11,7 @@ import {ProofOfReserveKeeper} from '../src/contracts/ProofOfReserveKeeper.sol';
 import {Deploy} from '../scripts/DeployProofOfReserveAvax.s.sol';
 import {MockExecutor} from './MockExecutor.sol';
 import {ConfiguratorMock} from './helpers/ConfiguratorMock.sol';
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+import {AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 
 contract ProposalPayloadProofOfReserveTest is Test {
   address public constant GUARDIAN =
@@ -34,7 +33,7 @@ contract ProposalPayloadProofOfReserveTest is Test {
     _executor = MockExecutor(GUARDIAN);
   }
 
-  function testExecute() public {
+  function testExecuteProposal() public {
     // deploy all contracts
     Deploy script = new Deploy();
     script.deployContracts();
@@ -108,14 +107,3 @@ contract ProposalPayloadProofOfReserveTest is Test {
     return (assets, proofOfReserveFeeds);
   }
 }
-
-// check:
-// 	2) assets are enabled in aggregator v2
-// 	3) assets are enabled in aggregator v3
-// 	4) LendingPoolConfigurator is upgraded
-// 	5) ExecutorV2 is PROOF_OF_RESERVE_ADMIN
-// 	6) ExecutorV3 has risk admin role
-// 	7) UpkeepV2 created
-// 	8) UpkeepV3 created
-
-// 	9) call something ?

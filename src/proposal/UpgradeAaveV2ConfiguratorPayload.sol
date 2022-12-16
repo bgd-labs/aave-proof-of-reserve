@@ -1,16 +1,9 @@
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma experimental ABIEncoderV2;
+pragma solidity >=0.6.0;
 
-import {LinkTokenInterface} from 'chainlink-brownie-contracts/interfaces/LinkTokenInterface.sol';
-import {KeeperRegistryInterface, Config, State} from 'chainlink-brownie-contracts/interfaces/KeeperRegistryInterface.sol';
-import {KeeperRegistrarInterface} from './KeeperRegistrarInterface.sol';
-import {ILendingPoolAddressesProvider} from 'aave-address-book/AaveV2.sol';
-import {IACLManager} from 'aave-address-book/AaveV3.sol';
-import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
-import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
-import {ICollectorController} from '../dependencies/ICollectorController.sol';
-import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+import {LendingPoolConfigurator} from '@aave/core-v2/contracts/protocol/lendingpool/LendingPoolConfigurator.sol';
+import {ILendingPoolAddressesProvider} from '@aave/core-v2/contracts/interfaces/ILendingPoolAddressesProvider.sol';
 
 /**
  * @title UpgradeAaveV2ConfiguratorPayload
@@ -20,19 +13,31 @@ import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBoo
  * - V2: assign PROOF_OF_RESERVE_ADMIN role to ProofOfReserveExecutorV2 in AddressProvider
  */
 
-contract ProposalPayloadProofOfReserve {
-  address public constant LENDING_POOL_CONFIGURATOR_IMPL = address(0);
-  address public constant EXECUTOR_V2 = address(0);
+contract UpgradeAaveV2ConfiguratorPayload {
+  address public immutable EXECUTOR_V2;
   bytes32 public constant PROOF_OF_RESERVE_ADMIN = 'PROOF_OF_RESERVE_ADMIN';
 
+  ILendingPoolAddressesProvider public immutable POOL_ADDRESSES_PROVIDER;
+
+  constructor(address executorV2) {
+    EXECUTOR_V2 = executorV2;
+    POOL_ADDRESSES_PROVIDER = ILendingPoolAddressesProvider(
+      0xb6A86025F0FE1862B372cb0ca18CE3EDe02A318f // Avalanche V2 Addresses Provider
+    );
+  }
+
   function execute() external {
+    // deploy & init lending pool configurator
+    LendingPoolConfigurator poolConfigurator = new LendingPoolConfigurator();
+    poolConfigurator.initialize(POOL_ADDRESSES_PROVIDER);
+
     // set the new implementation for Pool Configurator to enable PROOF_OF_RESERVE_ADMIN
-    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setLendingPoolConfiguratorImpl(
-      LENDING_POOL_CONFIGURATOR_IMPL
+    POOL_ADDRESSES_PROVIDER.setLendingPoolConfiguratorImpl(
+      address(poolConfigurator)
     );
 
     // set ProofOfReserveExecutorV2 as PROOF_OF_RESERVE_ADMIN
-    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setAddress(
+    POOL_ADDRESSES_PROVIDER.setAddress(
       PROOF_OF_RESERVE_ADMIN,
       address(EXECUTOR_V2)
     );

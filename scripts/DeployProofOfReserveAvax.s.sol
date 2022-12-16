@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Script} from 'forge-std/Script.sol';
+import {Test} from 'forge-std/Test.sol';
+import {console} from 'forge-std/console.sol';
 import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
@@ -10,12 +11,15 @@ import {ProofOfReserveKeeper} from '../src/contracts/ProofOfReserveKeeper.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 import {ProposalPayloadProofOfReserve, BridgeWrappers} from '../src/proposal/ProposalPayloadProofOfReserve.sol';
 
-contract Deploy is Script {
+string constant upgradeV2ConfiguratorArtifact = 'out/UpgradeAaveV2ConfiguratorPayload.sol/UpgradeAaveV2ConfiguratorPayload.json';
+
+contract Deploy is Test {
   ProofOfReserveAggregator public aggregator;
   ProofOfReserveExecutorV2 public executorV2;
   ProofOfReserveExecutorV3 public executorV3;
   ProofOfReserveKeeper public keeper;
   ProposalPayloadProofOfReserve public proposal;
+  address public upgradeV2ConfigurtorAddress;
 
   address public constant GUARDIAN = 0xa35b76E4935449E33C56aB24b23fcd3246f13470;
 
@@ -37,6 +41,7 @@ contract Deploy is Script {
 
     keeper = new ProofOfReserveKeeper();
 
+    // deploy bridge wrappers
     // AAVE.e
     AvaxBridgeWrapper aaveBridgeWrapper = new AvaxBridgeWrapper(
       0x63a72806098Bd3D9520cC43356dD78afe5D386D9, // AAVE.e
@@ -81,6 +86,15 @@ contract Deploy is Script {
         wbtc: address(wbtcBridgeWrapper)
       })
     );
+
+    // deploy v2 proposal
+    upgradeV2ConfigurtorAddress = deployCode(
+      upgradeV2ConfiguratorArtifact,
+      abi.encode(address(executorV2))
+    );
+
+    // address upgradeV2TokensImpl = deployCode(upgradeV2TokensPolygonArtifact);
+    console.log('upgradeV2TokensPolygonImpl:', upgradeV2ConfigurtorAddress);
   }
 
   function run() external {
