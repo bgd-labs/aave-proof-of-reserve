@@ -12,30 +12,30 @@ import {ProposalPayloadProofOfReserve, BridgeWrappers} from '../src/proposal/Pro
 
 contract Deploy is Script {
   ProofOfReserveAggregator public aggregator;
+  ProofOfReserveExecutorV2 public executorV2;
+  ProofOfReserveExecutorV3 public executorV3;
+  ProofOfReserveKeeper public keeper;
+  ProposalPayloadProofOfReserve public proposal;
 
   address public constant GUARDIAN = 0xa35b76E4935449E33C56aB24b23fcd3246f13470;
 
-  function run() external {
-    vm.startBroadcast();
-
+  function deployContracts() public {
     aggregator = new ProofOfReserveAggregator();
     aggregator.transferOwnership(GUARDIAN);
 
-    ProofOfReserveExecutorV2 executorV2 = new ProofOfReserveExecutorV2(
+    executorV2 = new ProofOfReserveExecutorV2(
       address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
       address(aggregator)
     );
     executorV2.transferOwnership(GUARDIAN);
 
-    ProofOfReserveExecutorV3 executorV3 = new ProofOfReserveExecutorV3(
+    executorV3 = new ProofOfReserveExecutorV3(
       address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
       address(aggregator)
     );
     executorV3.transferOwnership(GUARDIAN);
 
-    ProofOfReserveKeeper keeper = new ProofOfReserveKeeper();
-
-    // BridgeWrappers memory bridgeWrappers;
+    keeper = new ProofOfReserveKeeper();
 
     // AAVE.e
     AvaxBridgeWrapper aaveBridgeWrapper = new AvaxBridgeWrapper(
@@ -64,11 +64,11 @@ contract Deploy is Script {
     // WBTC.e
     AvaxBridgeWrapper wbtcBridgeWrapper = new AvaxBridgeWrapper(
       0x50b7545627a5162F82A992c33b87aDc75187B218, // WBTC.e
-      0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87 // Deprecated bridge
+      0x408D4cD0ADb7ceBd1F1A1C33A0Ba2098E1295bAB // Deprecated bridge
     );
 
     // create proposal here and pass all the created contracts
-    new ProposalPayloadProofOfReserve(
+    proposal = new ProposalPayloadProofOfReserve(
       aggregator,
       executorV2,
       executorV3,
@@ -81,6 +81,12 @@ contract Deploy is Script {
         wbtc: address(wbtcBridgeWrapper)
       })
     );
+  }
+
+  function run() external {
+    vm.startBroadcast();
+
+    deployContracts();
 
     vm.stopBroadcast();
   }

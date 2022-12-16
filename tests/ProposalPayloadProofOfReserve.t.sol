@@ -8,6 +8,8 @@ import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregato
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
 import {ProofOfReserveKeeper} from '../src/contracts/ProofOfReserveKeeper.sol';
+import {Deploy} from '../scripts/DeployProofOfReserveAvax.s.sol';
+import {MockExecutor} from './MockExecutor.sol';
 import {ConfiguratorMock} from './helpers/ConfiguratorMock.sol';
 import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
@@ -16,91 +18,98 @@ contract ProposalPayloadProofOfReserveTest is Test {
   address public constant GUARDIAN =
     address(0xa35b76E4935449E33C56aB24b23fcd3246f13470);
 
+  MockExecutor internal _executor;
+
   event ChainlinkUpkeepRegistered(
     string indexed name,
     uint256 indexed upkeedId
   );
 
   function setUp() public {
-    vm.createSelectFork('avalanche');
+    vm.createSelectFork('avalanche', 23712421);
+
+    MockExecutor mockExecutor = new MockExecutor();
+    vm.etch(GUARDIAN, address(mockExecutor).code);
+
+    _executor = MockExecutor(GUARDIAN);
   }
 
-  // function testExecute() public {
-  //   // deploy all contracts
-  //   ConfiguratorMock configurator = new ConfiguratorMock();
-  //   ProofOfReserveAggregator aggregator = new ProofOfReserveAggregator();
-  //   ProofOfReserveExecutorV2 executorV2 = new ProofOfReserveExecutorV2(
-  //     address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
-  //     address(aggregator)
-  //   );
-  //   ProofOfReserveExecutorV3 executorV3 = new ProofOfReserveExecutorV3(
-  //     address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
-  //     address(aggregator)
-  //   );
-  //   ProofOfReserveKeeper keeper = new ProofOfReserveKeeper();
+  function testExecute() public {
+    // deploy all contracts
+    Deploy script = new Deploy();
+    script.deployContracts();
 
-  //   // deploy the proposal
-  //   ProposalPayloadProofOfReserve proposal = new ProposalPayloadProofOfReserve(
-  //     address(configurator),
-  //     address(aggregator),
-  //     address(executorV2),
-  //     address(executorV3),
-  //     address(keeper)
-  //   );
+    ProofOfReserveAggregator aggregator = script.aggregator();
+    ProofOfReserveExecutorV2 executorV2 = script.executorV2();
+    ProofOfReserveExecutorV3 executorV3 = script.executorV3();
+    ProposalPayloadProofOfReserve proposal = script.proposal();
 
-  //   // transfer ownership to the proposal
-  //   aggregator.transferOwnership(address(proposal));
-  //   executorV2.transferOwnership(address(proposal));
-  //   executorV3.transferOwnership(address(proposal));
+    vm.expectEmit(true, false, false, false);
+    emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV2', 0);
 
-  //   // currently v2 pool address provider has the other owner
-  //   vm.prank(address(0x01244E7842254e3FD229CD263472076B1439D1Cd));
+    vm.expectEmit(true, false, false, false);
+    emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV3', 0);
 
-  //   // trasfer v2 Addreess Provider ownership to the proposal
-  //   Ownable(address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER)).transferOwnership(
-  //       address(proposal)
-  //     );
+    // Execute proposal
+    _executor.execute(address(proposal));
 
-  //   // Currrently only GUARDIAN is DEFAULT_ADMIN and is able to assign roles
-  //   // Give the proposal POOL_ADMIN role, and make POOL_ADMIN as role admin for RISK_ADMIN ability to assign roles
-  //   vm.startPrank(GUARDIAN);
+    // Assert
+    (
+      address[] memory assets,
+      address[] memory proofOfReserveFeeds
+    ) = _getAssetsAndFeeds();
 
-  //   AaveV3Avalanche.ACL_MANAGER.addPoolAdmin(address(proposal));
-  //   AaveV3Avalanche.ACL_MANAGER.setRoleAdmin(
-  //     keccak256('RISK_ADMIN'),
-  //     keccak256('POOL_ADMIN')
-  //   );
+    for (uint256 i; i < assets.length; ++i) {
+      address enabledFeed = aggregator.getProofOfReserveFeedForAsset(assets[i]);
+      assertEq(enabledFeed, proofOfReserveFeeds[i]);
+    }
 
-  //   // transfer collectorController ownership to proposal
-  //   Ownable(AaveV3Avalanche.COLLECTOR_CONTROLLER).transferOwnership(
-  //     address(proposal)
-  //   );
+    bool areAllReservesBacked = executorV2.areAllReservesBacked();
+    assertTrue(areAllReservesBacked);
 
-  //   vm.stopPrank();
+    areAllReservesBacked = executorV3.areAllReservesBacked();
+    assertTrue(areAllReservesBacked);
 
-  //   vm.expectEmit(true, false, false, false);
-  //   emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV2', 0);
+    AaveV3Avalanche.ACL_MANAGER.isRiskAdmin(address(executorV3));
+  }
 
-  //   vm.expectEmit(true, false, false, false);
-  //   emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV3', 0);
+  function _getAssetsAndFeeds()
+    internal
+    pure
+    returns (address[] memory, address[] memory)
+  {
+    address[] memory assets = new address[](6);
+    address[] memory proofOfReserveFeeds = new address[](6);
 
-  //   // Execute proposal
-  //   proposal.execute();
+    // AAVE.e
+    assets[0] = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
+    proofOfReserveFeeds[0] = 0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7;
 
-  //   // check that something has changed
-  // }
+    // WETH.e
+    assets[1] = 0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB;
+    proofOfReserveFeeds[1] = 0xDDaf9290D057BfA12d7576e6dADC109421F31948;
 
-  // function setRiskAdmin(address proposalAddress) private {
-  //   IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
-  //     ADDRESS_PROVIDER
-  //   );
-  //   IACLManager aclManager = IACLManager(addressesProvider.getACLManager());
-  //   aclManager.addRiskAdmin(proposalAddress);
-  // }
+    // DAI.e
+    assets[2] = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
+    proofOfReserveFeeds[2] = 0x976D7fAc81A49FA71EF20694a3C56B9eFB93c30B;
+
+    // LINK.e
+    assets[3] = 0x5947BB275c521040051D82396192181b413227A3;
+    proofOfReserveFeeds[3] = 0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6;
+
+    // WBTC.e
+    assets[4] = 0x50b7545627a5162F82A992c33b87aDc75187B218;
+    proofOfReserveFeeds[4] = 0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87;
+
+    // BTC.b
+    assets[5] = 0x152b9d0FdC40C096757F570A51E494bd4b943E50;
+    proofOfReserveFeeds[5] = 0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9;
+
+    return (assets, proofOfReserveFeeds);
+  }
 }
 
 // check:
-// 	1) assets/PoR are enabled in aggregator
 // 	2) assets are enabled in aggregator v2
 // 	3) assets are enabled in aggregator v3
 // 	4) LendingPoolConfigurator is upgraded
