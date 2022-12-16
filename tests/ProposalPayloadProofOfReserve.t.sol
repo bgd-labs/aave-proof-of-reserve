@@ -25,70 +25,70 @@ contract ProposalPayloadProofOfReserveTest is Test {
     vm.createSelectFork('avalanche');
   }
 
-  function testExecute() public {
-    // deploy all contracts
-    ConfiguratorMock configurator = new ConfiguratorMock();
-    ProofOfReserveAggregator aggregator = new ProofOfReserveAggregator();
-    ProofOfReserveExecutorV2 executorV2 = new ProofOfReserveExecutorV2(
-      address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
-      address(aggregator)
-    );
-    ProofOfReserveExecutorV3 executorV3 = new ProofOfReserveExecutorV3(
-      address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
-      address(aggregator)
-    );
-    ProofOfReserveKeeper keeper = new ProofOfReserveKeeper();
+  // function testExecute() public {
+  //   // deploy all contracts
+  //   ConfiguratorMock configurator = new ConfiguratorMock();
+  //   ProofOfReserveAggregator aggregator = new ProofOfReserveAggregator();
+  //   ProofOfReserveExecutorV2 executorV2 = new ProofOfReserveExecutorV2(
+  //     address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
+  //     address(aggregator)
+  //   );
+  //   ProofOfReserveExecutorV3 executorV3 = new ProofOfReserveExecutorV3(
+  //     address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
+  //     address(aggregator)
+  //   );
+  //   ProofOfReserveKeeper keeper = new ProofOfReserveKeeper();
 
-    // deploy the proposal
-    ProposalPayloadProofOfReserve proposal = new ProposalPayloadProofOfReserve(
-      address(configurator),
-      address(aggregator),
-      address(executorV2),
-      address(executorV3),
-      address(keeper)
-    );
+  //   // deploy the proposal
+  //   ProposalPayloadProofOfReserve proposal = new ProposalPayloadProofOfReserve(
+  //     address(configurator),
+  //     address(aggregator),
+  //     address(executorV2),
+  //     address(executorV3),
+  //     address(keeper)
+  //   );
 
-    // transfer ownership to the proposal
-    aggregator.transferOwnership(address(proposal));
-    executorV2.transferOwnership(address(proposal));
-    executorV3.transferOwnership(address(proposal));
+  //   // transfer ownership to the proposal
+  //   aggregator.transferOwnership(address(proposal));
+  //   executorV2.transferOwnership(address(proposal));
+  //   executorV3.transferOwnership(address(proposal));
 
-    // currently v2 pool address provider has the other owner
-    vm.prank(address(0x01244E7842254e3FD229CD263472076B1439D1Cd));
+  //   // currently v2 pool address provider has the other owner
+  //   vm.prank(address(0x01244E7842254e3FD229CD263472076B1439D1Cd));
 
-    // trasfer v2 Addreess Provider ownership to the proposal
-    Ownable(address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER)).transferOwnership(
-        address(proposal)
-      );
+  //   // trasfer v2 Addreess Provider ownership to the proposal
+  //   Ownable(address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER)).transferOwnership(
+  //       address(proposal)
+  //     );
 
-    // Currrently only GUARDIAN is DEFAULT_ADMIN and is able to assign roles
-    // Give the proposal POOL_ADMIN role, and make POOL_ADMIN as role admin for RISK_ADMIN ability to assign roles
-    vm.startPrank(GUARDIAN);
+  //   // Currrently only GUARDIAN is DEFAULT_ADMIN and is able to assign roles
+  //   // Give the proposal POOL_ADMIN role, and make POOL_ADMIN as role admin for RISK_ADMIN ability to assign roles
+  //   vm.startPrank(GUARDIAN);
 
-    AaveV3Avalanche.ACL_MANAGER.addPoolAdmin(address(proposal));
-    AaveV3Avalanche.ACL_MANAGER.setRoleAdmin(
-      keccak256('RISK_ADMIN'),
-      keccak256('POOL_ADMIN')
-    );
+  //   AaveV3Avalanche.ACL_MANAGER.addPoolAdmin(address(proposal));
+  //   AaveV3Avalanche.ACL_MANAGER.setRoleAdmin(
+  //     keccak256('RISK_ADMIN'),
+  //     keccak256('POOL_ADMIN')
+  //   );
 
-    // transfer collectorController ownership to proposal
-    Ownable(AaveV3Avalanche.COLLECTOR_CONTROLLER).transferOwnership(
-      address(proposal)
-    );
+  //   // transfer collectorController ownership to proposal
+  //   Ownable(AaveV3Avalanche.COLLECTOR_CONTROLLER).transferOwnership(
+  //     address(proposal)
+  //   );
 
-    vm.stopPrank();
+  //   vm.stopPrank();
 
-    vm.expectEmit(true, false, false, false);
-    emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV2', 0);
+  //   vm.expectEmit(true, false, false, false);
+  //   emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV2', 0);
 
-    vm.expectEmit(true, false, false, false);
-    emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV3', 0);
+  //   vm.expectEmit(true, false, false, false);
+  //   emit ChainlinkUpkeepRegistered('AaveProofOfReserveKeeperV3', 0);
 
-    // Execute proposal
-    proposal.execute();
+  //   // Execute proposal
+  //   proposal.execute();
 
-    // check that something has changed
-  }
+  //   // check that something has changed
+  // }
 
   // function setRiskAdmin(address proposalAddress) private {
   //   IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(

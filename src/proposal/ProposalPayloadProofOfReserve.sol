@@ -10,8 +10,15 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ICollectorController} from '../dependencies/ICollectorController.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
 import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+
+struct BridgeWrappers {
+  address aave;
+  address weth;
+  address dai;
+  address link;
+  address wbtc;
+}
 
 /**
  * @title ProposalPayloadProofOfReserve
@@ -26,32 +33,36 @@ import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBoo
  * - Register V2 and V3 upkeeps for the Chainlink Keeper
  */
 
-contract ProposalPayloadProofOfReserve is Ownable {
+contract ProposalPayloadProofOfReserve {
   bytes32 public constant PROOF_OF_RESERVE_ADMIN = 'PROOF_OF_RESERVE_ADMIN';
 
-  IProofOfReserveAggregator public immutable aggregator;
-  IProofOfReserveExecutor public immutable executorV2;
-  IProofOfReserveExecutor public immutable executorV3;
-  ICollectorController public immutable collectorController;
-  LinkTokenInterface public immutable linkToken;
+  IProofOfReserveAggregator public immutable AGGREGATOR;
+  IProofOfReserveExecutor public immutable EXECUTOR_V2;
+  IProofOfReserveExecutor public immutable EXECUTOR_V3;
+  ICollectorController public constant COLLECTOR_CONTROLLER =
+    ICollectorController(AaveV3Avalanche.COLLECTOR_CONTROLLER);
 
-  address public immutable LENDING_POOL_CONFIGURATOR_IMPL;
-  address public immutable PROOF_OF_RESERVE_KEEPER;
+  address public immutable PROOF_OF_RESERVE_KEEPER_ADDRESS;
 
-  address public constant KEEPER_REGISTRAR =
+  address public constant KEEPER_REGISTRAR_ADDRESS =
     address(0xDb8e8e2ccb5C033938736aa89Fe4fa1eDfD15a1d);
 
-  address public constant COLLECTOR_CONTROLLER =
+  address public constant COLLECTOR_CONTROLLER_ADDRESS =
     address(0xaCbE7d574EF8dC39435577eb638167Aca74F79f0);
 
-  address public constant AAVA_LINK_TOKEN =
-    address(0x191c10Aa4AF7C30e871E70C95dB0E4eb77237530);
+  IERC20 public constant AAVA_LINK_TOKEN =
+    IERC20(0x191c10Aa4AF7C30e871E70C95dB0E4eb77237530);
 
-  address public constant LINK_TOKEN =
+  address public constant LINK_TOKEN_ADDRESS =
     address(0x5947BB275c521040051D82396192181b413227A3);
 
-  address public constant KEEPER_REGISTRY =
-    address(0x02777053d6764996e594c3E88AF1D58D5363a2e6);
+  KeeperRegistryInterface public constant KEEPER_REGISTRY =
+    KeeperRegistryInterface(0x02777053d6764996e594c3E88AF1D58D5363a2e6);
+
+  LinkTokenInterface public constant LINK_TOKEN =
+    LinkTokenInterface(LINK_TOKEN_ADDRESS);
+
+  BridgeWrappers public bridgeWrapperList;
 
   /**
    * @dev emitted when the new upkeep is registered in Chainlink
@@ -64,81 +75,121 @@ contract ProposalPayloadProofOfReserve is Ownable {
   );
 
   constructor(
-    address poolConfigurator,
-    address aggregatorAddress,
-    address executorV2Address,
-    address executorV3Address,
-    address keeperAddress
+    IProofOfReserveAggregator aggregator,
+    IProofOfReserveExecutor executorV2,
+    IProofOfReserveExecutor executorV3,
+    address keeperAddress,
+    BridgeWrappers memory bridgeWrappers
   ) {
-    LENDING_POOL_CONFIGURATOR_IMPL = poolConfigurator;
+    AGGREGATOR = aggregator;
+    EXECUTOR_V2 = executorV2;
+    EXECUTOR_V3 = executorV3;
 
-    aggregator = IProofOfReserveAggregator(aggregatorAddress);
-    executorV2 = IProofOfReserveExecutor(executorV2Address);
-    executorV3 = IProofOfReserveExecutor(executorV3Address);
-    linkToken = LinkTokenInterface(LINK_TOKEN);
-    collectorController = ICollectorController(
-      AaveV3Avalanche.COLLECTOR_CONTROLLER
-    );
-
-    PROOF_OF_RESERVE_KEEPER = keeperAddress;
+    PROOF_OF_RESERVE_KEEPER_ADDRESS = keeperAddress;
+    bridgeWrapperList = bridgeWrappers;
   }
 
-  function execute() external onlyOwner {
-    address[] memory assets = new address[](1);
-    assets[0] = address(0x63a72806098Bd3D9520cC43356dD78afe5D386D9);
+  function _initProofOfReservesDetails()
+    internal
+    view
+    returns (
+      address[] memory,
+      address[] memory,
+      address[] memory
+    )
+  {
+    address[] memory assets = new address[](6);
+    address[] memory proofOfReserveFeeds = new address[](6);
+    address[] memory bridgeWrappers = new address[](6);
 
-    address[] memory proofOfReserveFeeds = new address[](1);
-    proofOfReserveFeeds[0] = address(
-      0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7
-    );
+    // AAVE.e
+    assets[0] = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
+    proofOfReserveFeeds[0] = 0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7;
+    bridgeWrappers[0] = bridgeWrapperList.aave;
 
-    // Add pairs of token and its proof of reserves to Proof Of Reserves Aggregator
-    for (uint256 i; i < assets.length; ++i) {
-      aggregator.enableProofOfReserveFeed(assets[i], proofOfReserveFeeds[i]);
+    // WETH.e
+    assets[1] = 0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB;
+    proofOfReserveFeeds[1] = 0xDDaf9290D057BfA12d7576e6dADC109421F31948;
+    bridgeWrappers[1] = bridgeWrapperList.weth;
+
+    // DAI.e
+    assets[2] = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
+    proofOfReserveFeeds[2] = 0x976D7fAc81A49FA71EF20694a3C56B9eFB93c30B;
+    bridgeWrappers[2] = bridgeWrapperList.dai;
+
+    // LINK.e
+    assets[3] = 0x5947BB275c521040051D82396192181b413227A3;
+    proofOfReserveFeeds[3] = 0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6;
+    bridgeWrappers[3] = bridgeWrapperList.link;
+
+    // WBTC.e
+    assets[4] = 0xd586E7F844cEa2F87f50152665BCbc2C279D8d70;
+    proofOfReserveFeeds[4] = 0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87;
+    bridgeWrappers[4] = bridgeWrapperList.wbtc;
+
+    // BTC.b
+    assets[5] = 0x152b9d0FdC40C096757F570A51E494bd4b943E50;
+    proofOfReserveFeeds[5] = 0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9;
+    bridgeWrappers[5] = address(0);
+
+    return (assets, proofOfReserveFeeds, bridgeWrappers);
+  }
+
+  function execute() external {
+    (
+      address[] memory assets,
+      address[] memory proofOfReserveFeeds,
+      address[] memory bridgeWrappers
+    ) = _initProofOfReservesDetails();
+
+    for (uint256 i = 0; i < assets.length; ++i) {
+      // enable proof of reserve feeds for assets in the aggregator
+      if (bridgeWrappers[i] != address(0)) {
+        AGGREGATOR.enableProofOfReserveFeedWithBridgeWrapper(
+          assets[i], // token address
+          proofOfReserveFeeds[i], // PoR feed address
+          bridgeWrappers[i] // bridge wrapper address
+        );
+      } else {
+        AGGREGATOR.enableProofOfReserveFeed(
+          assets[i], // token address
+          proofOfReserveFeeds[i] // PoR feed address
+        );
+      }
     }
 
     // V2
-
-    // set the new implementation for Pool Configurator to enable PROOF_OF_RESERVE_ADMIN
-    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setLendingPoolConfiguratorImpl(
-      LENDING_POOL_CONFIGURATOR_IMPL
-    );
-
-    // set ProofOfReserveExecutorV2 as PROOF_OF_RESERVE_ADMIN
-    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setAddress(
-      PROOF_OF_RESERVE_ADMIN,
-      address(executorV2)
-    );
-
     // enable checking of proof of reserve for the assets
-    executorV2.enableAssets(assets);
+    EXECUTOR_V2.enableAssets(assets);
 
     // V3
     // assign RiskAdmin role to ProofOfReserveExecutorV3
-    AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(executorV3));
+    AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(EXECUTOR_V3));
 
     // enable checking of proof of reserve for the assets
-    executorV3.enableAssets(assets);
+    EXECUTOR_V3.enableAssets(assets);
 
     // transfer aAvaLink token from the treasury to the current address
-    IERC20 aavaLinkToken = IERC20(AAVA_LINK_TOKEN);
-
-    collectorController.transfer(
-      aavaLinkToken,
+    COLLECTOR_CONTROLLER.transfer(
+      AAVA_LINK_TOKEN,
       address(this),
       10100000000000000000
     );
 
     // withdraw aAvaLINK from the aave pool and receive LINK.e
-    AaveV3Avalanche.POOL.withdraw(LINK_TOKEN, type(uint256).max, address(this));
+    AaveV3Avalanche.POOL.withdraw(
+      LINK_TOKEN_ADDRESS,
+      type(uint256).max,
+      address(this)
+    );
 
     // create chainlink upkeep for v2
     registerUpkeep(
       'AaveProofOfReserveKeeperV2',
-      PROOF_OF_RESERVE_KEEPER,
+      PROOF_OF_RESERVE_KEEPER_ADDRESS,
       2500000,
       address(this),
-      abi.encode(address(executorV2)),
+      abi.encode(address(EXECUTOR_V2)),
       5000000000000000000,
       0
     );
@@ -146,10 +197,10 @@ contract ProposalPayloadProofOfReserve is Ownable {
     // create chainlink upkeep for v3
     registerUpkeep(
       'AaveProofOfReserveKeeperV3',
-      PROOF_OF_RESERVE_KEEPER,
+      PROOF_OF_RESERVE_KEEPER_ADDRESS,
       2500000,
       address(this),
-      abi.encode(address(executorV3)),
+      abi.encode(address(EXECUTOR_V3)),
       5000000000000000000,
       0
     );
@@ -164,12 +215,11 @@ contract ProposalPayloadProofOfReserve is Ownable {
     uint96 amount,
     uint8 source
   ) internal {
-    KeeperRegistryInterface keeperRegistry = KeeperRegistryInterface(
-      KEEPER_REGISTRY
-    );
-
-    (State memory state, Config memory _c, address[] memory _k) = keeperRegistry
-      .getState();
+    (
+      State memory state,
+      Config memory _c,
+      address[] memory _k
+    ) = KEEPER_REGISTRY.getState();
     uint256 oldNonce = state.nonce;
     bytes memory payload = abi.encode(
       name,
@@ -185,20 +235,20 @@ contract ProposalPayloadProofOfReserve is Ownable {
 
     bytes4 registerSig = KeeperRegistrarInterface.register.selector;
 
-    linkToken.transferAndCall(
-      KEEPER_REGISTRAR,
+    LINK_TOKEN.transferAndCall(
+      address(KEEPER_REGISTRY),
       amount,
       bytes.concat(registerSig, payload)
     );
 
-    (state, _c, _k) = keeperRegistry.getState();
+    (state, _c, _k) = KEEPER_REGISTRY.getState();
 
     if (state.nonce == oldNonce + 1) {
       uint256 upkeepID = uint256(
         keccak256(
           abi.encodePacked(
             blockhash(block.number - 1),
-            address(keeperRegistry),
+            address(KEEPER_REGISTRY),
             uint32(oldNonce)
           )
         )
