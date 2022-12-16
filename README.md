@@ -55,10 +55,17 @@ As for several assets on the Avalanche network deprecated bridge co-exist with t
 
 # Deployment
 
-1. Changes to V2 pool to be deployed in advance (https://github.com/bgd-labs/protocol-v2/pull/4).
-2. [DeployProofOfReserveAvax.s.sol](./scripts/DeployProofOfReserveAvax.s.sol): This script will deploy Aggregator, Executors and Keeper contracts.
-3. AvaxBridgeWrappers need to be deployed in advance for the every dual-bridge asset AAVE supports.
-4. [ProposalPayloadProofOfReserve](./src/proposal/ProposalPayloadProofOfReserve.sol) will transfer all the permissions, enable assets for checking and register Upkeeps in Chainlink Automation.
+1. [DeployProofOfReserveAvax.s.sol](./scripts/DeployProofOfReserveAvax.s.sol): This script will deploy Aggregator, Executors, Keeper, all Bridge Wrappers and two proposal contracts.
+2. [ProposalPayloadProofOfReserve](./src/proposal/ProposalPayloadProofOfReserve.sol) will
+
+- enable proof of reserve feeds and assets in Aggregator, ExecutorV2 and ExecutorV3 contracts
+- set ExecutorV3 as the Risk Admin
+- register Chainlink Automation for v2 and v3
+
+3. [UpgradeAaveV2ConfiguratorPayload](./src/proposal/UpgradeAaveV2ConfiguratorPayload.sol) will
+
+- deploy new implementation of the V2 Pool Configurator contract
+- set ExecutorV2 as PROOF_OF_RESERVE_ADMIN
 
 # SetUp
 
