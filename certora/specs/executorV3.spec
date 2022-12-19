@@ -28,6 +28,9 @@ methods {
 /*
     @Rule
     @Description: The integrity of disabling an asset.
+                  after calling to disableAsset(asset) the asset's state should be disabled (False).
+                  If the asset already exists, then one asset should be removed,
+                  otherwise, no asset should be removed.
          
     @Formula: 
         {
@@ -67,6 +70,9 @@ rule integrityOfDisableAssets(address asset) {
 /*
     @Rule
     @Description: The integrity of enabling an asset.
+                  after calling to enableAsset(asset) the asset's state should be enabled.
+                  If the asset already exists and enabled, then no assets should be added,
+                  otherwise, one asset should be added.
          
     @Formula: 
         {
