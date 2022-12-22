@@ -6,5 +6,5 @@ certoraRun certora/harness/ProofOfReserveExecutorV2Harness.sol certora/harness/P
     --solc solc8.16 \
     --staging abakst/static-array-memcopy-loops \
     --packages solidity-utils=lib/solidity-utils/src chainlink-brownie-contracts=lib/chainlink-brownie-contracts/contracts/src/v0.8/ aave-address-book=lib/aave-address-book/src/ forge-std=lib/forge-std/src/ \
-    --msg "ProofOfReserveExecutorV2" 
+    --msg "ProofOfReserveExecutorV2"
     

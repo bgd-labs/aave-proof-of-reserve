@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// import '../../src/contracts/ProofOfReserveExecutorBase.sol';
-import '../../src/contracts/ProofOfReserveExecutorV2.sol';
-import {IProofOfReserveExecutor} from '../../src/interfaces/IProofOfReserveExecutor.sol';
+import '../munged/contracts/ProofOfReserveExecutorV2.sol';
+import {IProofOfReserveExecutor} from '../munged/interfaces/IProofOfReserveExecutor.sol';
 
 contract ProofOfReserveExecutorV2Harness is ProofOfReserveExecutorV2 {
 

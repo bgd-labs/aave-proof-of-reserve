@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '../../src/contracts/ProofOfReserveAggregator.sol';
+import '../munged/contracts/ProofOfReserveAggregator.sol';
 
 contract ProofOfReserveAggregatorHarness is ProofOfReserveAggregator {
 
