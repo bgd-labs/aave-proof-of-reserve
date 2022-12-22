@@ -1,0 +1,34 @@
+diff -ruN ../src/.gitignore .gitignore
+--- ../src/.gitignore	1970-01-01 02:00:00
++++ .gitignore	2022-12-22 20:03:17
+@@ -0,0 +1,2 @@
++*
++!.gitignore
+diff -ruN ../src/contracts/ProofOfReserveExecutorBase.sol contracts/ProofOfReserveExecutorBase.sol
+--- ../src/contracts/ProofOfReserveExecutorBase.sol	2022-12-22 20:06:55
++++ contracts/ProofOfReserveExecutorBase.sol	2022-12-22 20:08:24
+@@ -22,10 +22,10 @@
+   IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
+ 
+   /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
+-  address[] internal _assets;
++  address[] public _assets;
+ 
+   /// @dev token address = > is it contained in the list
+-  mapping(address => bool) internal _assetsState;
++  mapping(address => bool) public _assetsState;
+ 
+   /**
+    * @notice Constructor.
+diff -ruN ../src/contracts/ProofOfReserveExecutorV2.sol contracts/ProofOfReserveExecutorV2.sol
+--- ../src/contracts/ProofOfReserveExecutorV2.sol	2022-12-22 20:07:26
++++ contracts/ProofOfReserveExecutorV2.sol	2022-12-22 20:08:32
+@@ -94,7 +94,7 @@
+   /**
+    * @dev disable borrowing for every asset on the pool.
+    */
+-  function _disableBorrowing() internal {
++  function _disableBorrowing() internal virtual {
+     address[] memory reservesList = _pool.getReservesList();
+ 
+     // disable borrowing for all the reserves on the pool

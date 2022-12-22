@@ -22,10 +22,10 @@ abstract contract ProofOfReserveExecutorBase is
   IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
 
   /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
-  address[] public _assets;
+  address[] internal _assets;
 
   /// @dev token address = > is it contained in the list
-  mapping(address => bool) public _assetsState;
+  mapping(address => bool) internal _assetsState;
 
   /**
    * @notice Constructor.

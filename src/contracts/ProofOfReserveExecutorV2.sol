@@ -94,7 +94,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   /**
    * @dev disable borrowing for every asset on the pool.
    */
-  function _disableBorrowing() internal virtual {
+  function _disableBorrowing() internal {
     address[] memory reservesList = _pool.getReservesList();
 
     // disable borrowing for all the reserves on the pool
