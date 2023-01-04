@@ -29,7 +29,6 @@ function assetsRequirements() {
 }
 
 definition tempOmittedFunc(method f) returns bool = f.selector == executeEmergencyAction().selector;
-
 /*
     @Rule
     @Description: The integrity of disabling an asset.
