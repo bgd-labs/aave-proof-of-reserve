@@ -32,6 +32,8 @@ struct BridgeWrappers {
  * - V3: assign Risk admin role to ProofOfReserveExecutorV3
  * - Transfer aAvaLINK tokens from AAVE treasury to the current address, then withdraw them to get LINK.e
  * - Register V2 and V3 upkeeps for the Chainlink Keeper
+ * Governance Forum Post: https://governance.aave.com/t/bgd-aave-chainlink-proof-of-reserve-phase-1-release-candidate/10972
+ * Snapshot: https://snapshot.org/#/aave.eth/proposal/0x546ead37609b3f23c11559fe90e798b725af755f402bdd77e37583b4186d1f29
  */
 
 contract ProposalPayloadProofOfReserve {
@@ -47,9 +49,6 @@ contract ProposalPayloadProofOfReserve {
 
   address public constant KEEPER_REGISTRAR_ADDRESS =
     address(0xDb8e8e2ccb5C033938736aa89Fe4fa1eDfD15a1d);
-
-  address public constant COLLECTOR_CONTROLLER_ADDRESS =
-    address(0xaCbE7d574EF8dC39435577eb638167Aca74F79f0);
 
   IERC20 public constant AAVA_LINK_TOKEN =
     IERC20(0x191c10Aa4AF7C30e871E70C95dB0E4eb77237530);
@@ -79,6 +78,14 @@ contract ProposalPayloadProofOfReserve {
     uint256 indexed upkeepId
   );
 
+  /**
+   * @dev constructor of the proposal
+   * @param aggregator PoR aggregator
+   * @param executorV2 PoR executor V2
+   * @param executorV3 PoR executor V3
+   * @param keeperAddress the address of the chainlink keeper
+   * @param bridgeWrappers struct containing addresses of the bridge wrappers
+   */
   constructor(
     IProofOfReserveAggregator aggregator,
     IProofOfReserveExecutor executorV2,
@@ -99,6 +106,12 @@ contract ProposalPayloadProofOfReserve {
     WBTC_BRIDGE_WRAPPER = bridgeWrappers.wbtc;
   }
 
+  /**
+   * @dev helper method that returns the listed of bridged assets to be protected
+   * @return the list of assets
+   * @return the list of PoR feeds, source: https://data.chain.link/avalanche/mainnet/reserves
+   * @return the list of bridge wrappers, source:
+   */
   function _initProofOfReservesDetails()
     internal
     view
@@ -128,7 +141,7 @@ contract ProposalPayloadProofOfReserve {
     bridgeWrappers[2] = DAI_BRIDGE_WRAPPER;
 
     // LINK.e
-    assets[3] = 0x5947BB275c521040051D82396192181b413227A3;
+    assets[3] = LINK_TOKEN_ADDRESS;
     proofOfReserveFeeds[3] = 0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6;
     bridgeWrappers[3] = LINK_BRIDGE_WRAPPER;
 
@@ -200,8 +213,7 @@ contract ProposalPayloadProofOfReserve {
       2500000,
       address(this),
       abi.encode(address(EXECUTOR_V2)),
-      5000000000000000000,
-      0
+      5000000000000000000
     );
 
     // create chainlink upkeep for v3
@@ -211,19 +223,26 @@ contract ProposalPayloadProofOfReserve {
       2500000,
       address(this),
       abi.encode(address(EXECUTOR_V3)),
-      5000000000000000000,
-      0
+      5000000000000000000
     );
   }
 
+  /**
+   * @dev register keeper contract in chainlink
+   * @param name name of the upkeep
+   * @param upkeepContract the address of the keeper contract
+   * @param gasLimit gas limit for the emergency action execution
+   * @param adminAddress the address of the admin
+   * @param checkData params for the check method
+   * @param amount amount of LINK for the upkeep
+   */
   function registerUpkeep(
     string memory name,
     address upkeepContract,
     uint32 gasLimit,
     address adminAddress,
     bytes memory checkData,
-    uint96 amount,
-    uint8 source
+    uint96 amount
   ) internal {
     (
       State memory state,
@@ -239,7 +258,7 @@ contract ProposalPayloadProofOfReserve {
       adminAddress,
       checkData,
       amount,
-      source,
+      0,
       address(this)
     );
 
