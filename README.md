@@ -67,6 +67,16 @@ As for several assets on the Avalanche network deprecated bridge co-exist with t
 - deploy new implementation of the V2 Pool Configurator contract
 - set ExecutorV2 as PROOF_OF_RESERVE_ADMIN
 
+# Security
+
+Audit reports:
+
+[SigmaPrime](./security/sigmap/audit-report-round-2.md)
+
+[Certora](./security/Certora)
+
+To add a new `PROOF_OF_RESERVE_ADMIN` role to the V2 pool new implementation of the LendingPoolConfigurator contract is deployed. Difference between current implementation and the new one is [here](./diffs/avalanche_configurator_%200xc7938af7EC68C3d5aC3a396E28661B3E366b8fcf.md).
+
 # SetUp
 
 This repo has forge and npm dependencies, so you will need to install foundry then run:
