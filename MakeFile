@@ -17,3 +17,7 @@ deploy-proof-of-reserve-pk :; forge script scripts/DeployProofOfReserveAvax.s.so
 # verify
 verify-proof-of-reserve-avalanche :;  forge script scripts/DeployProofOfReserveAvax.s.sol:DeployProofOfReserveAvax --rpc-url avalanche --legacy --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
 verify-proof-of-reserve :;  forge script scripts/DeployProofOfReserveAvax.s.sol:DeployProofOfReserveAvax --rpc-url ${RPC_URL} --legacy --verify --etherscan-api-key ${ETHERSCAN_API_KEY} -vvvv
+
+git-diff :
+	@mkdir -p diffs
+	@printf '%s\n%s\n%s\n' "\`\`\`diff" "$$(git diff --no-index --diff-algorithm=patience --ignore-space-at-eol ${before} ${after})" "\`\`\`" > diffs/${out}.md
