@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.8.0;
+
 import {Test} from 'forge-std/Test.sol';
 
-import {ICollectorController} from '../src/dependencies/ICollectorController.sol';
-import {Deploy} from '../scripts/DeployProofOfReserveAvax.s.sol';
-import {MockExecutor} from './MockExecutor.sol';
-import {ConfiguratorMock} from './helpers/ConfiguratorMock.sol';
 import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 import {ProxyHelpers} from 'aave-helpers/ProxyHelpers.sol';
+import {MockExecutor} from './MockExecutor.sol';
+import {ConfiguratorMock} from './helpers/ConfiguratorMock.sol';
+import {UpgradeAaveV2ConfiguratorPayload} from '../src/proposal/UpgradeAaveV2ConfiguratorPayload.sol';
 
-contract ProposalPayloadProofOfReserveTest is Test {
-  address public constant GUARDIAN =
-    address(0x01244E7842254e3FD229CD263472076B1439D1Cd);
+contract UpgradeAaveV2ConfiguratorPayloadTest is Test {
+  address public constant GUARDIAN = 0x01244E7842254e3FD229CD263472076B1439D1Cd;
+
+  address public constant EXECUTOR_V2 =
+    0x7fc3FCb14eF04A48Bb0c12f0c39CD74C249c37d8;
 
   MockExecutor internal _executor;
 
@@ -30,12 +32,12 @@ contract ProposalPayloadProofOfReserveTest is Test {
   }
 
   function testExecuteProposal() public {
-    // deploy all contracts
-    Deploy script = new Deploy();
-    script.deployContracts();
+    ConfiguratorMock configurator = new ConfiguratorMock();
 
-    address executorV2 = address(script.executorV2());
-    address proposal = script.upgradeV2ConfigurtorAddress();
+    UpgradeAaveV2ConfiguratorPayload proposal = new UpgradeAaveV2ConfiguratorPayload(
+        address(configurator),
+        EXECUTOR_V2
+      );
 
     address implBefore = ProxyHelpers
       .getInitializableAdminUpgradeabilityProxyImplementation(
@@ -59,6 +61,6 @@ contract ProposalPayloadProofOfReserveTest is Test {
     address proofOfReserveAdmin = AaveV2Avalanche
       .POOL_ADDRESSES_PROVIDER
       .getAddress('PROOF_OF_RESERVE_ADMIN');
-    assertEq(proofOfReserveAdmin, executorV2);
+    assertEq(proofOfReserveAdmin, EXECUTOR_V2);
   }
 }

@@ -11,15 +11,12 @@ import {ProofOfReserveKeeper} from '../src/contracts/ProofOfReserveKeeper.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 import {ProposalPayloadProofOfReserve, BridgeWrappers} from '../src/proposal/ProposalPayloadProofOfReserve.sol';
 
-string constant upgradeV2ConfiguratorArtifact = 'out/UpgradeAaveV2ConfiguratorPayload.sol/UpgradeAaveV2ConfiguratorPayload.json';
-
 contract Deploy is Test {
   ProofOfReserveAggregator public aggregator;
   ProofOfReserveExecutorV2 public executorV2;
   ProofOfReserveExecutorV3 public executorV3;
   ProofOfReserveKeeper public keeper;
   ProposalPayloadProofOfReserve public proposal;
-  address public upgradeV2ConfigurtorAddress;
 
   address public constant GUARDIAN = 0xa35b76E4935449E33C56aB24b23fcd3246f13470;
 
@@ -86,15 +83,6 @@ contract Deploy is Test {
         wbtc: address(wbtcBridgeWrapper)
       })
     );
-
-    // deploy v2 proposal
-    upgradeV2ConfigurtorAddress = deployCode(
-      upgradeV2ConfiguratorArtifact,
-      abi.encode(address(executorV2))
-    );
-
-    // address upgradeV2TokensImpl = deployCode(upgradeV2TokensPolygonArtifact);
-    console.log('upgradeV2TokensPolygonImpl:', upgradeV2ConfigurtorAddress);
   }
 
   function run() external {
