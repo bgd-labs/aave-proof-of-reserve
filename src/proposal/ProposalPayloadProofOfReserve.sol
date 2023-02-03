@@ -43,7 +43,7 @@ contract ProposalPayloadProofOfReserve {
   IProofOfReserveExecutor public immutable EXECUTOR_V2;
   IProofOfReserveExecutor public immutable EXECUTOR_V3;
   ICollectorController public constant COLLECTOR_CONTROLLER =
-    ICollectorController(AaveV3Avalanche.COLLECTOR_CONTROLLER);
+    ICollectorController(address(AaveV3Avalanche.COLLECTOR_CONTROLLER));
 
   address public immutable PROOF_OF_RESERVE_KEEPER_ADDRESS;
 
