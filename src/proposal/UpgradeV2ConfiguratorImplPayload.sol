@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 
 /**
- * @title UpgradeAaveV2ConfiguratorPayload
+ * @title UpgradeV2ConfiguratorImplPayload
  * @author BGD Labs
  * @dev Proposal to update LendingPoolConfigurator impl and enable ExecutorV2 as the proofOfReserve admin for V2
  * - V2: upgrade implementation of LendingPoolConfigurator to enable new PROOF_OF_RESERVE_ADMIN role usage
@@ -13,7 +13,7 @@ import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
  * Snapshot: https://snapshot.org/#/aave.eth/proposal/0x546ead37609b3f23c11559fe90e798b725af755f402bdd77e37583b4186d1f29
  */
 
-contract UpgradeAaveV2ConfiguratorPayload {
+contract UpgradeV2ConfiguratorImplPayload {
   address public immutable POOL_CONFIGURATOR;
   address public immutable EXECUTOR_V2;
   bytes32 public constant PROOF_OF_RESERVE_ADMIN = 'PROOF_OF_RESERVE_ADMIN';

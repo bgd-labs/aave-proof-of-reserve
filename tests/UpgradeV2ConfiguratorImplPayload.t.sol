@@ -7,9 +7,9 @@ import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
 import {ProxyHelpers} from 'aave-helpers/ProxyHelpers.sol';
 import {MockExecutor} from './MockExecutor.sol';
 import {ConfiguratorMock} from './helpers/ConfiguratorMock.sol';
-import {UpgradeAaveV2ConfiguratorPayload} from '../src/proposal/UpgradeAaveV2ConfiguratorPayload.sol';
+import {UpgradeV2ConfiguratorImplPayload} from '../src/proposal/UpgradeV2ConfiguratorImplPayload.sol';
 
-contract UpgradeAaveV2ConfiguratorPayloadTest is Test {
+contract UpgradeV2ConfiguratorImplPayloadTest is Test {
   address public constant GUARDIAN = 0x01244E7842254e3FD229CD263472076B1439D1Cd;
 
   address public constant EXECUTOR_V2 =
@@ -34,7 +34,7 @@ contract UpgradeAaveV2ConfiguratorPayloadTest is Test {
   function testExecuteProposal() public {
     ConfiguratorMock configurator = new ConfiguratorMock();
 
-    UpgradeAaveV2ConfiguratorPayload proposal = new UpgradeAaveV2ConfiguratorPayload(
+    UpgradeV2ConfiguratorImplPayload proposal = new UpgradeV2ConfiguratorImplPayload(
         address(configurator),
         EXECUTOR_V2
       );

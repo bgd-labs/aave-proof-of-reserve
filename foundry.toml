@@ -14,7 +14,7 @@ remappings = [
     '@aave/core-v2=lib/protocol-v2/'
 ]
 [rpc_endpoints]
-ethereum="${RPC_ETHEREUM}"
+mainnet="${RPC_MAINNET}"
 optimism = "${RPC_OPTIMISM}"
 avalanche = "${RPC_AVALANCHE}"
 polygon = "${RPC_POLYGON}"
