@@ -33,7 +33,7 @@ contract ProofOfReserveExecutorV2Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    vm.createSelectFork('avalanche');
+    vm.createSelectFork('avalanche', 25705929);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
