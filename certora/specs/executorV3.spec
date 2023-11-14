@@ -25,7 +25,6 @@ methods {
     configurator.freezeWasCalled() returns (bool) envfree
 }
 
-definition tempOmittedFunc(method f) returns bool = f.selector == executeEmergencyAction().selector;
 
 /*
     @Rule
@@ -240,19 +239,18 @@ rule disableDuplicationsWithStorage(address asset) {
     @Notes:
     @Link:
 */
-/* !!!! Temp commented until the prover will be updated !!!! */
-// rule integrityOfExecuteEmergencyAction(bool rand) {
-//     aggregator.initFlags(rand);
-//     require configurator.freezeWasCalled() == false;
-//     bool allReservesBacked = areAllReservesBacked();
+rule integrityOfExecuteEmergencyAction(bool rand) {
+    aggregator.initFlags(rand);
+    require configurator.freezeWasCalled() == false;
+    bool allReservesBacked = areAllReservesBacked();
 
-//     executeEmergencyAction();
+    executeEmergencyAction();
 
-//     bool freezeReserveWasCalled = configurator.freezeWasCalled();
+    bool freezeReserveWasCalled = configurator.freezeWasCalled();
 
-//     assert !allReservesBacked => freezeReserveWasCalled;
-//     assert allReservesBacked => !freezeReserveWasCalled;
-// }
+    assert !allReservesBacked => freezeReserveWasCalled;
+    assert allReservesBacked => !freezeReserveWasCalled;
+}
 
 // invariant - if asset is active then it is in _assets array
 
@@ -331,10 +329,8 @@ hook Sload bool value _assetsState[KEY address a] STORAGE {
     //end
 }
 
-/* !!!! Temp filtering until the prover will be updated !!!! */
 invariant flagConsistancy(uint256 i)
     i < getAssetsLength() => getAssetState(getAsset(i))
-    filtered { f -> !tempOmittedFunc(f) }
     {
         preserved{
             require OneToOne_arrOfTokens && (setLength == 0);
@@ -342,10 +338,8 @@ invariant flagConsistancy(uint256 i)
         }
     }
 
-/* !!!! Temp filtering until the prover will be updated !!!! */
 invariant flagConsistancy2(address val)
     getAssetState(val) => getAsset(reverseMap[val]) == val || val == 0
-    filtered { f -> !tempOmittedFunc(f) }
     {
         preserved{
             require OneToOne_arrOfTokens && (setLength == 0);
@@ -354,10 +348,8 @@ invariant flagConsistancy2(address val)
         }
     }
 
-/* !!!! Temp filtering until the prover will be updated !!!! */
 invariant uniqueArray(uint256 i, uint256 j)
     i != j => ((getAsset(i) != getAsset(j)) || (i >= getAssetsLength() ||  j >= getAssetsLength()))
-    filtered { f -> !tempOmittedFunc(f) }
     {
         preserved{
             require OneToOne_arrOfTokens && (setLength == 0);
