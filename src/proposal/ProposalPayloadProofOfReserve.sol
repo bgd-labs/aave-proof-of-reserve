@@ -43,7 +43,7 @@ contract ProposalPayloadProofOfReserve {
   IProofOfReserveExecutor public immutable EXECUTOR_V2;
   IProofOfReserveExecutor public immutable EXECUTOR_V3;
   ICollectorController public constant COLLECTOR_CONTROLLER =
-    ICollectorController(AaveV3Avalanche.COLLECTOR_CONTROLLER);
+    ICollectorController(0xaCbE7d574EF8dC39435577eb638167Aca74F79f0); // for backward compatibility
 
   address public immutable PROOF_OF_RESERVE_KEEPER_ADDRESS;
 
@@ -115,11 +115,7 @@ contract ProposalPayloadProofOfReserve {
   function _initProofOfReservesDetails()
     internal
     view
-    returns (
-      address[] memory,
-      address[] memory,
-      address[] memory
-    )
+    returns (address[] memory, address[] memory, address[] memory)
   {
     address[] memory assets = new address[](6);
     address[] memory proofOfReserveFeeds = new address[](6);
