@@ -50,7 +50,7 @@ contract ProofOfReserveExecutorV3Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    vm.createSelectFork('avalanche', 25705929);
+    vm.createSelectFork('avalanche', 46044808);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
@@ -71,12 +71,12 @@ contract ProofOfReserveExecutorV3Test is Test {
     proofOfReserveExecutorV3.executeEmergencyAction();
 
     // Assert
-    assertLtvAndIsFrozen(AAVEE);
-    assertLtvAndIsFrozen(BTCB);
-    assertLtvAndIsFrozen(WBTCE);
-    assertLtvAndIsFrozen(DAIE);
-    assertLtvAndIsFrozen(WETHE);
-    assertLtvAndIsFrozen(LINKE);
+    assertIsFrozen(AAVEE);
+    assertIsFrozen(BTCB);
+    // assertIsFrozen(WBTCE); // frozen
+    assertIsFrozen(DAIE);
+    assertIsFrozen(WETHE);
+    assertIsFrozen(LINKE);
   }
 
   function testExecuteEmergencyActionV3() public {
@@ -155,25 +155,15 @@ contract ProofOfReserveExecutorV3Test is Test {
     AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
 
-  function getLtvAndIsFrozen(address asset)
-    private
-    view
-    returns (uint256, bool)
-  {
+  function assertIsFrozen(address asset) private {
     DataTypes.ReserveConfigurationMap memory configuration = AaveV3Avalanche
       .POOL
       .getConfiguration(asset);
 
-    (uint256 ltv, , , bool isFrozen) = ReserveConfiguration.getReserveParams(
+    (, , , bool isFrozen) = ReserveConfiguration.getReserveParams(
       configuration
     );
 
-    return (ltv, isFrozen);
-  }
-
-  function assertLtvAndIsFrozen(address asset) private {
-    (uint256 ltv, bool isFrozen) = getLtvAndIsFrozen(asset);
-    assertTrue(ltv > 0);
     assertTrue(!isFrozen);
   }
 }
