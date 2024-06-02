@@ -28,8 +28,6 @@ function assetsRequirements() {
     require getAssetsLength() < max_uint160 - 1;
 }
 
-definition tempOmittedFunc(method f) returns bool = f.selector == executeEmergencyAction().selector;
-
 /*
     @Rule
     @Description: The integrity of disabling an asset.
@@ -231,19 +229,18 @@ rule disableDuplicationsWithStorage(address asset) {
     @Notes:
     @Link:
 */
-/* !!!! Temp commented until the prover will be updated !!!! */
-// rule integrityOfExecuteEmergencyAction(bool rand) {
-//     require _disableBorrowingCalled() == false;
-//     aggregator.initFlags(rand);
-//     bool allReservesBacked = areAllReservesBacked();
+rule integrityOfExecuteEmergencyAction(bool rand) {
+    require _disableBorrowingCalled() == false;
+    aggregator.initFlags(rand);
+    bool allReservesBacked = areAllReservesBacked();
 
-//     executeEmergencyAction();
+    executeEmergencyAction();
 
-//     bool disableBorrowingCalled = _disableBorrowingCalled();
+    bool disableBorrowingCalled = _disableBorrowingCalled();
 
-//     assert !allReservesBacked => disableBorrowingCalled;
-//     assert allReservesBacked => !disableBorrowingCalled;
-// }
+    assert !allReservesBacked => disableBorrowingCalled;
+    assert allReservesBacked => !disableBorrowingCalled;
+}
 
 ghost uint256 old_zero_index;
 ghost mapping(address => uint256) reverseMap
@@ -292,10 +289,8 @@ definition IS_UINT256(uint256 x) returns bool = ((x >= 0) && (x <= max_uint256))
 definition IS_ADDRESS(address x) returns bool = ((x >= 0) && (x <= max_uint160));
 definition IS_ZERO_ADDRESS(address x) returns bool = x == 0;
 
-/* !!!! Temp filtering until the prover will be updated !!!! */
 invariant flagConsistancy()
     (forall address a. IS_ADDRESS(a) => ((mirrorFlag[a] => (((reverseMap[a] < _assetsLength) && (mirrorArray[reverseMap[a]] == a)))))) && (forall uint256 i. IS_UINT256(i) => (i < _assetsLength => (mirrorFlag[mirrorArray[i]])))
-    filtered { f -> !tempOmittedFunc(f) }
     {
         preserved{
             requireInvariant uniqueArray();
@@ -303,10 +298,8 @@ invariant flagConsistancy()
         }
     }
 
-/* !!!! Temp filtering until the prover will be updated !!!! */
 invariant uniqueArray()
     forall uint256 i. IS_UINT256(i) => (forall uint256 j. IS_UINT256(j) => ((i < _assetsLength && j < _assetsLength) => ( i != j => mirrorArray[i] != mirrorArray[j])))
-    filtered { f -> !tempOmittedFunc(f) }
     {
         preserved{
             requireInvariant flagConsistancy();
