@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {DataTypes, IPoolAddressesProvider, IPool, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
-import {AaveV2Avalanche, AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+import {AaveV3Avalanche} from 'aave-address-book/AaveV3Avalanche.sol';
+import {AaveV2Avalanche} from 'aave-address-book/AaveV2Avalanche.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 

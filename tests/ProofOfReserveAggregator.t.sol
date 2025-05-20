@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
 
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
+import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 
@@ -266,7 +266,7 @@ contract ProofOfReserveAggregatorTest is Test {
 
     vm.mockCall(
       PORF_AAVE,
-      abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+      abi.encodeWithSelector(AggregatorInterface.latestRoundData.selector),
       abi.encode(1, 1, 1, 1, 1)
     );
 

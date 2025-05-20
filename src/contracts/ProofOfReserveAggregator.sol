@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
@@ -19,6 +19,8 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
 
   /// @dev token address = > bridge wrapper
   mapping(address => address) internal _bridgeWrapperList;
+
+  constructor() Ownable(msg.sender) {}
 
   /// @inheritdoc IProofOfReserveAggregator
   function getProofOfReserveFeedForAsset(address asset)
@@ -104,7 +106,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
           : assetAddress;
 
         if (feedAddress != address(0)) {
-          (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
+          (, int256 answer, , , ) = AggregatorInterface(feedAddress)
             .latestRoundData();
 
           if (

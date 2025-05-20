@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {KeeperCompatibleInterface} from 'chainlink-brownie-contracts/KeeperCompatible.sol';
+import {IAutomationCompatible} from '../interfaces/IAutomationCompatible.sol';
 
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 
@@ -11,7 +11,7 @@ import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol
  * - checks in simulation whether all reserves are backed
  * - executes emergency action for pool
  */
-contract ProofOfReserveKeeper is KeeperCompatibleInterface {
+contract ProofOfReserveKeeper is IAutomationCompatible {
   /**
    * @dev run off-chain, checks if all reserves are backed on passed pool and decides whether to run emergency action on-chain
    * @param checkData address of the ProofOfReserveExecutor contract

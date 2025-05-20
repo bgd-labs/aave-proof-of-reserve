@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import {Test} from 'forge-std/Test.sol';
 
 import {MockExecutor} from './MockExecutor.sol';
-import {AaveV3Avalanche} from 'aave-address-book/AaveAddressBook.sol';
+import {AaveV3Avalanche} from 'aave-address-book/AaveV3Avalanche.sol';
 import {DataTypes} from 'aave-address-book/AaveV3.sol';
 import {IProofOfReserveExecutor} from '../src/interfaces/IProofOfReserveExecutor.sol';
 import {DisableBtcbPayload} from '../src/proposal/DisableBtcbPayload.sol';
