@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import {Test} from 'forge-std/Test.sol';
 
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
-import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
+import {ProofOfReserveAggregator, IProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 contract ProofOfReserveAggregatorTest is Test {
   ProofOfReserveAggregator public proofOfReserveAggregator;
@@ -65,7 +66,7 @@ contract ProofOfReserveAggregatorTest is Test {
       PROOF_OF_RESERVE_FEED_1
     );
 
-    vm.expectRevert(bytes('FEED_ALREADY_ENABLED'));
+    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.FeedAlreadyEnabled.selector));
     proofOfReserveAggregator.enableProofOfReserveFeed(ASSET_1, PORF_AAVE);
 
     address proofOfReserveFeed = proofOfReserveAggregator
@@ -74,7 +75,7 @@ contract ProofOfReserveAggregatorTest is Test {
   }
 
   function testProofOfReserveFeedIsEnabledWithZeroAsserAddress() public {
-    vm.expectRevert(bytes('INVALID_ASSET'));
+    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(0),
       PROOF_OF_RESERVE_FEED_1
@@ -82,12 +83,12 @@ contract ProofOfReserveAggregatorTest is Test {
   }
 
   function testProofOfReserveFeedIsEnabledWithZeroPoRAddress() public {
-    vm.expectRevert(bytes('INVALID_PROOF_OF_RESERVE_FEED'));
+    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
     proofOfReserveAggregator.enableProofOfReserveFeed(ASSET_1, address(0));
   }
 
   function testProofOfReserveFeedIsEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector));
     vm.prank(address(0));
     proofOfReserveAggregator.enableProofOfReserveFeed(
       ASSET_1,
@@ -127,7 +128,7 @@ contract ProofOfReserveAggregatorTest is Test {
       PROOF_OF_RESERVE_FEED_1
     );
 
-    vm.expectRevert(bytes('FEED_ALREADY_ENABLED'));
+    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.FeedAlreadyEnabled.selector));
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
       PORF_AAVE,
@@ -143,7 +144,7 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroAsserAddress()
     public
   {
-    vm.expectRevert(bytes('INVALID_ASSET'));
+    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(0),
       PORF_AAVE,
@@ -154,7 +155,7 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroPoRAddress()
     public
   {
-    vm.expectRevert(bytes('INVALID_PROOF_OF_RESERVE_FEED'));
+    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
       address(0),
@@ -165,7 +166,7 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroBridgeAddress()
     public
   {
-    vm.expectRevert(bytes('INVALID_BRIDGE_WRAPPER'));
+    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
       PORF_AAVE,
@@ -176,7 +177,7 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWhenNotOwner()
     public
   {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector));
     vm.prank(address(0));
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
@@ -205,7 +206,7 @@ contract ProofOfReserveAggregatorTest is Test {
   }
 
   function testProoOfReserveFeedIsDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector));
     vm.prank(address(0));
     proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
   }
