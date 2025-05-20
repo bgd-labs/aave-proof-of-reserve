@@ -6,6 +6,7 @@ import {Test} from 'forge-std/Test.sol';
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 contract ProofOfReserveAggregatorTest is Test {
   ProofOfReserveAggregator public proofOfReserveAggregator;
@@ -87,7 +88,7 @@ contract ProofOfReserveAggregatorTest is Test {
   }
 
   function testProofOfReserveFeedIsEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
     vm.prank(address(0));
     proofOfReserveAggregator.enableProofOfReserveFeed(
       ASSET_1,
@@ -176,7 +177,7 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWhenNotOwner()
     public
   {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
     vm.prank(address(0));
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
@@ -205,7 +206,7 @@ contract ProofOfReserveAggregatorTest is Test {
   }
 
   function testProoOfReserveFeedIsDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
     vm.prank(address(0));
     proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
   }

@@ -9,6 +9,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 contract ProofOfReserveExecutorV2Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
@@ -83,7 +84,7 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetsAreEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);
@@ -122,7 +123,7 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetAreDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);

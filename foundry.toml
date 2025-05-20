@@ -7,7 +7,7 @@ gas_reports = ["ProofOfReserveExecutorV2"]
 script = 'scripts'
 remappings = []
 [rpc_endpoints]
-ethereum="${RPC_ETHEREUM}"
+mainnet = "${RPC_MAINNET}"
 optimism = "${RPC_OPTIMISM}"
 avalanche = "${RPC_AVALANCHE}"
 polygon = "${RPC_POLYGON}"
