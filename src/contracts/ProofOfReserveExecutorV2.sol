@@ -5,6 +5,7 @@ import {DataTypes, ILendingPoolAddressesProvider, ILendingPool, ILendingPoolConf
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
+import {EnumerableSet} from 'openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol';
 
 /**
  * @author BGD Labs
@@ -12,6 +13,8 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  * - Disables borrowing of every asset on the pool, when any of them is not backed
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
+  using EnumerableSet for EnumerableSet.AddressSet;
+
   // AAVE v2 pool
   ILendingPool internal immutable _pool;
   // AAVE v2 pool configurator
@@ -38,14 +41,17 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
     address[] memory allAssets = _pool.getReservesList();
+    address[] memory enabledAssets = _enabledAssets.values();
+    
     (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
-      .areAllReservesBacked(_assets);
-
+      .areAllReservesBacked(enabledAssets);
+    
+    uint256 len = enabledAssets.length;
     // check if unbacked reserves are not frozen
-    for (uint256 i; i < _assets.length; ++i) {
+    for (uint256 i; i < len; ++i) {
       if (unbackedAssetsFlags[i]) {
         DataTypes.ReserveConfigurationMap memory configuration = _pool
-          .getConfiguration(_assets[i]);
+          .getConfiguration(enabledAssets[i]);
 
         if (!ReserveConfiguration.getIsFrozen(configuration)) {
           return true;
@@ -68,22 +74,24 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() external override {
+    address[] memory enabledAssets = _enabledAssets.values();
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    ) = _proofOfReserveAggregator.areAllReservesBacked(enabledAssets);
 
     if (!areReservesBacked) {
       _disableBorrowing();
 
-      uint256 assetsLength = _assets.length;
+      uint256 len = enabledAssets.length;
 
-      for (uint256 i = 0; i < assetsLength; ++i) {
+      for (uint256 i; i < len; ++i) {
         if (unbackedAssetsFlags[i]) {
+          address asset = enabledAssets[i];
           // freeze reserve
-          _configurator.freezeReserve(_assets[i]);
+          _configurator.freezeReserve(asset);
 
-          emit AssetIsNotBacked(_assets[i]);
+          emit AssetIsNotBacked(asset);
         }
       }
 
