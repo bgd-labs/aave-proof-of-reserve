@@ -46,9 +46,8 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
       .areAllReservesBacked(enabledAssets);
     
-    uint256 len = enabledAssets.length;
     // check if unbacked reserves are not frozen
-    for (uint256 i; i < len; ++i) {
+    for (uint256 i; i < enabledAssets.length; ++i) {
       if (unbackedAssetsFlags[i]) {
         DataTypes.ReserveConfigurationMap memory configuration = _pool
           .getConfiguration(enabledAssets[i]);
@@ -83,9 +82,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     if (!areReservesBacked) {
       _disableBorrowing();
 
-      uint256 len = enabledAssets.length;
-
-      for (uint256 i; i < len; ++i) {
+      for (uint256 i; i < enabledAssets.length; ++i) {
         if (unbackedAssetsFlags[i]) {
           address asset = enabledAssets[i];
           // freeze reserve

@@ -43,9 +43,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
       .areAllReservesBacked(enabledAssets);
 
-    uint256 len = enabledAssets.length;
-
-    for (uint256 i; i < len; ++i) {
+    for (uint256 i; i < enabledAssets.length; ++i) {
       if (unbackedAssetsFlags[i]) {
         DataTypes.ReserveConfigurationMap memory configuration = _pool
           .getConfiguration(enabledAssets[i]);
@@ -72,9 +70,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     ) = _proofOfReserveAggregator.areAllReservesBacked(enabledAssets);
 
     if (!areReservesBacked) {
-      uint256 len = enabledAssets.length;
-
-      for (uint256 i; i < len; ++i) {
+      for (uint256 i; i < enabledAssets.length; ++i) {
         if (unbackedAssetsFlags[i]) {
           address asset = enabledAssets[i];
 

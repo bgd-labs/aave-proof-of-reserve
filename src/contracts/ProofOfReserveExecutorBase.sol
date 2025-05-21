@@ -44,10 +44,9 @@ abstract contract ProofOfReserveExecutorBase is
   /// @inheritdoc IProofOfReserveExecutor
   function enableAssets(address[] calldata assets) external onlyOwner {
     for (uint256 i; i < assets.length; ++i) {
-      address asset = assets[i];
-      if (!_enabledAssets.contains(asset)) {
-        _enabledAssets.add(asset);
-        emit AssetStateChanged(asset, true);
+      if (!_enabledAssets.contains(assets[i])) {
+        _enabledAssets.add(assets[i]);
+        emit AssetStateChanged(assets[i], true);
       }
     }
   }
@@ -55,10 +54,9 @@ abstract contract ProofOfReserveExecutorBase is
   /// @inheritdoc IProofOfReserveExecutor
   function disableAssets(address[] calldata assets) external onlyOwner {
     for (uint256 i; i < assets.length; ++i) {
-      address asset = assets[i];
-      if (_enabledAssets.contains(asset)) {
-        _enabledAssets.remove(asset);
-        emit AssetStateChanged(asset, false);
+      if (_enabledAssets.contains(assets[i])) {
+        _enabledAssets.remove(assets[i]);
+        emit AssetStateChanged(assets[i], false);
       }
     }
   }
