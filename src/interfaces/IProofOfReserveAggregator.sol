@@ -16,6 +16,16 @@ interface IProofOfReserveAggregator {
   );
 
   /**
+   * @dev Attempted to set zero address.
+   */
+  error ZeroAddress();
+
+  /**
+   * @dev Attempted to set feed address to an asset already enabled.
+   */
+  error FeedAlreadyEnabled();
+
+  /**
    * @dev gets the address of the proof of reserve feed for the passed asset.
    * @param asset the address of the asset
    * @return address proof of reserve feed address
