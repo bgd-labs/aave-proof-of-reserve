@@ -7,14 +7,16 @@ import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 
 /**
+ * @title ProofOfReserveExecutorV2
+ * @notice ProofOfReserveExecutor contract for the Aave V2 Pool instance that can perform emergency action
+ * if any enabled reserve fails in its Proof of Reserve feed validation, by disabling borrowing of all assets
+ * and freezing the reserves that are not backed.
  * @author BGD Labs
- * @dev Aave V2 contract for Proof of Reserve emergency action in case of any of bridged reserves is not backed:
- * - Disables borrowing of every asset on the pool, when any of them is not backed
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
-  // AAVE v2 pool
+  /// @notice The Aave V2 Pool
   ILendingPool internal immutable _pool;
-  // AAVE v2 pool configurator
+  /// @notice Aave V2 Pool Configurator
   ILendingPoolConfigurator internal immutable _configurator;
 
   /**
