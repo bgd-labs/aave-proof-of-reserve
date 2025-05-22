@@ -8,10 +8,10 @@ import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
+ * @title ProofOfReserveExecutorBase
+ * @notice An abstract pool-specific contract that maintains a list of assets whose total supply 
+ * will be verified against their proof of reserve feed data fetched from the ProofOfReserveAggregator contract.
  * @author BGD Labs
- * @dev Aave pool-specific contract for Proof of Reserve validations:
- * - Stores list of token addresses that will be validated against their proof of reserve feed data
- * - Returns if all tokens of a list of assets are properly backed or not.
  */
 abstract contract ProofOfReserveExecutorBase is
   IProofOfReserveExecutor,
