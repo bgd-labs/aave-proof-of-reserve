@@ -8,10 +8,11 @@ import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainli
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
+ * @title ProofOfReserveAggregator 
+ * @notice This contract maintains a list of assets, their proof of reserve feeds,
+ * and their bridge wrapper (if applicable), which verifies whether the asset is backed
+ * by checking its total supply and the corresponding PoR feed's answer.
  * @author BGD Labs
- * @dev Aave aggregator contract for Proof of Reserve Feeds and validations based on them:
- * - Indexes proof of reserve feed by token address
- * - Returns if all tokens of a list of assets are properly backed with Proof of Reserve logic, or not.
  */
 contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   /// @dev token address => proof or reserve feed
