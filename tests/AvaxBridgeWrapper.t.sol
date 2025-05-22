@@ -16,7 +16,7 @@ contract AvaxBridgeWrapperTest is Test {
     address(0xbA7dEebBFC5fA1100Fb055a87773e1E99Cd3507a);
 
   function setUp() public {
-    vm.createSelectFork('avalanche');
+    vm.createSelectFork('avalanche', 62513100);
   }
 
   function testTotalSupplyAAVEe() public {

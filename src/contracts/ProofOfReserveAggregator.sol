@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.27;
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -46,9 +46,8 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     external
     onlyOwner
   {
-    require(asset != address(0), 'INVALID_ASSET');
-    require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
-    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
+    require(asset != address(0) && proofOfReserveFeed != address(0), ZeroAddress());
+    require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
     emit ProofOfReserveFeedStateChanged(
@@ -65,10 +64,11 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     address proofOfReserveFeed,
     address bridgeWrapper
   ) external onlyOwner {
-    require(asset != address(0), 'INVALID_ASSET');
-    require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
-    require(bridgeWrapper != address(0), 'INVALID_BRIDGE_WRAPPER');
-    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
+    require(
+      asset != address(0) && proofOfReserveFeed != address(0) && bridgeWrapper != address(0),
+      ZeroAddress()
+    );
+    require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
     _bridgeWrapperList[asset] = bridgeWrapper;
