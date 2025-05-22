@@ -47,11 +47,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
         DataTypes.ReserveConfigurationMap memory configuration = _pool
           .getConfiguration(_assets[i]);
 
-        (, , , bool isFrozen) = ReserveConfiguration.getReserveParams(
-          configuration
-        );
-
-        if (!isFrozen) {
+        if (!ReserveConfiguration.getFrozen(configuration)) {
           return true;
         }
       }
