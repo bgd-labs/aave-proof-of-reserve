@@ -8,16 +8,18 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
 import {EnumerableSet} from 'openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol';
 
 /**
+ * @title ProofOfReserveExecutorV3
+ * @notice ProofOfReserveExecutor contract for the Aave V3 Pool instance that can perform emergency action
+ * if any enabled reserve fails in its Proof of Reserve feed validation, by freezing the reserves that are not backed
+ * and setting their LTV to zero.
  * @author BGD Labs
- * @dev Aave V3 contract for Proof of Reserve emergency action in case of any of bridged reserves is not backed:
- * - Freezes every asset not backed
  */
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   using EnumerableSet for EnumerableSet.AddressSet;
 
-  // AAVE v3 pool
+  /// @notice Aave V3 Pool.
   IPool internal immutable _pool;
-  // AAVE v3 pool configurator
+  /// @notice Aave V3 Pool Configurator
   IPoolConfigurator internal immutable _configurator;
 
   /**
