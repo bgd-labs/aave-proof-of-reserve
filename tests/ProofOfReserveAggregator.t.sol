@@ -32,7 +32,7 @@ contract ProofOfReserveAggregatorTest is Test {
   );
 
   function setUp() public {
-    vm.createSelectFork('avalanche');
+    vm.createSelectFork('avalanche', 62513100);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
   }
