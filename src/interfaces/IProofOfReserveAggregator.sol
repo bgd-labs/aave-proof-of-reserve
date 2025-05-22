@@ -2,13 +2,6 @@
 pragma solidity ^0.8.0;
 
 interface IProofOfReserveAggregator {
-  struct AssetPoRData {
-    /// @notice Chainlink Proof of Reserve feed address for a given asset
-    address feed;
-    /// @notice Bridge wrapper address for a given asset 
-    address bridgeWrapper;
-  }
-
   /**
    * @dev emitted when new asset and it's proof of reserve feed are enabled or disabled
    * @param asset the address of the asset

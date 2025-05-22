@@ -14,8 +14,11 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
  * - Returns if all tokens of a list of assets are properly backed with Proof of Reserve logic, or not.
  */
 contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
-  /// @dev Map of asset addresses and their PoR data
-  mapping(address asset => AssetPoRData) internal _proofOfReservesData;
+  /// @dev token address => proof or reserve feed
+  mapping(address => address) internal _proofOfReserveList;
+
+  /// @dev token address = > bridge wrapper
+  mapping(address => address) internal _bridgeWrapperList;
 
   constructor() Ownable(msg.sender) {}
 
@@ -25,7 +28,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     view
     returns (address)
   {
-    return _proofOfReservesData[asset].feed;
+    return _proofOfReserveList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
@@ -34,7 +37,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     view
     returns (address)
   {
-    return _proofOfReservesData[asset].bridgeWrapper;
+    return _bridgeWrapperList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
@@ -44,9 +47,9 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   {
     require(asset != address(0), 'INVALID_ASSET');
     require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
-    require(_proofOfReservesData[asset].feed == address(0), 'FEED_ALREADY_ENABLED');
+    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
 
-    _proofOfReservesData[asset].feed = proofOfReserveFeed;
+    _proofOfReserveList[asset] = proofOfReserveFeed;
     emit ProofOfReserveFeedStateChanged(
       asset,
       proofOfReserveFeed,
@@ -64,12 +67,10 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     require(asset != address(0), 'INVALID_ASSET');
     require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
     require(bridgeWrapper != address(0), 'INVALID_BRIDGE_WRAPPER');
-    require(_proofOfReservesData[asset].feed == address(0), 'FEED_ALREADY_ENABLED');
+    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
 
-    _proofOfReservesData[asset] = AssetPoRData({
-      feed: proofOfReserveFeed,
-      bridgeWrapper: bridgeWrapper
-    });
+    _proofOfReserveList[asset] = proofOfReserveFeed;
+    _bridgeWrapperList[asset] = bridgeWrapper;
 
     emit ProofOfReserveFeedStateChanged(
       asset,
@@ -81,7 +82,8 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
 
   /// @inheritdoc IProofOfReserveAggregator
   function disableProofOfReserveFeed(address asset) external onlyOwner {
-    delete _proofOfReservesData[asset];
+    delete _proofOfReserveList[asset];
+    delete _bridgeWrapperList[asset];
     emit ProofOfReserveFeedStateChanged(asset, address(0), address(0), false);
   }
 
@@ -94,7 +96,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areReservesBacked = true;
 
-    for (uint256 i; i < assets.length; ++i) {
+    for (uint256 i = 0; i < assets.length; ++i) {
       if (!_isReserveBacked(assets[i])) {
         unbackedAssetsFlags[i] = true;
         areReservesBacked = false;
@@ -111,12 +113,14 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
    * @return True if the reserves passed in the total supply validation, false otherwise.
    */
   function _isReserveBacked(address asset) internal view returns (bool) {
-    AssetPoRData memory assetData = _proofOfReservesData[asset];
-    if (assetData.feed != address(0)) {
-      (, int256 answer, , , ) = AggregatorInterface(assetData.feed).latestRoundData();
+    address feed = _proofOfReserveList[asset];
+    if (feed != address(0)) {
+      (, int256 answer, , , ) = AggregatorInterface(feed).latestRoundData();
 
-      uint256 totalSupply = assetData.bridgeWrapper != address(0)
-      ? IERC20(assetData.bridgeWrapper).totalSupply()
+      address bridgeWrapper = _bridgeWrapperList[asset];
+    
+      uint256 totalSupply = bridgeWrapper != address(0)
+      ? IERC20(bridgeWrapper).totalSupply()
       : IERC20(asset).totalSupply();
 
       if (answer < 0 || totalSupply > uint256(answer)) {
