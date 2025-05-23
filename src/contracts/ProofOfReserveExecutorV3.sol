@@ -5,6 +5,7 @@ import {DataTypes, IPoolAddressesProvider, IPool, IPoolConfigurator} from 'aave-
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
+import {EnumerableSet} from 'openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol';
 
 /**
  * @title ProofOfReserveExecutorV3
@@ -14,6 +15,8 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  * @author BGD Labs
  */
 contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
+  using EnumerableSet for EnumerableSet.AddressSet;
+
   /// @notice Aave V3 Pool.
   IPool internal immutable _pool;
   /// @notice Aave V3 Pool Configurator
@@ -37,15 +40,15 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
+    address[] memory enabledAssets = _enabledAssets.values();
+
     (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
-      .areAllReservesBacked(_assets);
+      .areAllReservesBacked(enabledAssets);
 
-    uint256 assetsLength = _assets.length;
-
-    for (uint256 i = 0; i < assetsLength; ++i) {
+    for (uint256 i = 0; i < enabledAssets.length; ++i) {
       if (unbackedAssetsFlags[i]) {
         DataTypes.ReserveConfigurationMap memory configuration = _pool
-          .getConfiguration(_assets[i]);
+          .getConfiguration(enabledAssets[i]);
 
         if (!ReserveConfiguration.getFrozen(configuration)) {
           return true;
@@ -58,17 +61,16 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() external override {
+    address[] memory enabledAssets = _enabledAssets.values();
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    ) = _proofOfReserveAggregator.areAllReservesBacked(enabledAssets);
 
     if (!areReservesBacked) {
-      uint256 assetsLength = _assets.length;
-
-      for (uint256 i = 0; i < assetsLength; ++i) {
+      for (uint256 i = 0; i < enabledAssets.length; ++i) {
         if (unbackedAssetsFlags[i]) {
-          address asset = _assets[i];
+          address asset = enabledAssets[i];
 
           // freeze reserve
           _configurator.setReserveFreeze(asset, true);
