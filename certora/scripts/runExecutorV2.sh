@@ -3,8 +3,8 @@ certoraRun certora/harness/ProofOfReserveExecutorV2Harness.sol certora/harness/P
     --link ProofOfReserveExecutorV2Harness:_proofOfReserveAggregator=PORaggregatorDummy \
     --optimistic_loop \
     --loop_iter 3 \
-    --solc solc8.16 \
+    --solc solc8.27 \
     --cloud \
-    --packages solidity-utils=lib/solidity-utils/src chainlink-brownie-contracts=lib/chainlink-brownie-contracts/contracts/src/v0.8/ aave-address-book=lib/aave-address-book/src/ forge-std=lib/forge-std/src/ \
+    --packages solidity-utils/=lib/aave-helpers/lib/aave-address-book/lib/aave-v3-origin/lib/solidity-utils/src/ aave-address-book/=lib/aave-helpers/lib/aave-address-book/src/ forge-std=lib/forge-std/src/ \
     --msg "ProofOfReserveExecutorV2"
     
