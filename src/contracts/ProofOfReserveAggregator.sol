@@ -14,7 +14,7 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
  * by checking its total supply and the corresponding PoR feed's answer.
  * @author BGD Labs
  */
-contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
+contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   /// @dev token address => proof or reserve feed
   mapping(address => address) internal _proofOfReserveList;
 
@@ -97,30 +97,37 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areReservesBacked = true;
 
-    unchecked {
-      for (uint256 i = 0; i < assets.length; ++i) {
-        address assetAddress = assets[i];
-        address feedAddress = _proofOfReserveList[assetAddress];
-        address bridgeAddress = _bridgeWrapperList[assetAddress];
-        address totalSupplyAddress = bridgeAddress != address(0)
-          ? bridgeAddress
-          : assetAddress;
-
-        if (feedAddress != address(0)) {
-          (, int256 answer, , , ) = AggregatorInterface(feedAddress)
-            .latestRoundData();
-
-          if (
-            answer < 0 ||
-            IERC20(totalSupplyAddress).totalSupply() > uint256(answer)
-          ) {
-            unbackedAssetsFlags[i] = true;
-            areReservesBacked = false;
-          }
-        }
+    for (uint256 i = 0; i < assets.length; ++i) {
+      if (!_isReserveBacked(assets[i])) {
+        unbackedAssetsFlags[i] = true;
+        areReservesBacked = false;
       }
     }
 
     return (areReservesBacked, unbackedAssetsFlags);
+  }
+
+  /**
+   * @notice Returns whether a given `asset` is backed by checking its total supply against its PoR feed's answer.
+   * @dev Assets with no PoR feed enabled will return true instantly.
+   * @param asset Address of the `asset` whose total supply will be validated against its PoR feed's answer.
+   * @return True if the reserves passed in the total supply validation, false otherwise.
+   */
+  function _isReserveBacked(address asset) internal view returns (bool) {
+    address feed = _proofOfReserveList[asset];
+    if (feed != address(0)) {
+      (, int256 answer, , , ) = AggregatorInterface(feed).latestRoundData();
+
+      address bridgeWrapper = _bridgeWrapperList[asset];
+    
+      uint256 totalSupply = bridgeWrapper != address(0)
+      ? IERC20(bridgeWrapper).totalSupply()
+      : IERC20(asset).totalSupply();
+
+      if (answer < 0 || totalSupply > uint256(answer)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
