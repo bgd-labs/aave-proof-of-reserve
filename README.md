@@ -13,7 +13,7 @@ Below is the general flow of the proof of reserve check:
 3. Aggregator compares total supply against Chainlink's Proof of Reserve feed for every token enabled in prior.
 4. If at least one reserve is compromised, then
    - for Aave V2 Executor disables borrowing for every asset on the pool and freezes only the exploited assets.
-   - for V3 the broken asset is freezed and it's LTV is set to 0.
+   - for V3 the broken asset is freezed.
 
 ## Aggregator
 
