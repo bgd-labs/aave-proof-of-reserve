@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
-
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
+ * @title ProofOfReserveExecutorBase
+ * @notice An abstract pool-specific contract that maintains a list of assets whose total supply 
+ * will be verified against their proof of reserve feed data fetched from the ProofOfReserveAggregator contract.
  * @author BGD Labs
- * @dev Aave pool-specific contract for Proof of Reserve validations:
- * - Stores list of token addresses that will be validated against their proof of reserve feed data
- * - Returns if all tokens of a list of assets are properly backed or not.
  */
 abstract contract ProofOfReserveExecutorBase is
   IProofOfReserveExecutor,
@@ -31,7 +30,7 @@ abstract contract ProofOfReserveExecutorBase is
    * @notice Constructor.
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
-  constructor(address proofOfReserveAggregatorAddress) {
+  constructor(address proofOfReserveAggregatorAddress) Ownable(msg.sender) {
     _proofOfReserveAggregator = IProofOfReserveAggregator(
       proofOfReserveAggregatorAddress
     );

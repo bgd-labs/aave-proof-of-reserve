@@ -5,16 +5,9 @@ out = 'out'
 libs = ['lib']
 gas_reports = ["ProofOfReserveExecutorV2"]
 script = 'scripts'
-remappings = [
-    'forge-std/=lib/forge-std/src/',
-    'solidity-utils/=lib/solidity-utils/src/',
-    'chainlink-brownie-contracts/=lib/chainlink-brownie-contracts/contracts/src/v0.8/',
-    'aave-address-book/=lib/aave-address-book/src/',
-    'aave-helpers/=lib/aave-helpers/src/',
-    '@aave/core-v2=lib/protocol-v2/'
-]
+remappings = []
 [rpc_endpoints]
-ethereum="${RPC_ETHEREUM}"
+mainnet = "${RPC_MAINNET}"
 optimism = "${RPC_OPTIMISM}"
 avalanche = "${RPC_AVALANCHE}"
 polygon = "${RPC_POLYGON}"

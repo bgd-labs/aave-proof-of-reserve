@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
-import {IERC20Metadata} from 'solidity-utils/contracts/oz-common/interfaces/IERC20Metadata.sol';
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
 
 contract AvaxBridgeWrapperTest is Test {
@@ -16,7 +16,7 @@ contract AvaxBridgeWrapperTest is Test {
     address(0xbA7dEebBFC5fA1100Fb055a87773e1E99Cd3507a);
 
   function setUp() public {
-    vm.createSelectFork('avalanche');
+    vm.createSelectFork('avalanche', 62513100);
   }
 
   function testTotalSupplyAAVEe() public {
