@@ -1,25 +1,25 @@
-using PORaggregatorDummy as aggregator
+using PORaggregatorDummy as aggregator;
 
 methods {
-    getAssets() returns (address[]) envfree 
-    enableAssets(address[])
-    disableAssets(address[])
-    areAllReservesBacked() returns (bool) envfree
-    executeEmergencyAction() envfree
-    isEmergencyActionPossible() returns (bool) envfree
+  function getAssets() external returns (address[]) envfree ;
+  function enableAssets(address[]) external;
+  function disableAssets(address[]) external;
+  function areAllReservesBacked() external returns (bool) envfree;
+  function executeEmergencyAction() external envfree;
+  function isEmergencyActionPossible() external returns (bool) envfree;
 
-    // Harness:
-    enableAsset(address)
-    disableAsset(address)
-    getAssetState(address) returns (bool) envfree
-    getAssetsLength() returns (uint256) envfree
-    getAsset(uint256) returns (address) envfree
-    _disableBorrowing() returns (bool) envfree
-    _disableBorrowingCalled() returns (bool) envfree
+  // Harness:
+  function enableAsset(address) external;
+  function disableAsset(address) external;
+  function getAssetState(address) external returns (bool) envfree;
+  function getAssetsLength() external returns (uint256) envfree;
+  function getAsset(uint256) external returns (address) envfree;
+  //function _disableBorrowing() returns (bool) envfree;
+  function _disableBorrowingCalled() external returns (bool) envfree;
 
     // Dummy aggregator functions:
-    aggregator.areReservesBackedFlag() returns (bool) envfree
-    aggregator.initFlags(bool) envfree
+  function aggregator.areReservesBackedFlag() external returns (bool) envfree;
+  function aggregator.initFlags(bool) external envfree;
 }
 
 function assetsRequirements() {
@@ -242,46 +242,43 @@ rule integrityOfExecuteEmergencyAction(bool rand) {
     assert allReservesBacked => !disableBorrowingCalled;
 }
 
-ghost uint256 old_zero_index;
-ghost mapping(address => uint256) reverseMap
-{
-    axiom forall address a. IS_ADDRESS(a) => IS_UINT256(reverseMap[a]);
+persistent ghost uint256 old_zero_index;
+persistent ghost mapping(address => uint256) reverseMap {
+  axiom forall address a. IS_ADDRESS(a) => IS_UINT256(reverseMap[a]);
 }
-ghost uint256 _assetsLength
-{
-    init_state axiom _assetsLength == 0;
+persistent ghost uint256 _assetsLength {
+  init_state axiom _assetsLength == 0;
 }
-ghost mapping(uint256 => address) mirrorArray;
-ghost mapping(address => bool) mirrorFlag
+persistent ghost mapping(uint256 => address) mirrorArray;
+persistent ghost mapping(address => bool) mirrorFlag
 {
     init_state axiom forall address a. IS_ADDRESS(a) => !mirrorFlag[a];
 }
-hook Sstore _assets.(offset 0) uint256 newLen (uint256 oldLen) STORAGE {
-    require _assetsLength == oldLen;
-    reverseMap[mirrorArray[to_uint256(oldLen - 1)]] = ((IS_ZERO_ADDRESS(mirrorArray[to_uint256(oldLen - 1)])) && (newLen == to_uint256(oldLen - 1))?old_zero_index:reverseMap[mirrorArray[to_uint256(oldLen - 1)]]);
-    _assetsLength = newLen;
+hook Sstore _assets.(offset 0) uint256 newLen (uint256 oldLen) {
+  require _assetsLength == oldLen;
+  reverseMap[mirrorArray[require_uint256(oldLen - 1)]] = ((IS_ZERO_ADDRESS(mirrorArray[require_uint256(oldLen - 1)])) && (newLen == require_uint256(oldLen - 1))?old_zero_index:reverseMap[mirrorArray[require_uint256(oldLen - 1)]]);
+  _assetsLength = newLen;
 }
 
-hook Sload uint256 len _assets.(offset 0) STORAGE {
+hook Sload uint256 len _assets.(offset 0) {
     require _assetsLength == len;
 }
-hook Sstore _assets[INDEX uint256 index] address newValue (address oldValue) STORAGE {
-    require mirrorArray[index] == oldValue;
-    mirrorArray[index] = newValue;
-    old_zero_index = (IS_ZERO_ADDRESS(newValue) && index == to_uint256(_assetsLength - 1)? reverseMap[newValue]:old_zero_index);
-    reverseMap[newValue] = index;
-
-    }
-hook Sload address value _assets[INDEX uint256 index] STORAGE {
-    require mirrorArray[index] == value;
+hook Sstore _assets[INDEX uint256 index] address newValue (address oldValue) {
+  require mirrorArray[index] == oldValue;
+  mirrorArray[index] = newValue;
+  old_zero_index = (IS_ZERO_ADDRESS(newValue) && index == require_uint256(_assetsLength - 1)? reverseMap[newValue]:old_zero_index);
+  reverseMap[newValue] = index;
+}
+hook Sload address value _assets[INDEX uint256 index] {
+  require mirrorArray[index] == value;
 }
 
 
-hook Sstore _assetsState[KEY address a] bool newValue (bool oldValue) STORAGE {
+hook Sstore _assetsState[KEY address a] bool newValue (bool oldValue) {
     require mirrorFlag[a] == oldValue;
     mirrorFlag[a] = newValue;
     }
-hook Sload bool value _assetsState[KEY address a] STORAGE {
+hook Sload bool value _assetsState[KEY address a] {
     require mirrorFlag[a] == value;
 }
 
@@ -290,13 +287,17 @@ definition IS_ADDRESS(address x) returns bool = ((x >= 0) && (x <= max_uint160))
 definition IS_ZERO_ADDRESS(address x) returns bool = x == 0;
 
 invariant flagConsistancy()
-    (forall address a. IS_ADDRESS(a) => ((mirrorFlag[a] => (((reverseMap[a] < _assetsLength) && (mirrorArray[reverseMap[a]] == a)))))) && (forall uint256 i. IS_UINT256(i) => (i < _assetsLength => (mirrorFlag[mirrorArray[i]])))
-    {
-        preserved{
-            requireInvariant uniqueArray();
-            require getAssetsLength() < max_uint160 - 1;
-        }
-    }
+  (forall address a. IS_ADDRESS(a) =>
+   ((mirrorFlag[a] => (((reverseMap[a] < _assetsLength) && (mirrorArray[reverseMap[a]] == a))))))
+  &&
+  (forall uint256 i. IS_UINT256(i) => (i < _assetsLength => (mirrorFlag[mirrorArray[i]])))
+{
+  preserved{
+    requireInvariant uniqueArray();
+    require getAssetsLength() < max_uint160 - 1;
+  }
+}
+
 
 invariant uniqueArray()
     forall uint256 i. IS_UINT256(i) => (forall uint256 j. IS_UINT256(j) => ((i < _assetsLength && j < _assetsLength) => ( i != j => mirrorArray[i] != mirrorArray[j])))

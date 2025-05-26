@@ -1,28 +1,28 @@
-using PORaggregatorDummy as aggregator
-using configuratorDummy as configurator
+using PORaggregatorDummy as aggregator;
+using configuratorDummy as configurator;
 
 methods {
-    getAssets() returns (address[]) envfree 
-    enableAssets(address[])
-    disableAssets(address[])
-    areAllReservesBacked() returns (bool) envfree
-    executeEmergencyAction() envfree
-    isEmergencyActionPossible() returns (bool) envfree
+  function getAssets() external returns (address[]) envfree ;
+  function enableAssets(address[]) external;
+  function disableAssets(address[]) external;
+  function areAllReservesBacked() external returns (bool) envfree;
+  function executeEmergencyAction() external envfree;
+  function isEmergencyActionPossible() external returns (bool) envfree;
 
-    // Harness:
-    enableAsset(address)
-    disableAsset(address)
-    getAssetState(address) returns (bool) envfree
-    getAssetsLength() returns (uint256) envfree
-    getAsset(uint256) returns (address) envfree
+  // Harness:
+  function enableAsset(address) external;
+  function disableAsset(address) external;
+  function getAssetState(address) external returns (bool) envfree;
+  function getAssetsLength() external returns (uint256) envfree;
+  function getAsset(uint256) external returns (address) envfree;
 
-    // Dummy aggregator functions:
-    aggregator.areReservesBackedFlag() returns (bool) envfree
-    aggregator.initFlags(bool) envfree
+  // Dummy aggregator functions:
+  function aggregator.areReservesBackedFlag() external returns (bool) envfree;
+  function aggregator.initFlags(bool) external envfree;
 
     // Dummy configurator functions:
-    configurator._ltv() returns (uint256) envfree
-    configurator.freezeWasCalled() returns (bool) envfree
+  function configurator._ltv() external returns (uint256) envfree;
+  function configurator.freezeWasCalled() external returns (bool) envfree;
 }
 
 
@@ -254,30 +254,30 @@ rule integrityOfExecuteEmergencyAction(bool rand) {
 
 // invariant - if asset is active then it is in _assets array
 
-ghost mapping(uint256 => address) indexSetArrayFlag;
-ghost mapping(address => uint256) indexSetShortcutFlag;
-ghost mapping(address => bool) mirrorInitFlag;
-ghost uint256 setLengthFlag;
-ghost bool Consistant_flag;
+persistent ghost mapping(uint256 => address) indexSetArrayFlag;
+persistent ghost mapping(address => uint256) indexSetShortcutFlag;
+persistent ghost mapping(address => bool) mirrorInitFlag;
+persistent ghost uint256 setLengthFlag;
+persistent ghost bool Consistant_flag;
 
-ghost mapping(uint256 => uint256) indexSetArray;
-ghost mapping(uint256 => uint256) indexSetShortcut;
-ghost mapping(address => uint256) reverseMapInit;
-ghost uint256 setLength;
-ghost bool OneToOne_arrOfTokens;
+persistent ghost mapping(uint256 => uint256) indexSetArray;
+persistent ghost mapping(uint256 => uint256) indexSetShortcut;
+persistent ghost mapping(address => uint256) reverseMapInit;
+persistent ghost uint256 setLength;
+persistent ghost bool OneToOne_arrOfTokens;
 
-ghost mapping(uint256 => address) mirrorInitArray;
-ghost mapping(address => uint256) reverseMap;
-ghost uint256 assetInitLength;
+persistent ghost mapping(uint256 => address) mirrorInitArray;
+persistent ghost mapping(address => uint256) reverseMap;
+persistent ghost uint256 assetInitLength;
 
-hook Sstore _assets[INDEX uint256 index] address newValue (address oldValue) STORAGE {
+hook Sstore _assets[INDEX uint256 index] address newValue (address oldValue) {
 
     // this is for the require that the _assets array is unique 
     uint256 shortcutIndex = indexSetShortcut[index];
     bool firstAccess = (shortcutIndex >= setLength) || indexSetArray[shortcutIndex] != index;
-    indexSetShortcut[index] = firstAccess?setLength:indexSetShortcut[index];
+    indexSetShortcut[index] = firstAccess ? setLength : indexSetShortcut[index];
     indexSetArray[setLength] = index;
-    setLength = setLength + (firstAccess?to_uint256(1):to_uint256(0));
+    setLength = require_uint256(setLength + (firstAccess ? 1 : 0));
     require (OneToOne_arrOfTokens && firstAccess) => (reverseMapInit[oldValue] == index);
     //end
 
@@ -285,14 +285,14 @@ hook Sstore _assets[INDEX uint256 index] address newValue (address oldValue) STO
     require firstAccess => mirrorInitArray[index] == oldValue;
     reverseMap[newValue] = index;
     }
-hook Sload address value _assets[INDEX uint256 index] STORAGE {
+hook Sload address value _assets[INDEX uint256 index] {
 
     //this is for the require that the _assets array is unique 
     uint256 shortcutIndex = indexSetShortcut[index];
     bool firstAccess = (shortcutIndex >= setLength) || indexSetArray[shortcutIndex] != index;
     indexSetShortcut[index] = firstAccess?setLength:indexSetShortcut[index];
     indexSetArray[setLength] = index;
-    setLength = setLength + (firstAccess?to_uint256(1):to_uint256(0));
+    setLength = require_uint256 (setLength + (firstAccess ? 1 : 0));
     require (OneToOne_arrOfTokens && firstAccess) => (reverseMapInit[value] == index);
     //end
 
@@ -301,28 +301,28 @@ hook Sload address value _assets[INDEX uint256 index] STORAGE {
 }
 
 
-hook Sstore _assetsState[KEY address a] bool newValue (bool oldValue) STORAGE {
+hook Sstore _assetsState[KEY address a] bool newValue (bool oldValue) {
 
     //this is for the require that the validator array is unique 
     uint256 shortcutIndex = indexSetShortcutFlag[a];
     bool firstAccess = (shortcutIndex >= setLengthFlag) || indexSetArrayFlag[shortcutIndex] != a;
     indexSetShortcutFlag[a] = firstAccess?setLengthFlag:indexSetShortcutFlag[a];
     indexSetArrayFlag[setLengthFlag] = a;
-    setLengthFlag = setLengthFlag + (firstAccess?to_uint256(1):to_uint256(0));
+    setLengthFlag = require_uint256(setLengthFlag + (firstAccess ? 1 : 0));
     require firstAccess => (mirrorInitFlag[a] == oldValue);
     require (Consistant_flag && firstAccess && oldValue) => (reverseMapInit[a] < assetInitLength);
     require (Consistant_flag && firstAccess && oldValue) => mirrorInitArray[reverseMapInit[a]] == a;
     //end
 
     }
-hook Sload bool value _assetsState[KEY address a] STORAGE {
+hook Sload bool value _assetsState[KEY address a] {
 
     //this is for the require that the validator array is unique 
     uint256 shortcutIndex = indexSetShortcutFlag[a];
     bool firstAccess = (shortcutIndex >= setLengthFlag) || indexSetArrayFlag[shortcutIndex] != a;
     indexSetShortcutFlag[a] = firstAccess?setLengthFlag:indexSetShortcutFlag[a];
     indexSetArrayFlag[setLengthFlag] = a;
-    setLengthFlag = setLengthFlag + (firstAccess?to_uint256(1):to_uint256(0));
+    setLengthFlag = require_uint256 (setLengthFlag + (firstAccess ? 1 : 0));
     require firstAccess => (mirrorInitFlag[a] == value);
     require (Consistant_flag && firstAccess && value) => (reverseMapInit[a] < assetInitLength);
     require (Consistant_flag && firstAccess && value) => mirrorInitArray[reverseMapInit[a]] == a;
