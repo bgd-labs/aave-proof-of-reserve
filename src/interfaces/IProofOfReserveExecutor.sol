@@ -3,60 +3,62 @@ pragma solidity ^0.8.0;
 
 interface IProofOfReserveExecutor {
   /**
-   * @dev emitted when new asset is enabled or disabled
-   * @param asset the address of the asset
-   * @param enabled whether it was enabled or disabled
+   * @notice Event is emitted whenever an `asset` is enabled or disabled.
+   * @param asset The address of the asset.
+   * @param enabled Whether the asset was added or removed from the list.
    */
   event AssetStateChanged(address indexed asset, bool enabled);
 
   /**
-   * @dev emitted when asset is not backed
-   * @param asset asset that is not backed
+   * @notice Event is emitted whenever an `asset` is not backed
+   * @param asset The address of the asset that is not backed
    */
   event AssetIsNotBacked(address indexed asset);
 
   /**
-   * @dev emitted when the emergency action is activated
+   * @notice Event is emitted whenever the emergency action is activated
    */
   event EmergencyActionExecuted();
 
   /**
-   * @dev gets the list of the assets to check
-   * @return returns all the assets that were enabled
+   * @notice Returns the list of assets enabled whose total supply will be validated against their PoR feed's answer.
+   * @return Array of enabled assets.
    */
   function getAssets() external view returns (address[] memory);
 
   /**
-   * @dev enable checking of proof of reserve for the passed list of assets
-   * @param assets the addresses of the assets
+   * @notice Sets a list of addresses whose total supply will be validated against their Proof of Reserve feed's answer.
+   * @dev Assets already enabled will not be included.
+   * @param assets The array of addresses of the assets
    */
   function enableAssets(address[] memory assets) external;
 
   /**
-   * @dev delete the assets and the proof of reserve feeds from the registry.
-   * @param assets addresses of the assets
+   * @notice Removes a list of addresses whose total supply will not be checked against their Proof of Reserve feed.
+   * @param assets The array of addresses of the assets
    */
   function disableAssets(address[] memory assets) external;
 
   /**
-   * @dev returns if all the assets in the registry are backed.
-   * @return bool returns true if all reserves are backed, otherwise false
+   * @notice Returns whether the reserves of the enabled assets are backed by checking against their Proof of Reserve feed's answer.
+   * @return True if all reserves of the enabled assets are backed, false otherwise.
    */
   function areAllReservesBacked() external view returns (bool);
 
   /**
-   * @dev returns if emergency action parameters are not already adjusted.
-   * This is not checked in executeEmergencyAction(), but is used
-   * to prevent infinite execution of performUpkeep() inside the Keeper contract.
-   * @return bool if it makes sense to execute the emergency action
+   * @notice Returns whether the emergency action can be executed.
+   * @dev Helper function used by the automation-compatible contract to check
+   * whether the emergency action should be performed. 
+   * @return True if the emergency action can be taken, false otherwise. 
    */
   function isEmergencyActionPossible() external view returns (bool);
 
-  /**
-   * @dev executes pool-specific action when at least
-   * one of the assets in the registry is not backed.
-   * v2: disable all borrowing and freeze the exploited assets
-   * v3: set ltv to 0 for the broken assets and freeze them
+/**
+   * @notice Performs the pool-specific action if at least one reserve of the enabled assets
+   * failed during the validation performed against their PoR feed's answer.
+   * @dev For the V2 instance, borrowing across all assets is disabled, and the reserves
+   * that failed PoR validation are frozen. 
+   * @dev For the V3 instance, the reserves that fail PoR validation are frozen, and their LTV is set to 0.
    */
   function executeEmergencyAction() external;
 }

@@ -50,7 +50,7 @@ contract ProofOfReserveExecutorV3Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    vm.createSelectFork('avalanche', 46044808);
+    vm.createSelectFork('avalanche', 62513100);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       address(AaveV3Avalanche.POOL_ADDRESSES_PROVIDER),
@@ -155,15 +155,11 @@ contract ProofOfReserveExecutorV3Test is Test {
     AaveV3Avalanche.ACL_MANAGER.addRiskAdmin(address(proofOfReserveExecutorV3));
   }
 
-  function assertIsFrozen(address asset) private {
+  function assertIsFrozen(address asset) private view {
     DataTypes.ReserveConfigurationMap memory configuration = AaveV3Avalanche
       .POOL
       .getConfiguration(asset);
 
-    (, , , bool isFrozen) = ReserveConfiguration.getReserveParams(
-      configuration
-    );
-
-    assertTrue(!isFrozen);
+    assertTrue(!ReserveConfiguration.getFrozen(configuration));
   }
 }
