@@ -7,12 +7,12 @@ import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainli
 import {AaveV3Avalanche} from 'aave-address-book/AaveV3Avalanche.sol';
 import {DataTypes} from 'aave-address-book/AaveV3.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
-import {ProofOfReserveExecutorV3} from '../src/contracts/ProofOfReserveExecutorV3.sol';
-import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
-import {ReserveConfiguration} from '../src/helpers/ReserveConfiguration.sol';
+import {ProofOfReserveAggregator} from '../../src/contracts/ProofOfReserveAggregator.sol';
+import {ProofOfReserveExecutorV3} from '../../src/contracts/ProofOfReserveExecutorV3.sol';
+import {AvaxBridgeWrapper} from '../../src/contracts/AvaxBridgeWrapper.sol';
+import {ReserveConfiguration} from '../../src/helpers/ReserveConfiguration.sol';
 
-contract ProofOfReserveExecutorV3Test is Test {
+contract ProofOfReserveExecutorV3ForkTest is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV3 private proofOfReserveExecutorV3;
   AvaxBridgeWrapper private bridgeWrapper;

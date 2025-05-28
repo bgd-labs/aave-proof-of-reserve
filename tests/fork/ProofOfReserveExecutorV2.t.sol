@@ -6,12 +6,12 @@ import {Test} from 'forge-std/Test.sol';
 import {AaveV2Avalanche} from 'aave-address-book/AaveV2Avalanche.sol';
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
-import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
-import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {ProofOfReserveAggregator} from '../../src/contracts/ProofOfReserveAggregator.sol';
+import {ProofOfReserveExecutorV2} from '../../src/contracts/ProofOfReserveExecutorV2.sol';
+import {AvaxBridgeWrapper} from '../../src/contracts/AvaxBridgeWrapper.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-contract ProofOfReserveExecutorV2Test is Test {
+contract ProofOfReserveExecutorV2ForkTest is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
   ProofOfReserveExecutorV2 private proofOfReserveExecutorV2;
   AvaxBridgeWrapper private bridgeWrapper;

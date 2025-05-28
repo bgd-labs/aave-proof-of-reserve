@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import {Test} from 'forge-std/Test.sol';
 
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
-import {ProofOfReserveAggregator, IProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
-import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {ProofOfReserveAggregator, IProofOfReserveAggregator} from '../../src/contracts/ProofOfReserveAggregator.sol';
+import {AvaxBridgeWrapper} from '../../src/contracts/AvaxBridgeWrapper.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-contract ProofOfReserveAggregatorTest is Test {
+contract ProofOfReserveAggregatorForkTest is Test {
   ProofOfReserveAggregator public proofOfReserveAggregator;
   AvaxBridgeWrapper private bridgeWrapper;
 
