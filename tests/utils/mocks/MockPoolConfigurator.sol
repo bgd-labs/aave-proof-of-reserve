@@ -29,6 +29,10 @@ contract MockPoolConfiguratorV2 {
   MockPoolV2 internal _pool;
   using ReserveConfigurationV2 for DataTypesV2.ReserveConfigurationMap;
 
+  constructor(MockPoolV2 pool) {
+    _pool = pool;
+  }
+
   function freezeReserve(address asset) external {
     DataTypesV2.ReserveConfigurationMap memory currentConfig = _pool
       .getConfiguration(asset);
