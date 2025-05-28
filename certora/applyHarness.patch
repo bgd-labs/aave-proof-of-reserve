@@ -1,7 +1,7 @@
 diff -ruN ../src/contracts/ProofOfReserveExecutorBase.sol contracts/ProofOfReserveExecutorBase.sol
---- ../src/contracts/ProofOfReserveExecutorBase.sol	2022-12-22 20:06:55
-+++ contracts/ProofOfReserveExecutorBase.sol	2022-12-22 20:08:24
-@@ -22,10 +22,10 @@
+--- ../src/contracts/ProofOfReserveExecutorBase.sol	2025-05-25 11:28:17.576280968 +0300
++++ contracts/ProofOfReserveExecutorBase.sol	2025-05-25 11:38:54.137168817 +0300
+@@ -21,10 +21,10 @@
    IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
  
    /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
@@ -15,9 +15,9 @@ diff -ruN ../src/contracts/ProofOfReserveExecutorBase.sol contracts/ProofOfReser
    /**
     * @notice Constructor.
 diff -ruN ../src/contracts/ProofOfReserveExecutorV2.sol contracts/ProofOfReserveExecutorV2.sol
---- ../src/contracts/ProofOfReserveExecutorV2.sol	2022-12-22 20:07:26
-+++ contracts/ProofOfReserveExecutorV2.sol	2022-12-22 20:08:32
-@@ -94,7 +94,7 @@
+--- ../src/contracts/ProofOfReserveExecutorV2.sol	2025-05-25 11:28:17.576280968 +0300
++++ contracts/ProofOfReserveExecutorV2.sol	2025-05-25 11:38:54.139168804 +0300
+@@ -96,7 +96,7 @@
    /**
     * @dev disable borrowing for every asset on the pool.
     */
@@ -26,3 +26,9 @@ diff -ruN ../src/contracts/ProofOfReserveExecutorV2.sol contracts/ProofOfReserve
      address[] memory reservesList = _pool.getReservesList();
  
      // disable borrowing for all the reserves on the pool
+diff -ruN ../src/.gitignore .gitignore
+--- ../src/.gitignore	1970-01-01 02:00:00.000000000 +0200
++++ .gitignore	2025-05-25 11:55:34.578919374 +0300
+@@ -0,0 +1,2 @@
++*
++!.gitignore

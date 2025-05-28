@@ -3,12 +3,13 @@ pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
 
-import {AaveV2Avalanche} from 'aave-address-book/AaveAddressBook.sol';
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
-import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
+import {AaveV2Avalanche} from 'aave-address-book/AaveV2Avalanche.sol';
+import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../src/contracts/ProofOfReserveExecutorV2.sol';
 import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 contract ProofOfReserveExecutorV2Test is Test {
   ProofOfReserveAggregator private proofOfReserveAggregator;
@@ -33,7 +34,7 @@ contract ProofOfReserveExecutorV2Test is Test {
   event EmergencyActionExecuted();
 
   function setUp() public {
-    vm.createSelectFork('avalanche', 25705929);
+    vm.createSelectFork('avalanche', 62513100);
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       address(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER),
@@ -83,7 +84,7 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetsAreEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);
@@ -122,7 +123,7 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetAreDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes('Ownable: caller is not the owner'));
+    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);
@@ -151,7 +152,7 @@ contract ProofOfReserveExecutorV2Test is Test {
 
     vm.mockCall(
       PORF_AAVE,
-      abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+      abi.encodeWithSelector(AggregatorInterface.latestRoundData.selector),
       abi.encode(1, 1, 1, 1, 1)
     );
 
@@ -181,7 +182,7 @@ contract ProofOfReserveExecutorV2Test is Test {
 
     vm.mockCall(
       PORF_AAVE,
-      abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+      abi.encodeWithSelector(AggregatorInterface.latestRoundData.selector),
       abi.encode(1, 99, 1, 1, 1)
     );
 
@@ -193,7 +194,7 @@ contract ProofOfReserveExecutorV2Test is Test {
 
     vm.mockCall(
       PORF_BTCB,
-      abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+      abi.encodeWithSelector(AggregatorInterface.latestRoundData.selector),
       abi.encode(1, 1, 1, 1, 1)
     );
 

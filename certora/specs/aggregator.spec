@@ -1,26 +1,26 @@
 methods {
-    getProofOfReserveFeedForAsset(address) returns (address) envfree
-    disableProofOfReserveFeed(address)
-    enableProofOfReserveFeed(address, address)
-    areAllReservesBacked(address[]) returns (bool, bool[]) envfree
-    getBridgeWrapperForAsset(address) returns (address) envfree
-    enableProofOfReserveFeedWithBridgeWrapper(address, address, address)
+  function getProofOfReserveFeedForAsset(address) external returns (address) envfree;
+  function disableProofOfReserveFeed(address) external;
+  function enableProofOfReserveFeed(address, address) external;
+  function areAllReservesBacked(address[]) external returns (bool, bool[]) envfree;
+  function getBridgeWrapperForAsset(address) external returns (address) envfree;
+  function enableProofOfReserveFeedWithBridgeWrapper(address, address, address) external;
 
     // summarizations:
-    latestRoundData() => NONDET
+  function  _.latestRoundData() external => NONDET;
     // Getters: 
-    allBacked() returns (bool) envfree
+  function  allBacked() external returns (bool) envfree;
 }
 
 
 // calling function with specific parameters
-function call_f_with_params(method f, env e, address asset , address PoRFeed, address wrapper){
+function call_f_with_params(method f, env e, address asset , address PoRFeed, address wrapper) {
     calldataarg args;
-    if (f.selector == enableProofOfReserveFeed(address, address).selector){
+    if (f.selector == sig:enableProofOfReserveFeed(address, address).selector) {
         enableProofOfReserveFeed(e, asset, PoRFeed);
-    } else if (f.selector == disableProofOfReserveFeed(address).selector){
+    } else if (f.selector == sig:disableProofOfReserveFeed(address).selector) {
         disableProofOfReserveFeed(e, asset);
-    } else if (f.selector == enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector) {
+    } else if (f.selector == sig:enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector) {
         enableProofOfReserveFeedWithBridgeWrapper(e, asset, PoRFeed, wrapper);
     } else {
         f(e, args);
@@ -43,18 +43,18 @@ rule PoRFeedChange(address asset, address PoRFeed, address wrapper){
     address feedAfter = getProofOfReserveFeedForAsset(asset);
     address bridgeWrapperAfter = getBridgeWrapperForAsset(asset);
 
-    assert f.selector == enableProofOfReserveFeed(address, address).selector => (feedAfter != 0 && feedAfter == PoRFeed);
-    assert f.selector == enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector => 
+    assert f.selector == sig:enableProofOfReserveFeed(address, address).selector => (feedAfter != 0 && feedAfter == PoRFeed);
+    assert f.selector == sig:enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector => 
                         (feedAfter != 0 && feedAfter == PoRFeed && bridgeWrapperAfter != 0 && bridgeWrapperAfter == wrapper);
-    assert f.selector == disableProofOfReserveFeed(address).selector => feedAfter == 0 && bridgeWrapperAfter == 0;
-    assert (f.selector != enableProofOfReserveFeed(address, address).selector && 
-            f.selector != disableProofOfReserveFeed(address).selector &&
-            f.selector != enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector) => 
+    assert f.selector == sig:disableProofOfReserveFeed(address).selector => feedAfter == 0 && bridgeWrapperAfter == 0;
+    assert (f.selector != sig:enableProofOfReserveFeed(address, address).selector && 
+            f.selector != sig:disableProofOfReserveFeed(address).selector &&
+            f.selector != sig:enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector) => 
                         feedBefore == feedAfter && bridgeWrapperBefore == bridgeWrapperAfter;
 }
 
 // if areAllReservesBacked is false then at least one slot in tokenBacked array is false, otherwise all slots in tokenBacked array is true.
-rule notAllReservesBacked_UnbackedArry_Correlation(){
+rule notAllReservesBacked_UnbackedArry_Correlation() {
     env e; address[] assets;
     
     bool reservesArrayIsBacked = areAllReservesBackedCorrelation(e, assets);

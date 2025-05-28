@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.27;
 
-import {Ownable} from 'solidity-utils/contracts/oz-common/Ownable.sol';
-import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
-import {AggregatorV3Interface} from 'chainlink-brownie-contracts/interfaces/AggregatorV3Interface.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
+ * @title ProofOfReserveAggregator 
+ * @notice This contract maintains a list of assets, their proof of reserve feeds,
+ * and their bridge wrapper (if applicable), which verifies whether the asset is backed
+ * by checking its total supply and the corresponding PoR feed's answer.
  * @author BGD Labs
- * @dev Aave aggregator contract for Proof of Reserve Feeds and validations based on them:
- * - Indexes proof of reserve feed by token address
- * - Returns if all tokens of a list of assets are properly backed with Proof of Reserve logic, or not.
  */
 contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   /// @dev token address => proof or reserve feed
@@ -19,6 +20,8 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
 
   /// @dev token address = > bridge wrapper
   mapping(address => address) internal _bridgeWrapperList;
+
+  constructor() Ownable(msg.sender) {}
 
   /// @inheritdoc IProofOfReserveAggregator
   function getProofOfReserveFeedForAsset(address asset)
@@ -43,9 +46,8 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     external
     onlyOwner
   {
-    require(asset != address(0), 'INVALID_ASSET');
-    require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
-    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
+    require(asset != address(0) && proofOfReserveFeed != address(0), ZeroAddress());
+    require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
     emit ProofOfReserveFeedStateChanged(
@@ -62,10 +64,11 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     address proofOfReserveFeed,
     address bridgeWrapper
   ) external onlyOwner {
-    require(asset != address(0), 'INVALID_ASSET');
-    require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
-    require(bridgeWrapper != address(0), 'INVALID_BRIDGE_WRAPPER');
-    require(_proofOfReserveList[asset] == address(0), 'FEED_ALREADY_ENABLED');
+    require(
+      asset != address(0) && proofOfReserveFeed != address(0) && bridgeWrapper != address(0),
+      ZeroAddress()
+    );
+    require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
     _bridgeWrapperList[asset] = bridgeWrapper;
@@ -104,7 +107,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
           : assetAddress;
 
         if (feedAddress != address(0)) {
-          (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
+          (, int256 answer, , , ) = AggregatorInterface(feedAddress)
             .latestRoundData();
 
           if (
