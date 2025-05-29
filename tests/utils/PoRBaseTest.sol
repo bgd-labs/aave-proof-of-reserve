@@ -41,6 +41,8 @@ abstract contract PoRBaseTest is Test {
   uint256 public assetsHolderPrivateKey = 0x4000;
   address public assetsHolder = vm.addr(assetsHolderPrivateKey);
 
+  uint256 public constant DEFAULT_MARGIN = 5_00;
+
   function setUp() public virtual {}
 
   function _deployTokensAndFeeds() internal {
@@ -134,16 +136,19 @@ abstract contract PoRBaseTest is Test {
     proofOfReserveExecutor.enableAssets(assets);
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(asset_1),
-      address(feed_1)
+      address(feed_1),
+      DEFAULT_MARGIN
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(asset_2),
-      address(feed_2)
+      address(feed_2),
+      DEFAULT_MARGIN
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(current_asset_3),
       address(feed_3),
-      address(bridgeWrapper)
+      address(bridgeWrapper),
+      DEFAULT_MARGIN
     );
 
     vm.stopPrank();
