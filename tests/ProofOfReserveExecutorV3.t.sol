@@ -23,7 +23,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
   }
 
   function test_executeEmergencyActionAssetUnbacked() public {
-    _mint(asset_1, 1 ether);
+    _mintUnbacked(asset_1, 1 ether);
 
     proofOfReserveExecutorV3.executeEmergencyAction();
 
@@ -37,9 +37,25 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
   }
 
   function test_isEmergencyActionPossibleAssetUnbacked() public {
-    _mint(asset_1, 1 ether);
+    _mintUnbacked(asset_1, 1 ether);
 
     assertTrue(proofOfReserveExecutorV3.isEmergencyActionPossible());
+  }
+
+  function test_areAllReservesBacked() public {
+    _mintBacked(asset_1, 1 ether);
+    assertTrue(proofOfReserveExecutorV3.areAllReservesBacked());
+
+    _mintUnbacked(asset_1, 1 ether);
+    assertFalse(proofOfReserveExecutorV3.areAllReservesBacked());
+  }
+
+  function test_areAllReservesBackedNoAssetsEnabled() public {
+    vm.startPrank(defaultAdmin);
+    address[] memory assets = proofOfReserveExecutorV3.getAssets();
+    proofOfReserveExecutorV3.disableAssets(assets);
+
+    assertTrue(proofOfReserveExecutorV3.areAllReservesBacked());
   }
 
   function test_enableAssets(address asset1, address asset2) public {

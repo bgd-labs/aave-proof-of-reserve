@@ -233,7 +233,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
     _mintBacked(asset_1, 1 ether);
     _mintBacked(asset_2, 1 ether);
-    _mint(current_asset_3, 1 ether);
+    _mintUnbacked(current_asset_3, 1 ether);
 
     (
       bool areReservesBacked,
@@ -245,5 +245,12 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     assertFalse(unbackedAssetsFlags[0]);
     assertFalse(unbackedAssetsFlags[1]);
     assertTrue(unbackedAssetsFlags[2]);
+  }
+
+  function test_getters() public {
+    test_enableProofOfReserveFeedWithBridgeWrapper(address(current_asset_3), address(feed_3), address(bridgeWrapper));
+
+    assertEq(proofOfReserveAggregator.getProofOfReserveFeedForAsset(address(current_asset_3)), address(feed_3));
+    assertEq(proofOfReserveAggregator.getBridgeWrapperForAsset(address(current_asset_3)), address(bridgeWrapper));
   }
 }

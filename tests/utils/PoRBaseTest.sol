@@ -150,16 +150,11 @@ abstract contract PoRBaseTest is Test {
   }
 
   function _mintBacked(MockERC20 asset, uint256 amount) internal {
-    _mint(asset, amount);
+    _mintUnbacked(asset, amount);
     _setPoRAnswer(asset, asset.totalSupply());
   }
 
-  function _burnBacked(MockERC20 asset, uint256 amount) internal {
-    _burn(asset, amount);
-    _setPoRAnswer(asset, asset.totalSupply());
-  }
-
-  function _mint(MockERC20 asset, uint256 amount) internal {
+  function _mintUnbacked(MockERC20 asset, uint256 amount) internal {
     asset.mint(assetsHolder, amount);
   }
 

@@ -21,7 +21,7 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
   }
 
   function test_executeEmergencyActionAssetUnbacked() public {
-    _mint(asset_1, 1 ether);
+    _mintUnbacked(asset_1, 1 ether);
 
     proofOfReserveExecutorV2.executeEmergencyAction();
 
@@ -35,7 +35,15 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
   }
 
   function test_isEmergencyActionPossibleAssetUnbacked() public {
-    _mint(asset_1, 1 ether);
+    _mintUnbacked(asset_1, 1 ether);
+
+    assertTrue(proofOfReserveExecutorV2.isEmergencyActionPossible());
+  }
+
+  function test_isEmergencyActionPossibleAssetBorrowEnabled() public {
+    DataTypes.ReserveConfigurationMap memory currentConfig = poolV2.getConfiguration(address(asset_1));
+    currentConfig.setBorrowingEnabled(true);
+    poolV2.setConfiguration(address(asset_1), currentConfig.data);
 
     assertTrue(proofOfReserveExecutorV2.isEmergencyActionPossible());
   }
