@@ -7,37 +7,68 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 contract ProofOfReserveAggregatorTest is PoRBaseTest {
   function setUp() public override {
-    _setUpV3({enableAssets: false});
+    _setUpV3({enableAssets: true});
   }
 
-  function test_enableProofOfReserveFeed(address asset, address feed) public {
-    vm.assume(asset != address(0) && feed != address(0));
+  function test_areAllReservesBacked() public {
+    address[] memory assets = proofOfReserveExecutorV3.getAssets();
+    _mintBacked(asset_1, 1 ether);
+
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertTrue(areReservesBacked);
+
+    for (uint256 i = 0; i < unbackedAssetsFlags.length; i++) {
+      assertFalse(unbackedAssetsFlags[i]);
+    }
+  }
+
+  function test_areAllReservesBackedOneNotBacked() public {
+    _mintBacked(asset_1, 1 ether);
+    _mintBacked(asset_2, 1 ether);
+    _mintUnbacked(current_asset_3, 1 ether);
+
+    address[] memory assets = proofOfReserveExecutorV3.getAssets();
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertFalse(areReservesBacked);
+
+    assertFalse(unbackedAssetsFlags[0]);
+    assertFalse(unbackedAssetsFlags[1]);
+    assertTrue(unbackedAssetsFlags[2]);
+  }
+
+  function test_enableProofOfReserveFeed(address asset) public {
+    _skipAddresses(asset);
     vm.prank(defaultAdmin);
 
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
       asset,
-      feed,
+      address(feed_1),
       address(0),
       true
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, address(feed_1));
   }
 
-  function test_enableProofOfReserveFeedAlreadyEnable(
-    address asset,
-    address feed
-  ) public {
-    vm.assume(asset != address(0) && feed != address(0));
+  function test_enableProofOfReserveFeedAlreadyEnable(address asset) public {
+    _skipAddresses(asset);
     vm.startPrank(defaultAdmin);
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, address(feed_1));
 
     vm.expectRevert(
       abi.encodeWithSelector(
         IProofOfReserveAggregator.FeedAlreadyEnabled.selector
       )
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, address(feed_1));
   }
 
   function test_enableProofOfReserveFeedZeroAddress() public {
@@ -75,42 +106,35 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
   }
 
   function test_enableProofOfReserveFeedWithBridgeWrapper(
-    address asset,
-    address feed,
-    address _bridgeWrapper
+    address asset
   ) public {
-    vm.assume(
-      asset != address(0) && feed != address(0) && _bridgeWrapper != address(0)
-    );
+    _skipAddresses(asset);
     vm.prank(defaultAdmin);
 
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
       asset,
-      feed,
-      _bridgeWrapper,
+      address(feed_1),
+      address(bridgeWrapper),
       true
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      feed,
-      _bridgeWrapper
+      address(feed_1),
+      address(bridgeWrapper)
     );
   }
 
   function test_enableProofOfReserveFeedWithBridgeWrapperAlreadyEnable(
-    address asset,
-    address feed,
-    address _bridgeWrapper
+    address asset
   ) public {
-    vm.assume(
-      asset != address(0) && feed != address(0) && _bridgeWrapper != address(0)
-    );
+    _skipAddresses(asset);
+
     vm.startPrank(defaultAdmin);
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      feed,
-      _bridgeWrapper
+      address(feed_3),
+      address(bridgeWrapper)
     );
 
     vm.expectRevert(
@@ -120,8 +144,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      feed,
-      _bridgeWrapper
+      address(feed_3),
+      address(bridgeWrapper)
     );
   }
 
@@ -175,8 +199,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
   }
 
-  function test_disableProofOfReserveFeed(address asset, address feed) public {
-    test_enableProofOfReserveFeed(asset, feed);
+  function test_disableProofOfReserveFeed(address asset) public {
+    test_enableProofOfReserveFeed(asset);
     vm.prank(defaultAdmin);
 
     vm.expectEmit();
@@ -203,54 +227,25 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     proofOfReserveAggregator.disableProofOfReserveFeed(address(asset_1));
   }
 
-  function test_areAllReservesBacked() public {
-    _configureProofOfReserveForAssets(proofOfReserveExecutorV3);
-
-    address[] memory assets = new address[](3);
-    assets[0] = address(asset_1);
-    assets[1] = address(asset_2);
-    assets[2] = address(current_asset_3);
-
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
-
-    assertTrue(areReservesBacked);
-
-    for (uint256 i = 0; i < unbackedAssetsFlags.length; i++) {
-      assertFalse(unbackedAssetsFlags[i]);
-    }
+  function test_getters() public view {
+    assertEq(
+      proofOfReserveAggregator.getProofOfReserveFeedForAsset(
+        address(current_asset_3)
+      ),
+      address(feed_3)
+    );
+    assertEq(
+      proofOfReserveAggregator.getBridgeWrapperForAsset(
+        address(current_asset_3)
+      ),
+      address(bridgeWrapper)
+    );
   }
 
-  function test_areAllReservesBackedOneNotBacked() public {
-    _configureProofOfReserveForAssets(proofOfReserveExecutorV3);
-
-    address[] memory assets = new address[](3);
-    assets[0] = address(asset_1);
-    assets[1] = address(asset_2);
-    assets[2] = address(current_asset_3);
-
-    _mintBacked(asset_1, 1 ether);
-    _mintBacked(asset_2, 1 ether);
-    _mintUnbacked(current_asset_3, 1 ether);
-
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
-
-    assertFalse(areReservesBacked);
-
-    assertFalse(unbackedAssetsFlags[0]);
-    assertFalse(unbackedAssetsFlags[1]);
-    assertTrue(unbackedAssetsFlags[2]);
-  }
-
-  function test_getters() public {
-    test_enableProofOfReserveFeedWithBridgeWrapper(address(current_asset_3), address(feed_3), address(bridgeWrapper));
-
-    assertEq(proofOfReserveAggregator.getProofOfReserveFeedForAsset(address(current_asset_3)), address(feed_3));
-    assertEq(proofOfReserveAggregator.getBridgeWrapperForAsset(address(current_asset_3)), address(bridgeWrapper));
+  function _skipAddresses(address asset) internal view {
+    vm.assume(asset != address(asset_1));
+    vm.assume(asset != address(asset_2));
+    vm.assume(asset != address(current_asset_3));
+    vm.assume(asset != address(0));
   }
 }
