@@ -26,7 +26,7 @@ contract MockAddressesProvider {
   }
 
   function getPool() external view returns (address) {
-    return _poolV2;
+    return _poolV3;
   }
 
   function getPoolConfigurator() external view returns (address) {

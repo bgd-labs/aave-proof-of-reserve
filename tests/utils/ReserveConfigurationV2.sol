@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -22,6 +21,12 @@ library ReserveConfigurationV2 {
       (uint256(frozen ? 1 : 0) << IS_FROZEN_START_BIT_POSITION);
   }
 
+  function getFrozen(
+    DataTypesV2.ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
+    return (self.data & ~FROZEN_MASK) != 0;
+  }
+
   function setStableRateBorrowingEnabled(
     DataTypesV2.ReserveConfigurationMap memory self,
     bool enabled
@@ -31,6 +36,12 @@ library ReserveConfigurationV2 {
       (uint256(enabled ? 1 : 0) << STABLE_BORROWING_ENABLED_START_BIT_POSITION);
   }
 
+  function getStableRateBorrowingEnabled(
+    DataTypesV2.ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
+    return (self.data & ~STABLE_BORROWING_MASK) != 0;
+  }
+
   function setBorrowingEnabled(
     DataTypesV2.ReserveConfigurationMap memory self,
     bool enabled
@@ -38,5 +49,11 @@ library ReserveConfigurationV2 {
     self.data =
       (self.data & BORROWING_MASK) |
       (uint256(enabled ? 1 : 0) << BORROWING_ENABLED_START_BIT_POSITION);
+  }
+
+  function getBorrowingEnabled(
+    DataTypesV2.ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
+    return (self.data & ~BORROWING_MASK) != 0;
   }
 }

@@ -7,6 +7,7 @@ import {MockERC20} from './mocks/MockERC20.sol';
 import {MockPoRFeed} from './mocks/MockPoRFeed.sol';
 import {MockPoolV2, MockPoolV3} from './mocks/MockPool.sol';
 import {MockAddressesProvider} from './mocks/MockAddressesProvider.sol';
+import {AvaxBridgeWrapper} from '../../src/contracts/AvaxBridgeWrapper.sol';
 import {MockPoolConfiguratorV2, MockPoolConfiguratorV3} from './mocks/MockPoolConfigurator.sol';
 import {ProofOfReserveAggregator} from '../../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../../src/contracts/ProofOfReserveExecutorV2.sol';
@@ -16,10 +17,14 @@ import {IProofOfReserveExecutor} from '../../src/interfaces/IProofOfReserveExecu
 abstract contract PoRBaseTest is Test {
   MockERC20 public asset_1;
   MockERC20 public asset_2;
+  MockERC20 public deprecated_asset_3;
+  MockERC20 public current_asset_3;
 
   MockPoRFeed public feed_1;
   MockPoRFeed public feed_2;
+  MockPoRFeed public feed_3;
 
+  AvaxBridgeWrapper public bridgeWrapper;
   MockAddressesProvider public addressesProvider;
   ProofOfReserveAggregator public proofOfReserveAggregator;
 
@@ -41,11 +46,29 @@ abstract contract PoRBaseTest is Test {
   function _deployTokensAndFeeds() internal {
     asset_1 = new MockERC20('asset 1', 'A1');
     asset_2 = new MockERC20('asset 2', 'A2');
+
+    deprecated_asset_3 = new MockERC20('asset 3', 'A3');
+    current_asset_3 = new MockERC20('asset 3', 'A3');
+    bridgeWrapper = new AvaxBridgeWrapper(
+      address(current_asset_3),
+      address(deprecated_asset_3)
+    );
+
     feed_1 = new MockPoRFeed();
     feed_2 = new MockPoRFeed();
+    feed_3 = new MockPoRFeed();
+
+    vm.label(address(asset_1), 'asset_1');
+    vm.label(address(asset_2), 'asset_2');
+    vm.label(address(current_asset_3), 'current_asset_3');
+    vm.label(address(deprecated_asset_3), 'deprecated_asset_3');
+    vm.label(address(bridgeWrapper), 'bridgeWrapper');
+    vm.label(address(feed_1), 'feed_1');
+    vm.label(address(feed_2), 'feed_2');
+    vm.label(address(feed_3), 'feed_3');
   }
 
-  function _setUpV2() internal {
+  function _setUpV2(bool enableAssets) internal {
     _deployTokensAndFeeds();
 
     addressesProvider = new MockAddressesProvider();
@@ -64,13 +87,15 @@ abstract contract PoRBaseTest is Test {
       address(addressesProvider),
       address(proofOfReserveAggregator)
     );
-
-    _configureProofOfReserve(address(proofOfReserveExecutorV2));
-
     vm.stopPrank();
+
+    if (enableAssets) {
+      _configureProofOfReserveForAssets(proofOfReserveExecutorV2);
+      _initPoolReserves();
+    }
   }
 
-  function _setUpV3() internal {
+  function _setUpV3(bool enableAssets) internal {
     _deployTokensAndFeeds();
 
     addressesProvider = new MockAddressesProvider();
@@ -89,17 +114,24 @@ abstract contract PoRBaseTest is Test {
       address(addressesProvider),
       address(proofOfReserveAggregator)
     );
-
-    _configureProofOfReserve(address(proofOfReserveExecutorV3));
-
     vm.stopPrank();
+
+    if (enableAssets) {
+      _configureProofOfReserveForAssets(proofOfReserveExecutorV3);
+      _initPoolReserves();
+    }
   }
 
-  function _configureProofOfReserve(address proofOfReserveExecutor) internal {
-    address[] memory assets = new address[](2);
+  function _configureProofOfReserveForAssets(
+    IProofOfReserveExecutor proofOfReserveExecutor
+  ) internal {
+    vm.startPrank(defaultAdmin);
+
+    address[] memory assets = new address[](3);
     assets[0] = address(asset_1);
     assets[1] = address(asset_2);
-    IProofOfReserveExecutor(proofOfReserveExecutor).enableAssets(assets);
+    assets[2] = address(current_asset_3);
+    proofOfReserveExecutor.enableAssets(assets);
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(asset_1),
       address(feed_1)
@@ -108,16 +140,23 @@ abstract contract PoRBaseTest is Test {
       address(asset_2),
       address(feed_2)
     );
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      address(current_asset_3),
+      address(feed_3),
+      address(bridgeWrapper)
+    );
+
+    vm.stopPrank();
   }
 
   function _mintBacked(MockERC20 asset, uint256 amount) internal {
     _mint(asset, amount);
-    _setPoRAnswer(asset, asset.totalSupply() + 1);
+    _setPoRAnswer(asset, asset.totalSupply());
   }
 
   function _burnBacked(MockERC20 asset, uint256 amount) internal {
     _burn(asset, amount);
-    _setPoRAnswer(asset, asset.totalSupply() + 1);
+    _setPoRAnswer(asset, asset.totalSupply());
   }
 
   function _mint(MockERC20 asset, uint256 amount) internal {
@@ -131,8 +170,12 @@ abstract contract PoRBaseTest is Test {
   function _setPoRAnswer(MockERC20 asset, uint256 answer) internal {
     if (address(asset) == address(asset_1)) {
       feed_1.setAnswer(int256(answer));
-    } else {
+    } else if (address(asset) == address(asset_2)) {
       feed_2.setAnswer(int256(answer));
+    } else {
+      feed_3.setAnswer(int256(answer));
     }
   }
+
+  function _initPoolReserves() internal virtual {}
 }

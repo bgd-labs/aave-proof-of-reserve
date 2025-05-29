@@ -20,7 +20,11 @@ contract MockPoolConfiguratorV3 {
       .getConfiguration(asset);
 
     currentConfig.setFrozen(freeze);
-    currentConfig.setLtv(0);
+    if (freeze) {
+      currentConfig.setLtv(0);
+    } else {
+      currentConfig.setLtv(7000); // set 7000 as default for tests
+    }
     _pool.setConfiguration(asset, currentConfig);
   }
 }
@@ -31,6 +35,12 @@ contract MockPoolConfiguratorV2 {
 
   constructor(MockPoolV2 pool) {
     _pool = pool;
+  }
+
+  function initReserves(address[] calldata assets) external {
+    for (uint256 i = 0; i < assets.length; i++) {
+      _pool.initReserve(assets[i]);
+    }
   }
 
   function freezeReserve(address asset) external {
