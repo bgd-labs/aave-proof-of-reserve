@@ -105,7 +105,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
   }
 
-  function test_enableProofOfReserveFeedWithBridgeWrapper(
+  function test_enableProofOfReserveFeedWithReserveProvider(
     address asset
   ) public {
     _skipAddresses(asset);
@@ -118,20 +118,20 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       address(bridgeWrapper),
       true
     );
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       asset,
       address(feed_1),
       address(bridgeWrapper)
     );
   }
 
-  function test_enableProofOfReserveFeedWithBridgeWrapperAlreadyEnable(
+  function test_enableProofOfReserveFeedWithReserveProviderAlreadyEnable(
     address asset
   ) public {
     _skipAddresses(asset);
 
     vm.startPrank(defaultAdmin);
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       asset,
       address(feed_3),
       address(bridgeWrapper)
@@ -142,19 +142,19 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         IProofOfReserveAggregator.FeedAlreadyEnabled.selector
       )
     );
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       asset,
       address(feed_3),
       address(bridgeWrapper)
     );
   }
 
-  function test_enableProofOfReserveFeedWithBridgeWrapperZeroAddress() public {
+  function test_enableProofOfReserveFeedWithReserveProviderZeroAddress() public {
     vm.startPrank(defaultAdmin);
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       address(0),
       address(feed_3),
       address(bridgeWrapper)
@@ -163,7 +163,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       address(current_asset_3),
       address(0),
       address(bridgeWrapper)
@@ -172,14 +172,14 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       address(current_asset_3),
       address(feed_3),
       address(0)
     );
   }
 
-  function test_enableProofOfReserveFeedWithBridgeWrapperOnlyOwner(
+  function test_enableProofOfReserveFeedWithReserveProviderOnlyOwner(
     address caller
   ) public {
     vm.assume(caller != defaultAdmin);
@@ -192,7 +192,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       address(current_asset_3),
       address(feed_3),
       address(bridgeWrapper)

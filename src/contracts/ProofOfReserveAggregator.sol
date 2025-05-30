@@ -60,24 +60,24 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function enableProofOfReserveFeedWithBridgeWrapper(
+  function enableProofOfReserveFeedWithReserveProvider(
     address asset,
     address proofOfReserveFeed,
-    address bridgeWrapper
+    address reserveProvider
   ) external onlyOwner {
     require(
-      asset != address(0) && proofOfReserveFeed != address(0) && bridgeWrapper != address(0),
+      asset != address(0) && proofOfReserveFeed != address(0) && reserveProvider != address(0),
       ZeroAddress()
     );
     require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
-    _reservesProvider[asset] = bridgeWrapper;
+    _reservesProvider[asset] = reserveProvider;
 
     emit ProofOfReserveFeedStateChanged(
       asset,
       proofOfReserveFeed,
-      bridgeWrapper,
+      reserveProvider,
       true
     );
   }

@@ -4,7 +4,7 @@ methods {
   function enableProofOfReserveFeed(address, address) external;
   function areAllReservesBacked(address[]) external returns (bool, bool[]) envfree;
   function getReservesProviderForAsset(address) external returns (address) envfree;
-  function enableProofOfReserveFeedWithBridgeWrapper(address, address, address) external;
+  function enableProofOfReserveFeedWithReserveProvider(address, address, address) external;
 
     // summarizations:
   function  _.latestRoundData() external => NONDET;
@@ -20,8 +20,8 @@ function call_f_with_params(method f, env e, address asset , address PoRFeed, ad
         enableProofOfReserveFeed(e, asset, PoRFeed);
     } else if (f.selector == sig:disableProofOfReserveFeed(address).selector) {
         disableProofOfReserveFeed(e, asset);
-    } else if (f.selector == sig:enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector) {
-        enableProofOfReserveFeedWithBridgeWrapper(e, asset, PoRFeed, wrapper);
+    } else if (f.selector == sig:enableProofOfReserveFeedWithReserveProvider(address, address, address).selector) {
+        enableProofOfReserveFeedWithReserveProvider(e, asset, PoRFeed, wrapper);
     } else {
         f(e, args);
     }
@@ -29,7 +29,7 @@ function call_f_with_params(method f, env e, address asset , address PoRFeed, ad
 
 // modification to the PoR feed of assets
 // if enableProofOfReserveFeed called -> price feed must be a non-zero address
-// if enableProofOfReserveFeedWithBridgeWrapper called -> price feed and bridgeWrapper must be a non-zero address
+// if enableProofOfReserveFeedWithReserveProvider called -> price feed and bridgeWrapper must be a non-zero address
 // if disableProofOfReserveFeed called -> price feed and bridgeWrapper assigned to the asset must be nullified
 // if any other function called -> price and bridgeWrapper mustn't change
 rule PoRFeedChange(address asset, address PoRFeed, address wrapper){
@@ -44,12 +44,12 @@ rule PoRFeedChange(address asset, address PoRFeed, address wrapper){
     address bridgeWrapperAfter = getReservesProviderForAsset(asset);
 
     assert f.selector == sig:enableProofOfReserveFeed(address, address).selector => (feedAfter != 0 && feedAfter == PoRFeed);
-    assert f.selector == sig:enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector => 
+    assert f.selector == sig:enableProofOfReserveFeedWithReserveProvider(address, address, address).selector => 
                         (feedAfter != 0 && feedAfter == PoRFeed && bridgeWrapperAfter != 0 && bridgeWrapperAfter == wrapper);
     assert f.selector == sig:disableProofOfReserveFeed(address).selector => feedAfter == 0 && bridgeWrapperAfter == 0;
     assert (f.selector != sig:enableProofOfReserveFeed(address, address).selector && 
             f.selector != sig:disableProofOfReserveFeed(address).selector &&
-            f.selector != sig:enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector) => 
+            f.selector != sig:enableProofOfReserveFeedWithReserveProvider(address, address, address).selector) => 
                         feedBefore == feedAfter && bridgeWrapperBefore == bridgeWrapperAfter;
 }
 

@@ -6,13 +6,13 @@ interface IProofOfReserveAggregator {
    * @notice Event is emitted whenever a Proof of Reserve feed is enabled or disabled for an `asset`
    * @param asset The address of the asset
    * @param proofOfReserveFeed The address of the PoR feed
-   * @param reservesProvider The address of the reserves provider, if any.
+   * @param reserveProvider The address of the reserves provider, if any.
    * @param enabled Whether the PoR feed for the asset was turned on or off
    */
   event ProofOfReserveFeedStateChanged(
     address indexed asset,
     address indexed proofOfReserveFeed,
-    address indexed reservesProvider,
+    address indexed reserveProvider,
     bool enabled
   );
 
@@ -61,12 +61,12 @@ interface IProofOfReserveAggregator {
    * @dev This method should be used for the assets with the existing deprecated bridge.
    * @param asset The address of the `asset` whose PoR and reserves provider will be enabled.
    * @param proofOfReserveFeed The address of the proof of reserve aggregator feed of the `asset`.
-   * @param bridgeWrapper The reserves provider of the `asset`
+   * @param reserveProvider The reserves provider of the `asset`
    */
-  function enableProofOfReserveFeedWithBridgeWrapper(
+  function enableProofOfReserveFeedWithReserveProvider(
     address asset,
     address proofOfReserveFeed,
-    address bridgeWrapper
+    address reserveProvider
   ) external;
 
   /**
