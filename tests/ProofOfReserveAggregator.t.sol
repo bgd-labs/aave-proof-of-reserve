@@ -35,8 +35,14 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     uint256 answer,
     uint256 margin
   ) public {
-    margin = bound(margin, 1, proofOfReserveAggregator.MAX_MARGIN());
-    answer = bound(answer, 1, ((type(uint128).max - 1) / margin));
+    margin = bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN());
+  
+    // avoid div by zero
+    uint256 maxAnswer = margin == 0
+      ? (type(uint128).max - 1)
+      : ((type(uint128).max - 1) / margin);
+    
+    answer = bound(answer, 0, maxAnswer);
 
     // change asset_1 margin
     vm.startPrank(defaultAdmin);
@@ -69,6 +75,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
     // mint 1 wei above margin
     _mintUnbacked(asset_1, 1);
+    
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
 
     (bool areReservesBacked, ) = proofOfReserveAggregator.areAllReservesBacked(
