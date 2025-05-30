@@ -54,7 +54,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
         DataTypes.ReserveConfigurationMap memory configuration = _pool
           .getConfiguration(enabledAssets[i]);
 
-        if (!ReserveConfiguration.getIsFrozen(configuration)) {
+        if (!ReserveConfiguration.getFrozen(configuration)) {
           return true;
         }
       }
