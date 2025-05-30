@@ -41,6 +41,8 @@ abstract contract PoRBaseTest is Test {
   uint256 public assetsHolderPrivateKey = 0x4000;
   address public assetsHolder = vm.addr(assetsHolderPrivateKey);
 
+  uint256 public constant DEFAULT_MARGIN = 5_00;
+
   function setUp() public virtual {}
 
   function _deployTokensAndFeeds() internal {
@@ -134,16 +136,19 @@ abstract contract PoRBaseTest is Test {
     proofOfReserveExecutor.enableAssets(assets);
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(asset_1),
-      address(feed_1)
+      address(feed_1),
+      DEFAULT_MARGIN
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(asset_2),
-      address(feed_2)
+      address(feed_2),
+      DEFAULT_MARGIN
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(current_asset_3),
       address(feed_3),
-      address(bridgeWrapper)
+      address(bridgeWrapper),
+      DEFAULT_MARGIN
     );
 
     vm.stopPrank();
@@ -151,7 +156,7 @@ abstract contract PoRBaseTest is Test {
 
   function _mintBacked(MockERC20 asset, uint256 amount) internal {
     _mintUnbacked(asset, amount);
-    _setPoRAnswer(asset, asset.totalSupply());
+    _setPoRAnswer(asset, int256(asset.totalSupply()));
   }
 
   function _mintUnbacked(MockERC20 asset, uint256 amount) internal {
@@ -162,13 +167,13 @@ abstract contract PoRBaseTest is Test {
     asset.burn(assetsHolder, amount);
   }
 
-  function _setPoRAnswer(MockERC20 asset, uint256 answer) internal {
+  function _setPoRAnswer(MockERC20 asset, int256 answer) internal {
     if (address(asset) == address(asset_1)) {
-      feed_1.setAnswer(int256(answer));
+      feed_1.setAnswer(answer);
     } else if (address(asset) == address(asset_2)) {
-      feed_2.setAnswer(int256(answer));
+      feed_2.setAnswer(answer);
     } else {
-      feed_3.setAnswer(int256(answer));
+      feed_3.setAnswer(answer);
     }
   }
 
