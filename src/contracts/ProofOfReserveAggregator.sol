@@ -3,6 +3,7 @@ pragma solidity ^0.8.27;
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
@@ -15,6 +16,7 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
  * @author BGD Labs
  */
 contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
+  using Math for uint256;
   /// @dev 100%
   uint256 public constant PERCENTAGE_FACTOR = 100_00;
 
@@ -150,36 +152,16 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
       ? IERC20(assetData.bridgeWrapper).totalSupply()
       : IERC20(asset).totalSupply();
 
-      uint256 difference = _differenceInBps(uint256(answer), totalSupply);
+      uint256 excess = _percentMulDiv(uint256(answer), assetData.margin);
 
-      if (difference > assetData.margin) {
+      if (totalSupply > uint256(answer) + excess) {
         return false;
       }
     }
     return true;
   }
-  
-  /**
-   * @notice Returns the current difference in which `totalReserves` exceeds `feedAnswer`.
-   * @param feedAnswer The Proof of Reserve feed answer
-   * @param totalReserves  The reserve's total supply
-   * @return The current difference in base points when `totalReserves` exceeds `feedAnswer`,
-   * `PERCENTAGE_FACTOR` when `totalReserves` exceeds `type(uint128).max`, or zero otherwise.
-   */
-  function _differenceInBps(uint256 feedAnswer, uint256 totalReserves) internal pure returns(uint256) {
-    // we don't care if PoR reported value higher than or equal total reserves/supply
-    if(feedAnswer >= totalReserves) {
-      return 0;
-    }
 
-    // we don't have assets on Aave with total reserves/supply higher than `type(uint128).max`
-    // so assuming totalReserves is higher than that, we are sure that something wrong happened
-    if (totalReserves > type(uint128).max) {
-        return PERCENTAGE_FACTOR;
-    }
-
-    return
-      (2 * PERCENTAGE_FACTOR * (totalReserves - feedAnswer)) /
-      (totalReserves + feedAnswer);
+  function _percentMulDiv(uint256 value, uint256 percent) internal pure returns (uint256) {
+    return value.mulDiv(percent, PERCENTAGE_FACTOR);
   }
 }
