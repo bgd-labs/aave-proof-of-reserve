@@ -50,7 +50,7 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
 
   function _initPoolReserves() internal override {
     address[] memory assets = proofOfReserveExecutorV2.getAssets();
-    // this keep getFrozen flag = false and enable borrows
+    // adds assets to the pool reserves list
     poolConfiguratorV2.initReserves(assets);
   }
 
