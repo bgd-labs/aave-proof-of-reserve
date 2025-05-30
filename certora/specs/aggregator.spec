@@ -3,7 +3,7 @@ methods {
   function disableProofOfReserveFeed(address) external;
   function enableProofOfReserveFeed(address, address) external;
   function areAllReservesBacked(address[]) external returns (bool, bool[]) envfree;
-  function getBridgeWrapperForAsset(address) external returns (address) envfree;
+  function getReservesProviderForAsset(address) external returns (address) envfree;
   function enableProofOfReserveFeedWithBridgeWrapper(address, address, address) external;
 
     // summarizations:
@@ -35,13 +35,13 @@ function call_f_with_params(method f, env e, address asset , address PoRFeed, ad
 rule PoRFeedChange(address asset, address PoRFeed, address wrapper){
     
     address feedBefore = getProofOfReserveFeedForAsset(asset);
-    address bridgeWrapperBefore = getBridgeWrapperForAsset(asset);
+    address bridgeWrapperBefore = getReservesProviderForAsset(asset);
     
     method f; env e;
     call_f_with_params(f, e, asset, PoRFeed, wrapper);
 
     address feedAfter = getProofOfReserveFeedForAsset(asset);
-    address bridgeWrapperAfter = getBridgeWrapperForAsset(asset);
+    address bridgeWrapperAfter = getReservesProviderForAsset(asset);
 
     assert f.selector == sig:enableProofOfReserveFeed(address, address).selector => (feedAfter != 0 && feedAfter == PoRFeed);
     assert f.selector == sig:enableProofOfReserveFeedWithBridgeWrapper(address, address, address).selector => 

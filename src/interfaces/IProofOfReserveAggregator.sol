@@ -6,13 +6,13 @@ interface IProofOfReserveAggregator {
    * @notice Event is emitted whenever a Proof of Reserve feed is enabled or disabled for an `asset`
    * @param asset The address of the asset
    * @param proofOfReserveFeed The address of the PoR feed
-   * @param bridgeWrapper The address of the bridgeWrapper, if any.
+   * @param reservesProvider The address of the reserves provider, if any.
    * @param enabled Whether the PoR feed for the asset was turned on or off
    */
   event ProofOfReserveFeedStateChanged(
     address indexed asset,
     address indexed proofOfReserveFeed,
-    address indexed bridgeWrapper,
+    address indexed reservesProvider,
     bool enabled
   );
 
@@ -38,12 +38,12 @@ interface IProofOfReserveAggregator {
     returns (address);
 
   /**
-   * @notice Returns the address of the bridge wrapper for a given asset.
-   * @dev returns the zero address if the bridge wrapper for the given asset was not set.
-   * @param asset The address of the `asset` whose bridge wrapper should be returned.
-   * @return The address of the bridge wrapper.
+   * @notice Returns the address of the reserves provider for a given asset.
+   * @dev returns the zero address if the reserves provider for the given asset was not set.
+   * @param asset The address of the `asset` whose reserves provider should be returned.
+   * @return The address of the reserves provider.
    */
-  function getBridgeWrapperForAsset(address asset)
+  function getReservesProviderForAsset(address asset)
     external
     view
     returns (address);
@@ -57,11 +57,11 @@ interface IProofOfReserveAggregator {
     external;
 
   /**
-   * @notice Sets an `asset`, its corresponding proof of reserve feed, and its bridge wrapper address.
+   * @notice Sets an `asset`, its corresponding proof of reserve feed, and its reserves provider address.
    * @dev This method should be used for the assets with the existing deprecated bridge.
-   * @param asset The address of the `asset` whose PoR and bridge wrapper will be enabled.
+   * @param asset The address of the `asset` whose PoR and reserves provider will be enabled.
    * @param proofOfReserveFeed The address of the proof of reserve aggregator feed of the `asset`.
-   * @param bridgeWrapper The bridge wrapper of the `asset`
+   * @param bridgeWrapper The reserves provider of the `asset`
    */
   function enableProofOfReserveFeedWithBridgeWrapper(
     address asset,
@@ -70,7 +70,7 @@ interface IProofOfReserveAggregator {
   ) external;
 
   /**
-   * @notice Removes a given `asset`, its proof of reserve feed, and its bridge wrapper address.
+   * @notice Removes a given `asset`, its proof of reserve feed, and its reserves provider address.
    * @param asset address of the asset whose data will be deleted.
    */
   function disableProofOfReserveFeed(address asset) external;

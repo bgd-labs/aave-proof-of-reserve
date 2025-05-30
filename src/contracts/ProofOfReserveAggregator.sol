@@ -6,11 +6,12 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
+import {IReservesProvider} from '../interfaces/IReservesProvider.sol';
 
 /**
  * @title ProofOfReserveAggregator 
  * @notice This contract maintains a list of assets, their proof of reserve feeds,
- * and their bridge wrapper (if applicable), which verifies whether the asset is backed
+ * and their reserves provider (if applicable), which verifies whether the asset is backed
  * by checking its total supply and the corresponding PoR feed's answer.
  * @author BGD Labs
  */
@@ -18,8 +19,8 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   /// @dev token address => proof or reserve feed
   mapping(address => address) internal _proofOfReserveList;
 
-  /// @dev token address = > bridge wrapper
-  mapping(address => address) internal _bridgeWrapperList;
+  /// @dev token address = > reserves provider
+  mapping(address => address) internal _reservesProvider;
 
   constructor() Ownable(msg.sender) {}
 
@@ -33,12 +34,12 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getBridgeWrapperForAsset(address asset)
+  function getReservesProviderForAsset(address asset)
     external
     view
     returns (address)
   {
-    return _bridgeWrapperList[asset];
+    return _reservesProvider[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
@@ -71,7 +72,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
-    _bridgeWrapperList[asset] = bridgeWrapper;
+    _reservesProvider[asset] = bridgeWrapper;
 
     emit ProofOfReserveFeedStateChanged(
       asset,
@@ -84,7 +85,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   /// @inheritdoc IProofOfReserveAggregator
   function disableProofOfReserveFeed(address asset) external onlyOwner {
     delete _proofOfReserveList[asset];
-    delete _bridgeWrapperList[asset];
+    delete _reservesProvider[asset];
     emit ProofOfReserveFeedStateChanged(asset, address(0), address(0), false);
   }
 
@@ -101,10 +102,10 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
       for (uint256 i = 0; i < assets.length; ++i) {
         address assetAddress = assets[i];
         address feedAddress = _proofOfReserveList[assetAddress];
-        address bridgeAddress = _bridgeWrapperList[assetAddress];
-        address totalSupplyAddress = bridgeAddress != address(0)
-          ? bridgeAddress
-          : assetAddress;
+        address reserveProvider = _reservesProvider[assetAddress];
+        uint256 totalReserves = reserveProvider != address(0)
+          ? IReservesProvider(reserveProvider).getTotalReserves()
+          : IERC20(assetAddress).totalSupply();
 
         if (feedAddress != address(0)) {
           (, int256 answer, , , ) = AggregatorInterface(feedAddress)
@@ -112,7 +113,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
 
           if (
             answer < 0 ||
-            IERC20(totalSupplyAddress).totalSupply() > uint256(answer)
+            totalReserves > uint256(answer)
           ) {
             unbackedAssetsFlags[i] = true;
             areReservesBacked = false;

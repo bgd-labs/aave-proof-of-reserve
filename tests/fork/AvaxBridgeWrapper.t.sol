@@ -40,7 +40,7 @@ contract AvaxBridgeWrapperTest is Test {
 
     // Act + Assert
     assertEq(
-      bridgeWrapper.totalSupply(),
+      bridgeWrapper.getTotalReserves(),
       bridge.totalSupply() + deprecatedBridge.totalSupply()
     );
     assertEq(bridgeWrapper.name(), bridge.name());

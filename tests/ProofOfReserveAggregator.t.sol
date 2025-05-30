@@ -235,7 +235,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       address(feed_3)
     );
     assertEq(
-      proofOfReserveAggregator.getBridgeWrapperForAsset(
+      proofOfReserveAggregator.getReservesProviderForAsset(
         address(current_asset_3)
       ),
       address(bridgeWrapper)
