@@ -39,6 +39,12 @@ interface IProofOfReserveAggregator {
 
   /**
    * 
+   * @dev Attempted to set the margin to an asset not enabled.
+   */
+  error AssetNotEnabled();
+
+  /**
+   * 
    * @dev Attempted to set the margin higher than allowed.
    */
   error InvalidMargin();
@@ -99,6 +105,14 @@ interface IProofOfReserveAggregator {
     address bridgeWrapper,
     uint256 margin
   ) external;
+
+  /**
+   * @notice Sets a `margin` for a given `asset`.
+   * @dev This method requires the `asset` to have a PoR already enabled.
+   * @param asset The address of the `asset` whose margin will be defined.
+   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
+   */
+  function setAssetMargin(address asset, uint256 margin) external;
 
   /**
    * @notice Removes a given `asset`, its proof of reserve feed, and its bridge wrapper address.

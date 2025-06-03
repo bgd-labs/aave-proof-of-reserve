@@ -36,12 +36,12 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     uint256 margin
   ) public {
     margin = bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN());
-  
+
     // avoid div by zero
     uint256 maxAnswer = margin == 0
       ? (type(uint128).max - 1)
       : ((type(uint128).max - 1) / margin);
-    
+
     answer = bound(answer, 0, maxAnswer);
 
     // change asset_1 margin
@@ -75,7 +75,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
     // mint 1 wei above margin
     _mintUnbacked(asset_1, 1);
-    
+
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
 
     (bool areReservesBacked, ) = proofOfReserveAggregator.areAllReservesBacked(
@@ -370,6 +370,61 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       address(bridgeWrapper),
       DEFAULT_MARGIN
     );
+  }
+
+  function test_setAssetMargin(uint256 margin) public {
+    margin = bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN());
+
+    vm.prank(defaultAdmin);
+    vm.expectEmit();
+    emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
+      address(asset_1),
+      address(feed_1),
+      address(0),
+      margin,
+      true
+    );
+    proofOfReserveAggregator.setAssetMargin(address(asset_1), margin);
+  }
+
+  function test_setAssetMarginAssetNotEnabled(address asset) public {
+    _skipAddresses(asset);
+
+    vm.prank(defaultAdmin);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.AssetNotEnabled.selector)
+    );
+    proofOfReserveAggregator.setAssetMargin(asset, DEFAULT_MARGIN);
+  }
+
+  function test_setAssetMarginInvalidMargin(uint256 margin) public {
+    margin = bound(
+      margin,
+      proofOfReserveAggregator.MAX_MARGIN() + 1,
+      type(uint256).max
+    );
+
+    vm.prank(defaultAdmin);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.InvalidMargin.selector)
+    );
+    proofOfReserveAggregator.setAssetMargin(address(asset_1), margin);
+  }
+
+  function test_setAssetMarginOnlyOwner(address caller) public {
+    vm.assume(caller != defaultAdmin);
+
+    vm.prank(caller);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Ownable.OwnableUnauthorizedAccount.selector,
+        caller
+      )
+    );
+    proofOfReserveAggregator.setAssetMargin(address(asset_1), DEFAULT_MARGIN);
   }
 
   function test_disableProofOfReserveFeed(address asset) public {

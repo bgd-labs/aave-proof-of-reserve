@@ -109,6 +109,22 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   }
 
   /// @inheritdoc IProofOfReserveAggregator
+  function setAssetMargin(address asset, uint256 margin) external onlyOwner {
+    require(_assetsData[asset].feed != address(0), AssetNotEnabled());
+    require(margin <= MAX_MARGIN, InvalidMargin());
+
+    _assetsData[asset].margin = margin;
+
+    emit ProofOfReserveFeedStateChanged(
+      asset,
+      _assetsData[asset].feed,
+      _assetsData[asset].bridgeWrapper,
+      margin,
+      true
+    );
+  }
+
+  /// @inheritdoc IProofOfReserveAggregator
   function disableProofOfReserveFeed(address asset) external onlyOwner {
     delete _assetsData[asset];
     emit ProofOfReserveFeedStateChanged(asset, address(0), address(0), 0, false);
