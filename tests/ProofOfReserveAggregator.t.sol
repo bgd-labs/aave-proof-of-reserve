@@ -1,289 +1,238 @@
-// SPDX-License-Identifier: AGPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Test} from 'forge-std/Test.sol';
-
-import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
-import {ProofOfReserveAggregator, IProofOfReserveAggregator} from '../src/contracts/ProofOfReserveAggregator.sol';
-import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {PoRBaseTest} from './utils/PoRBaseTest.sol';
+import {IProofOfReserveAggregator} from '../src/interfaces/IProofOfReserveAggregator.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-contract ProofOfReserveAggregatorTest is Test {
-  ProofOfReserveAggregator public proofOfReserveAggregator;
-  AvaxBridgeWrapper private bridgeWrapper;
-
-  address private constant ASSET_1 = address(1234);
-  address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
-
-  address private constant AAVEE = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
-  address private constant AAVEE_DEPRECATED =
-    0x8cE2Dee54bB9921a2AE0A63dBb2DF8eD88B91dD9;
-  address private constant PORF_AAVE =
-    0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7;
-  address private constant BTCB = 0x152b9d0FdC40C096757F570A51E494bd4b943E50;
-  address private constant PORF_BTCB =
-    0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9;
-
-  event ProofOfReserveFeedStateChanged(
-    address indexed asset,
-    address indexed proofOfReserveFeed,
-    address indexed bridgeWrapper,
-    bool enabled
-  );
-
-  function setUp() public {
-    vm.createSelectFork('avalanche', 62513100);
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
-    bridgeWrapper = new AvaxBridgeWrapper(AAVEE, AAVEE_DEPRECATED);
+contract ProofOfReserveAggregatorTest is PoRBaseTest {
+  function setUp() public override {
+    _setUpV3({enableAssets: true});
   }
 
-  function testProofOfReserveFeedIsEnabled() public {
-    address proofOfReserveFeed = proofOfReserveAggregator
-      .getProofOfReserveFeedForAsset(ASSET_1);
-    assertEq(proofOfReserveFeed, address(0));
+  function test_areAllReservesBacked() public {
+    address[] memory assets = proofOfReserveExecutorV3.getAssets();
+    _mintBacked(asset_1, 1 ether);
 
-    vm.expectEmit(true, true, false, true);
-    emit ProofOfReserveFeedStateChanged(
-      ASSET_1,
-      PROOF_OF_RESERVE_FEED_1,
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertTrue(areReservesBacked);
+
+    for (uint256 i = 0; i < unbackedAssetsFlags.length; i++) {
+      assertFalse(unbackedAssetsFlags[i]);
+    }
+  }
+
+  function test_areAllReservesBackedOneNotBacked() public {
+    _mintBacked(asset_1, 1 ether);
+    _mintBacked(asset_2, 1 ether);
+    _mintUnbacked(current_asset_3, 1 ether);
+
+    address[] memory assets = proofOfReserveExecutorV3.getAssets();
+    (
+      bool areReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertFalse(areReservesBacked);
+
+    assertFalse(unbackedAssetsFlags[0]);
+    assertFalse(unbackedAssetsFlags[1]);
+    assertTrue(unbackedAssetsFlags[2]);
+  }
+
+  function test_enableProofOfReserveFeed(address asset) public {
+    _skipAddresses(asset);
+    vm.prank(defaultAdmin);
+
+    vm.expectEmit();
+    emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
+      asset,
+      feed_1,
       address(0),
       true
     );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1);
+  }
 
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      ASSET_1,
-      PROOF_OF_RESERVE_FEED_1
+  function test_enableProofOfReserveFeedAlreadyEnable(address asset) public {
+    _skipAddresses(asset);
+    vm.startPrank(defaultAdmin);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IProofOfReserveAggregator.FeedAlreadyEnabled.selector
+      )
     );
-    proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        ASSET_1
-      );
-    assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1);
   }
 
-  function testProofOfReserveFeedIsEnabledWhenAlreadyEnabled() public {
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      ASSET_1,
-      PROOF_OF_RESERVE_FEED_1
+  function test_enableProofOfReserveFeedZeroAddress() public {
+    vm.startPrank(defaultAdmin);
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
+    proofOfReserveAggregator.enableProofOfReserveFeed(address(0), feed_1);
 
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.FeedAlreadyEnabled.selector));
-    proofOfReserveAggregator.enableProofOfReserveFeed(ASSET_1, PORF_AAVE);
-
-    address proofOfReserveFeed = proofOfReserveAggregator
-      .getProofOfReserveFeedForAsset(ASSET_1);
-    assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
-  }
-
-  function testProofOfReserveFeedIsEnabledWithZeroAsserAddress() public {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(0),
-      PROOF_OF_RESERVE_FEED_1
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, address(0));
   }
 
-  function testProofOfReserveFeedIsEnabledWithZeroPoRAddress() public {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
-    proofOfReserveAggregator.enableProofOfReserveFeed(ASSET_1, address(0));
-  }
-
-  function testProofOfReserveFeedIsEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
-    vm.prank(address(0));
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      ASSET_1,
-      PROOF_OF_RESERVE_FEED_1
+  function test_enableProofOfReserveFeedOnlyOwner(address caller) public {
+    vm.assume(caller != defaultAdmin);
+    vm.prank(caller);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Ownable.OwnableUnauthorizedAccount.selector,
+        caller
+      )
     );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1);
   }
 
-  function testProofOfReserveFeedWithBridgeWrapperIsEnabled() public {
-    address proofOfReserveFeed = proofOfReserveAggregator
-      .getProofOfReserveFeedForAsset(AAVEE);
-    assertEq(proofOfReserveFeed, address(0));
+  function test_enableProofOfReserveFeedWithBridgeWrapper(
+    address asset
+  ) public {
+    _skipAddresses(asset);
+    vm.prank(defaultAdmin);
 
-    vm.expectEmit(true, true, false, true);
-    emit ProofOfReserveFeedStateChanged(
-      AAVEE,
-      PORF_AAVE,
-      address(bridgeWrapper),
+    vm.expectEmit();
+    emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
+      asset,
+      feed_1,
+      bridgeWrapper,
       true
     );
-
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      AAVEE,
-      PORF_AAVE,
-      address(bridgeWrapper)
+      asset,
+      feed_1,
+      bridgeWrapper
     );
-    proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        AAVEE
-      );
-    assertEq(proofOfReserveFeed, PORF_AAVE);
   }
 
-  function testProofOfReserveFeedWithBridgeWrapperIsEnabledWhenAlreadyEnabled()
-    public
-  {
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      AAVEE,
-      PROOF_OF_RESERVE_FEED_1
-    );
+  function test_enableProofOfReserveFeedWithBridgeWrapperAlreadyEnable(
+    address asset
+  ) public {
+    _skipAddresses(asset);
 
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.FeedAlreadyEnabled.selector));
+    vm.startPrank(defaultAdmin);
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      AAVEE,
-      PORF_AAVE,
-      address(bridgeWrapper)
+      asset,
+      feed_3,
+      bridgeWrapper
     );
 
-    address proofOfReserveFeed = proofOfReserveAggregator
-      .getProofOfReserveFeedForAsset(AAVEE);
-
-    assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IProofOfReserveAggregator.FeedAlreadyEnabled.selector
+      )
+    );
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      asset,
+      feed_3,
+      bridgeWrapper
+    );
   }
 
-  function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroAsserAddress()
-    public
-  {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+  function test_enableProofOfReserveFeedWithBridgeWrapperZeroAddress() public {
+    vm.startPrank(defaultAdmin);
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(0),
-      PORF_AAVE,
-      address(bridgeWrapper)
+      feed_3,
+      bridgeWrapper
     );
-  }
 
-  function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroPoRAddress()
-    public
-  {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      AAVEE,
+      current_asset_3,
       address(0),
-      address(bridgeWrapper)
+      bridgeWrapper
     );
-  }
 
-  function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroBridgeAddress()
-    public
-  {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      AAVEE,
-      PORF_AAVE,
+      current_asset_3,
+      feed_3,
       address(0)
     );
   }
 
-  function testProofOfReserveFeedWithBridgeWrapperIsEnabledWhenNotOwner()
-    public
-  {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
-    vm.prank(address(0));
+  function test_enableProofOfReserveFeedWithBridgeWrapperOnlyOwner(
+    address caller
+  ) public {
+    vm.assume(caller != defaultAdmin);
+
+    vm.prank(caller);
+
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Ownable.OwnableUnauthorizedAccount.selector,
+        caller
+      )
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      AAVEE,
-      PORF_AAVE,
-      address(bridgeWrapper)
+      current_asset_3,
+      feed_3,
+      bridgeWrapper
     );
   }
 
-  function testProoOfReserveFeedIsDisabled() public {
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      ASSET_1,
-      PROOF_OF_RESERVE_FEED_1
+  function test_disableProofOfReserveFeed(address asset) public {
+    test_enableProofOfReserveFeed(asset);
+    vm.prank(defaultAdmin);
+
+    vm.expectEmit();
+    emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
+      asset,
+      address(0),
+      address(0),
+      false
     );
-    address proofOfReserveFeed = proofOfReserveAggregator
-      .getProofOfReserveFeedForAsset(ASSET_1);
-    assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
-
-    vm.expectEmit(true, true, false, true);
-    emit ProofOfReserveFeedStateChanged(ASSET_1, address(0), address(0), false);
-
-    proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
-    proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        ASSET_1
-      );
-    assertEq(proofOfReserveFeed, address(0));
+    proofOfReserveAggregator.disableProofOfReserveFeed(asset);
   }
 
-  function testProoOfReserveFeedIsDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
-    vm.prank(address(0));
-    proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
-  }
+  function test_disableProofOfReserveFeedOnlyOwner(address caller) public {
+    vm.assume(caller != defaultAdmin);
 
-  function testAreAllReservesBackedEmptyArray() public {
-    address[] memory assets = new address[](0);
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+    vm.prank(caller);
 
-    assertEq(unbackedAssetsFlags.length, 0);
-    assertEq(areReservesBacked, true);
-  }
-
-  function testAreAllReservesBackedDifferentAssets() public {
-    addFeeds();
-
-    address[] memory assets = new address[](2);
-    assets[0] = address(0);
-    assets[1] = address(1);
-
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
-
-    assertEq(unbackedAssetsFlags.length, 2);
-    assertEq(unbackedAssetsFlags[0], false);
-    assertEq(unbackedAssetsFlags[1], false);
-    assertEq(areReservesBacked, true);
-  }
-
-  function testAreAllReservesBackedAaveBtc() public {
-    addFeeds();
-
-    address[] memory assets = new address[](2);
-    assets[0] = AAVEE;
-    assets[1] = BTCB;
-
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
-
-    assertEq(unbackedAssetsFlags.length, 2);
-    assertEq(unbackedAssetsFlags[0], false);
-    assertEq(unbackedAssetsFlags[1], false);
-    assertEq(areReservesBacked, true);
-  }
-
-  function testNotAllReservesBacked() public {
-    addFeeds();
-
-    address[] memory assets = new address[](2);
-    assets[0] = AAVEE;
-    assets[1] = BTCB;
-
-    vm.mockCall(
-      PORF_AAVE,
-      abi.encodeWithSelector(AggregatorInterface.latestRoundData.selector),
-      abi.encode(1, 1, 1, 1, 1)
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Ownable.OwnableUnauthorizedAccount.selector,
+        caller
+      )
     );
-
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
-
-    assertEq(unbackedAssetsFlags.length, 2);
-    assertEq(unbackedAssetsFlags[0], true);
-    assertEq(unbackedAssetsFlags[1], false);
-    assertEq(areReservesBacked, false);
+    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
   }
 
-  function addFeeds() private {
-    proofOfReserveAggregator.enableProofOfReserveFeed(AAVEE, PORF_AAVE);
-    proofOfReserveAggregator.enableProofOfReserveFeed(BTCB, PORF_BTCB);
+  function test_getters() public view {
+    assertEq(
+      proofOfReserveAggregator.getProofOfReserveFeedForAsset(current_asset_3),
+      feed_3
+    );
+    assertEq(
+      proofOfReserveAggregator.getBridgeWrapperForAsset(current_asset_3),
+      bridgeWrapper
+    );
+  }
+
+  function _skipAddresses(address asset) internal view {
+    vm.assume(asset != asset_1);
+    vm.assume(asset != asset_2);
+    vm.assume(asset != current_asset_3);
+    vm.assume(asset != address(0));
   }
 }
