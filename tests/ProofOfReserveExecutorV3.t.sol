@@ -124,9 +124,9 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
 
   function _skipEnabledAssets(address[] memory assets) internal view {
     for (uint256 i = 0; i < assets.length; i++) {
-      vm.assume(assets[i] != address(asset_1));
-      vm.assume(assets[i] != address(asset_2));
-      vm.assume(assets[i] != address(current_asset_3));
+      vm.assume(assets[i] != asset_1);
+      vm.assume(assets[i] != asset_2);
+      vm.assume(assets[i] != current_asset_3);
     }
   }
 }
