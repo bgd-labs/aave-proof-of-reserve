@@ -51,24 +51,24 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
       asset,
-      address(feed_1),
+      feed_1,
       address(0),
       true
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset, address(feed_1));
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1);
   }
 
   function test_enableProofOfReserveFeedAlreadyEnable(address asset) public {
     _skipAddresses(asset);
     vm.startPrank(defaultAdmin);
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset, address(feed_1));
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1);
 
     vm.expectRevert(
       abi.encodeWithSelector(
         IProofOfReserveAggregator.FeedAlreadyEnabled.selector
       )
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset, address(feed_1));
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1);
   }
 
   function test_enableProofOfReserveFeedZeroAddress() public {
@@ -76,18 +76,12 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(0),
-      address(feed_1)
-    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(address(0), feed_1);
 
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(asset_1),
-      address(0)
-    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, address(0));
   }
 
   function test_enableProofOfReserveFeedOnlyOwner(address caller) public {
@@ -99,10 +93,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(asset_1),
-      address(feed_1)
-    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1);
   }
 
   function test_enableProofOfReserveFeedWithBridgeWrapper(
@@ -114,14 +105,14 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
       asset,
-      address(feed_1),
-      address(bridgeWrapper),
+      feed_1,
+      bridgeWrapper,
       true
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      address(feed_1),
-      address(bridgeWrapper)
+      feed_1,
+      bridgeWrapper
     );
   }
 
@@ -133,8 +124,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.startPrank(defaultAdmin);
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      address(feed_3),
-      address(bridgeWrapper)
+      feed_3,
+      bridgeWrapper
     );
 
     vm.expectRevert(
@@ -144,8 +135,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      address(feed_3),
-      address(bridgeWrapper)
+      feed_3,
+      bridgeWrapper
     );
   }
 
@@ -156,25 +147,25 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(0),
-      address(feed_3),
-      address(bridgeWrapper)
+      feed_3,
+      bridgeWrapper
     );
 
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      address(current_asset_3),
+      current_asset_3,
       address(0),
-      address(bridgeWrapper)
+      bridgeWrapper
     );
 
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      address(current_asset_3),
-      address(feed_3),
+      current_asset_3,
+      feed_3,
       address(0)
     );
   }
@@ -193,9 +184,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       )
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      address(current_asset_3),
-      address(feed_3),
-      address(bridgeWrapper)
+      current_asset_3,
+      feed_3,
+      bridgeWrapper
     );
   }
 
@@ -224,28 +215,24 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.disableProofOfReserveFeed(address(asset_1));
+    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
   }
 
   function test_getters() public view {
     assertEq(
-      proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        address(current_asset_3)
-      ),
-      address(feed_3)
+      proofOfReserveAggregator.getProofOfReserveFeedForAsset(current_asset_3),
+      feed_3
     );
     assertEq(
-      proofOfReserveAggregator.getBridgeWrapperForAsset(
-        address(current_asset_3)
-      ),
-      address(bridgeWrapper)
+      proofOfReserveAggregator.getBridgeWrapperForAsset(current_asset_3),
+      bridgeWrapper
     );
   }
 
   function _skipAddresses(address asset) internal view {
-    vm.assume(asset != address(asset_1));
-    vm.assume(asset != address(asset_2));
-    vm.assume(asset != address(current_asset_3));
+    vm.assume(asset != asset_1);
+    vm.assume(asset != asset_2);
+    vm.assume(asset != current_asset_3);
     vm.assume(asset != address(0));
   }
 }
