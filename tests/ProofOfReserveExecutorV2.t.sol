@@ -41,9 +41,9 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
   }
 
   function test_isEmergencyActionPossibleAssetBorrowEnabled() public {
-    DataTypes.ReserveConfigurationMap memory currentConfig = poolV2.getConfiguration(address(asset_1));
+    DataTypes.ReserveConfigurationMap memory currentConfig = poolV2.getConfiguration(asset_1);
     currentConfig.setBorrowingEnabled(true);
-    poolV2.setConfiguration(address(asset_1), currentConfig.data);
+    poolV2.setConfiguration(asset_1, currentConfig.data);
 
     assertTrue(proofOfReserveExecutorV2.isEmergencyActionPossible());
   }
