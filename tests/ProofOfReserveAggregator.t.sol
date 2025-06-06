@@ -46,12 +46,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
     // change asset_1 margin
     vm.startPrank(defaultAdmin);
-    proofOfReserveAggregator.disableProofOfReserveFeed(address(asset_1));
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(asset_1),
-      address(feed_1),
-      margin
-    );
+    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1, margin);
 
     // mint backed what PoR reported
     _mintBacked(asset_1, answer);
@@ -148,16 +144,12 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
       asset,
-      address(feed_1),
+      feed_1,
       address(0),
       margin,
       true
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      asset,
-      address(feed_1),
-      margin
-    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1, margin);
   }
 
   function test_enableProofOfReserveFeedInvalidMargin(
@@ -177,11 +169,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.InvalidMargin.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(asset),
-      address(feed_1),
-      margin
-    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed_1, margin);
   }
 
   function test_enableProofOfReserveFeedAlreadyEnable(address asset) public {
@@ -189,7 +177,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.startPrank(defaultAdmin);
     proofOfReserveAggregator.enableProofOfReserveFeed(
       asset,
-      address(feed_1),
+      feed_1,
       DEFAULT_MARGIN
     );
 
@@ -200,7 +188,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
       asset,
-      address(feed_1),
+      feed_1,
       DEFAULT_MARGIN
     );
   }
@@ -212,7 +200,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(0),
-      address(feed_1),
+      feed_1,
       DEFAULT_MARGIN
     );
 
@@ -220,7 +208,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(asset_1),
+      asset_1,
       address(0),
       DEFAULT_MARGIN
     );
@@ -236,8 +224,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       )
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
-      address(asset_1),
-      address(feed_1),
+      asset_1,
+      feed_1,
       DEFAULT_MARGIN
     );
   }
@@ -254,15 +242,15 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
       asset,
-      address(feed_1),
-      address(bridgeWrapper),
+      feed_1,
+      bridgeWrapper,
       margin,
       true
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      address(feed_1),
-      address(bridgeWrapper),
+      feed_1,
+      bridgeWrapper,
       margin
     );
   }
@@ -286,8 +274,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(asset),
-      address(feed_1),
-      address(bridgeWrapper),
+      feed_1,
+      bridgeWrapper,
       margin
     );
   }
@@ -300,8 +288,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.startPrank(defaultAdmin);
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      address(feed_3),
-      address(bridgeWrapper),
+      feed_3,
+      bridgeWrapper,
       DEFAULT_MARGIN
     );
 
@@ -312,8 +300,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       asset,
-      address(feed_3),
-      address(bridgeWrapper),
+      feed_3,
+      bridgeWrapper,
       DEFAULT_MARGIN
     );
   }
@@ -325,8 +313,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(0),
-      address(feed_3),
-      address(bridgeWrapper),
+      feed_3,
+      bridgeWrapper,
       DEFAULT_MARGIN
     );
 
@@ -334,9 +322,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      address(current_asset_3),
+      current_asset_3,
       address(0),
-      address(bridgeWrapper),
+      bridgeWrapper,
       DEFAULT_MARGIN
     );
 
@@ -344,8 +332,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      address(current_asset_3),
-      address(feed_3),
+      current_asset_3,
+      feed_3,
       address(0),
       DEFAULT_MARGIN
     );
@@ -365,9 +353,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       )
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      address(current_asset_3),
-      address(feed_3),
-      address(bridgeWrapper),
+      current_asset_3,
+      feed_3,
+      bridgeWrapper,
       DEFAULT_MARGIN
     );
   }
@@ -378,13 +366,13 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.prank(defaultAdmin);
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
-      address(asset_1),
-      address(feed_1),
+      asset_1,
+      feed_1,
       address(0),
       margin,
       true
     );
-    proofOfReserveAggregator.setAssetMargin(address(asset_1), margin);
+    proofOfReserveAggregator.setAssetMargin(asset_1, margin);
   }
 
   function test_setAssetMarginAssetNotEnabled(address asset) public {
@@ -410,7 +398,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.InvalidMargin.selector)
     );
-    proofOfReserveAggregator.setAssetMargin(address(asset_1), margin);
+    proofOfReserveAggregator.setAssetMargin(asset_1, margin);
   }
 
   function test_setAssetMarginOnlyOwner(address caller) public {
@@ -424,7 +412,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.setAssetMargin(address(asset_1), DEFAULT_MARGIN);
+    proofOfReserveAggregator.setAssetMargin(asset_1, DEFAULT_MARGIN);
   }
 
   function test_disableProofOfReserveFeed(address asset) public {
@@ -453,24 +441,20 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.disableProofOfReserveFeed(address(asset_1));
+    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
   }
 
   function test_getters() public view {
     assertEq(
-      proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        address(current_asset_3)
-      ),
-      address(feed_3)
+      proofOfReserveAggregator.getProofOfReserveFeedForAsset(current_asset_3),
+      feed_3
     );
     assertEq(
-      proofOfReserveAggregator.getBridgeWrapperForAsset(
-        address(current_asset_3)
-      ),
-      address(bridgeWrapper)
+      proofOfReserveAggregator.getBridgeWrapperForAsset(current_asset_3),
+      bridgeWrapper
     );
     assertEq(
-      proofOfReserveAggregator.getMarginForAsset(address(current_asset_3)),
+      proofOfReserveAggregator.getMarginForAsset(current_asset_3),
       DEFAULT_MARGIN
     );
   }
@@ -483,9 +467,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
   }
 
   function _skipAddresses(address asset) internal view {
-    vm.assume(asset != address(asset_1));
-    vm.assume(asset != address(asset_2));
-    vm.assume(asset != address(current_asset_3));
+    vm.assume(asset != asset_1);
+    vm.assume(asset != asset_2);
+    vm.assume(asset != current_asset_3);
     vm.assume(asset != address(0));
   }
 }
