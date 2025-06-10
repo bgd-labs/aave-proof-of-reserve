@@ -26,7 +26,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   /// @dev Map of asset and their PoR data;
   mapping(address asset => AssetPoRData) internal _assetsData;
 
-  constructor() Ownable(msg.sender) {}
+  constructor(address owner) Ownable(owner) {}
 
   /// @inheritdoc IProofOfReserveAggregator
   function getProofOfReserveFeedForAsset(address asset)
@@ -67,7 +67,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     _assetsData[asset] = AssetPoRData({
       feed: proofOfReserveFeed,
       bridgeWrapper: address(0),
-      margin: margin
+      margin: uint16(margin)
     });
 
     emit ProofOfReserveFeedStateChanged(
@@ -96,7 +96,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     _assetsData[asset] = AssetPoRData({
       feed: proofOfReserveFeed,
       bridgeWrapper: bridgeWrapper,
-      margin: margin
+      margin: uint16(margin)
     });
 
     emit ProofOfReserveFeedStateChanged(
@@ -113,7 +113,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     require(_assetsData[asset].feed != address(0), AssetNotEnabled());
     require(margin <= MAX_MARGIN, InvalidMargin());
 
-    _assetsData[asset].margin = margin;
+    _assetsData[asset].margin = uint16(margin);
 
     emit ProofOfReserveFeedStateChanged(
       asset,
@@ -160,7 +160,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     if (assetData.feed != address(0)) {
       (, int256 answer, , , ) = AggregatorInterface(assetData.feed).latestRoundData();
 
-      if(answer < 0) {
+      if (answer < 0) {
         return false;
       }
 

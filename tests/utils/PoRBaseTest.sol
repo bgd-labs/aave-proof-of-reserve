@@ -83,7 +83,7 @@ abstract contract PoRBaseTest is Test {
 
     vm.startPrank(defaultAdmin);
 
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
+    proofOfReserveAggregator = new ProofOfReserveAggregator(defaultAdmin);
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       address(addressesProvider),
       address(proofOfReserveAggregator)
@@ -110,7 +110,7 @@ abstract contract PoRBaseTest is Test {
 
     vm.startPrank(defaultAdmin);
 
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
+    proofOfReserveAggregator = new ProofOfReserveAggregator(defaultAdmin);
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       address(addressesProvider),
       address(proofOfReserveAggregator)

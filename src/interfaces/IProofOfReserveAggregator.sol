@@ -8,7 +8,7 @@ interface IProofOfReserveAggregator {
     /// @notice Bridge wrapper address for a given asset 
     address bridgeWrapper;
     /// @notice Margin for a given asset
-    uint256 margin;
+    uint16 margin;
   }
   
   /**
