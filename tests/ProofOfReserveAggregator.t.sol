@@ -52,7 +52,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     // mint backed what PoR reported
     _mintBacked(asset_1, answer);
     // mint excess unbacked
-    uint256 excess = _percentMulDiv(answer, margin);
+    uint256 excess = _percentMulDivUp(answer, margin);
     _mintUnbacked(asset_1, excess);
 
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
@@ -459,11 +459,11 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
   }
 
-  function _percentMulDiv(
+  function _percentMulDivUp(
     uint256 value,
     uint256 percent
   ) internal pure returns (uint256) {
-    return value.mulDiv(percent, PERCENTAGE_FACTOR);
+    return value.mulDiv(percent, PERCENTAGE_FACTOR, Math.Rounding.Ceil);
   }
 
   function _skipAddresses(address asset) internal view {

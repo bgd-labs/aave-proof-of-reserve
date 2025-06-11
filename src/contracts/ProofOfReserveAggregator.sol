@@ -168,7 +168,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
       ? IERC20(assetData.bridgeWrapper).totalSupply()
       : IERC20(asset).totalSupply();
 
-      uint256 excess = _percentMulDiv(uint256(answer), assetData.margin);
+      uint256 excess = _percentMulDivUp(uint256(answer), assetData.margin);
 
       if (totalSupply > uint256(answer) + excess) {
         return false;
@@ -177,7 +177,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     return true;
   }
 
-  function _percentMulDiv(uint256 value, uint256 percent) internal pure returns (uint256) {
-    return value.mulDiv(percent, PERCENTAGE_FACTOR);
+  function _percentMulDivUp(uint256 value, uint256 percent) internal pure returns (uint256) {
+    return value.mulDiv(percent, PERCENTAGE_FACTOR, Math.Rounding.Ceil);
   }
 }
