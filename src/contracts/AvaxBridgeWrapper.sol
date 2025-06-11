@@ -13,9 +13,9 @@ import {IReservesProvider} from '../interfaces/IReservesProvider.sol';
  */
 contract AvaxBridgeWrapper is IReservesProvider {
   // contract for the actual bridge
-  IERC20Metadata public immutable currentBridge;
+  IERC20Metadata public immutable CURRENT_BRIDGE;
   // contract for the deprecated bridge
-  IERC20 public immutable deprecatedBridge;
+  IERC20 public immutable DEPRECATED_BRIDGE;
 
   /**
    * @notice Constructor.
@@ -23,27 +23,27 @@ contract AvaxBridgeWrapper is IReservesProvider {
    * @param deprecatedBridgeAddress The address of the deprecated bridge for token
    */
   constructor(address currentBridgeAddress, address deprecatedBridgeAddress) {
-    currentBridge = IERC20Metadata(currentBridgeAddress);
-    deprecatedBridge = IERC20(deprecatedBridgeAddress);
+    CURRENT_BRIDGE = IERC20Metadata(currentBridgeAddress);
+    DEPRECATED_BRIDGE = IERC20(deprecatedBridgeAddress);
   }
 
   /// @inheritdoc IReservesProvider
   function getTotalReserves() external view returns (uint256) {
-    return currentBridge.totalSupply() + deprecatedBridge.totalSupply();
+    return CURRENT_BRIDGE.totalSupply() + DEPRECATED_BRIDGE.totalSupply();
   }
 
   /// @inheritdoc IReservesProvider
   function name() external view returns (string memory) {
-    return currentBridge.name();
+    return CURRENT_BRIDGE.name();
   }
 
   /// @inheritdoc IReservesProvider
   function symbol() external view returns (string memory) {
-    return currentBridge.symbol();
+    return CURRENT_BRIDGE.symbol();
   }
 
   /// @inheritdoc IReservesProvider
   function decimals() external view returns (uint8) {
-    return currentBridge.decimals();
+    return CURRENT_BRIDGE.decimals();
   }
 }
