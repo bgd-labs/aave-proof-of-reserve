@@ -133,7 +133,7 @@ abstract contract PoRBaseTest is Test {
     proofOfReserveExecutor.enableAssets(assets);
     proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1);
     proofOfReserveAggregator.enableProofOfReserveFeed(asset_2, feed_2);
-    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+    proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       current_asset_3,
       feed_3,
       bridgeWrapper
