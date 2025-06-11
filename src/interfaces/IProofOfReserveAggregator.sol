@@ -76,7 +76,7 @@ interface IProofOfReserveAggregator {
    * can exceed the PoR feeds answer. 
    * @dev returns zero if the given asset was not set.
    * @param asset The address of the `asset` whose bridge wrapper should be returned.
-   * @return The address of the bridge wrapper.
+   * @return The margin allowed for the given asset in Bps 
    */
   function getMarginForAsset(address asset)
     external
@@ -84,7 +84,7 @@ interface IProofOfReserveAggregator {
     returns (uint256);
 
   /**
-   * @notice Sets an `asset` and its corresponding proof of reserve feed address.
+   * @notice Sets the Proof of reserve feed for a given `asset` and its `margin`.
    * @param asset The address of `asset` whose PoR will be enabled.
    * @param proofOfReserveFeed The address of the proof of reserve feed of the `asset`
    * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.  
@@ -92,11 +92,11 @@ interface IProofOfReserveAggregator {
   function enableProofOfReserveFeed(address asset, address proofOfReserveFeed, uint256 margin) external;
 
   /**
-   * @notice Sets an `asset`, its corresponding proof of reserve feed, and its bridge wrapper address.
+   * @notice Sets the Proof of reserve feed for a given `asset` with a bridge wrapper and its `margin`.
    * @dev This method should be used for the assets with the existing deprecated bridge.
    * @param asset The address of the `asset` whose PoR and bridge wrapper will be enabled.
    * @param proofOfReserveFeed The address of the proof of reserve aggregator feed of the `asset`.
-   * @param bridgeWrapper The bridge wrapper of the `asset`
+   * @param bridgeWrapper The bridge wrapper of the `asset`, which is used to retrieve the total supply.
    * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.  
    */
   function enableProofOfReserveFeedWithBridgeWrapper(
