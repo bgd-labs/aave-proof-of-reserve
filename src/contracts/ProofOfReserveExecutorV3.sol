@@ -18,24 +18,26 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   using EnumerableSet for EnumerableSet.AddressSet;
 
   /// @notice Aave V3 Pool.
-  IPool internal immutable _pool;
+  IPool internal immutable POOL;
   /// @notice Aave V3 Pool Configurator
-  IPoolConfigurator internal immutable _configurator;
+  IPoolConfigurator internal immutable POOL_CONFIGURATOR;
 
   /**
    * @notice Constructor.
    * @param poolAddressesProviderAddress The address of the Aave's V3 pool addresses provider
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
+   * @param owner The owner address
    */
   constructor(
     address poolAddressesProviderAddress,
-    address proofOfReserveAggregatorAddress
-  ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
+    address proofOfReserveAggregatorAddress,
+    address owner
+  ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress, owner) {
     IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
       poolAddressesProviderAddress
     );
-    _pool = IPool(addressesProvider.getPool());
-    _configurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
+    POOL = IPool(addressesProvider.getPool());
+    POOL_CONFIGURATOR = IPoolConfigurator(addressesProvider.getPoolConfigurator());
   }
 
   /// @inheritdoc IProofOfReserveExecutor
@@ -47,7 +49,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
     for (uint256 i = 0; i < enabledAssets.length; ++i) {
       if (unbackedAssetsFlags[i]) {
-        DataTypes.ReserveConfigurationMap memory configuration = _pool
+        DataTypes.ReserveConfigurationMap memory configuration = POOL
           .getConfiguration(enabledAssets[i]);
 
         if (!ReserveConfiguration.getFrozen(configuration)) {
@@ -73,7 +75,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
           address asset = enabledAssets[i];
 
           // freeze reserve
-          _configurator.setReserveFreeze(asset, true);
+          POOL_CONFIGURATOR.setReserveFreeze(asset, true);
 
           emit AssetIsNotBacked(asset);
         }

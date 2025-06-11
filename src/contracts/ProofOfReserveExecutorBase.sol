@@ -30,7 +30,7 @@ abstract contract ProofOfReserveExecutorBase is
    * @notice Constructor.
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
-  constructor(address proofOfReserveAggregatorAddress) Ownable(msg.sender) {
+  constructor(address proofOfReserveAggregatorAddress, address owner) Ownable(owner) {
     _proofOfReserveAggregator = IProofOfReserveAggregator(
       proofOfReserveAggregatorAddress
     );
