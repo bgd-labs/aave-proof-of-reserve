@@ -18,9 +18,9 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   using EnumerableSet for EnumerableSet.AddressSet;
 
   /// @notice The Aave V2 Pool
-  ILendingPool internal immutable POOL;
+  ILendingPool public immutable POOL;
   /// @notice Aave V2 Pool Configurator
-  ILendingPoolConfigurator internal immutable POOL_CONFIGURATOR;
+  ILendingPoolConfigurator public immutable POOL_CONFIGURATOR;
 
   /**
    * @notice Constructor.
@@ -47,7 +47,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     address[] memory allAssets = POOL.getReservesList();
     address[] memory enabledAssets = _enabledAssets.values();
     
-    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+    (, bool[] memory unbackedAssetsFlags) = PROOF_OF_RESERVE_AGGREGATOR
       .areAllReservesBacked(enabledAssets);
     
     // check if unbacked reserves are not frozen
@@ -81,7 +81,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(enabledAssets);
+    ) = PROOF_OF_RESERVE_AGGREGATOR.areAllReservesBacked(enabledAssets);
 
     if (!areReservesBacked) {
       _disableBorrowing();

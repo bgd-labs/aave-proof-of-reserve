@@ -18,9 +18,9 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   using EnumerableSet for EnumerableSet.AddressSet;
 
   /// @notice Aave V3 Pool.
-  IPool internal immutable POOL;
+  IPool public immutable POOL;
   /// @notice Aave V3 Pool Configurator
-  IPoolConfigurator internal immutable POOL_CONFIGURATOR;
+  IPoolConfigurator public immutable POOL_CONFIGURATOR;
 
   /**
    * @notice Constructor.
@@ -44,7 +44,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
   function isEmergencyActionPossible() external view override returns (bool) {
     address[] memory enabledAssets = _enabledAssets.values();
 
-    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+    (, bool[] memory unbackedAssetsFlags) = PROOF_OF_RESERVE_AGGREGATOR
       .areAllReservesBacked(enabledAssets);
 
     for (uint256 i = 0; i < enabledAssets.length; ++i) {
@@ -67,7 +67,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(enabledAssets);
+    ) = PROOF_OF_RESERVE_AGGREGATOR.areAllReservesBacked(enabledAssets);
 
     if (!areReservesBacked) {
       for (uint256 i = 0; i < enabledAssets.length; ++i) {

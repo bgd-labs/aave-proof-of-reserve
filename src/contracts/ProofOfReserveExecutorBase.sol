@@ -20,8 +20,8 @@ abstract contract ProofOfReserveExecutorBase is
 {
   using EnumerableSet for EnumerableSet.AddressSet;
 
-  /// @dev proof of reserve aggregator contract that holds
-  IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
+  /// @inheritdoc IProofOfReserveExecutor
+  IProofOfReserveAggregator public immutable PROOF_OF_RESERVE_AGGREGATOR;
 
   /// @notice List of assets whose total supply will be validated against their PoR feed's answer on the Aggregator contract.
   EnumerableSet.AddressSet internal _enabledAssets;
@@ -31,7 +31,7 @@ abstract contract ProofOfReserveExecutorBase is
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
   constructor(address proofOfReserveAggregatorAddress, address owner) Ownable(owner) {
-    _proofOfReserveAggregator = IProofOfReserveAggregator(
+    PROOF_OF_RESERVE_AGGREGATOR = IProofOfReserveAggregator(
       proofOfReserveAggregatorAddress
     );
   }
@@ -65,7 +65,7 @@ abstract contract ProofOfReserveExecutorBase is
       return true;
     }
 
-    (bool areReservesBacked, ) = _proofOfReserveAggregator.areAllReservesBacked(
+    (bool areReservesBacked, ) = PROOF_OF_RESERVE_AGGREGATOR.areAllReservesBacked(
       _enabledAssets.values()
     );
 
