@@ -92,6 +92,19 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
     proofOfReserveExecutorV3.disableAssets(assets);
   }
 
+  function test_configuration() public view {
+    assertEq(address(proofOfReserveExecutorV3.POOL()), address(poolV3));
+    assertEq(
+      address(proofOfReserveExecutorV3.POOL_CONFIGURATOR()),
+      address(poolConfiguratorV3)
+    );
+    assertEq(
+      address(proofOfReserveExecutorV3.PROOF_OF_RESERVE_AGGREGATOR()),
+      address(proofOfReserveAggregator)
+    );
+    assertEq(proofOfReserveExecutorV3.owner(), defaultAdmin);
+  }
+
   function _initPoolReserves() internal override {
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
 
