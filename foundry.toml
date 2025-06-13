@@ -6,6 +6,7 @@ libs = ['lib']
 gas_reports = ["ProofOfReserveExecutorV2"]
 script = 'scripts'
 remappings = []
+ffi = true
 
 [fuzz]
 runs = 1024

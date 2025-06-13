@@ -12,7 +12,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_areAllReservesBacked() public {
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
-    _mintBacked(asset_1, 1 ether);
+    _mintBacked(tokenList.usdx, 1 ether);
 
     (
       bool areReservesBacked,
@@ -27,9 +27,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
   }
 
   function test_areAllReservesBackedOneNotBacked() public {
-    _mintBacked(asset_1, 1 ether);
-    _mintBacked(asset_2, 1 ether);
-    _mintUnbacked(current_asset_3, 1 ether);
+    _mintBacked(tokenList.usdx, 1 ether);
+    _mintBacked(tokenList.weth, 1 ether);
+    _mintUnbacked(tokenList.wbtc, 1 ether);
 
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
     (
@@ -81,7 +81,10 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, address(0));
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      tokenList.usdx,
+      address(0)
+    );
   }
 
   function test_enableProofOfReserveFeedOnlyOwner(address caller) public {
@@ -93,7 +96,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1);
+    proofOfReserveAggregator.enableProofOfReserveFeed(tokenList.usdx, feed_1);
   }
 
   function test_enableProofOfReserveFeedWithBridgeWrapper(
@@ -215,24 +218,24 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
+    proofOfReserveAggregator.disableProofOfReserveFeed(tokenList.usdx);
   }
 
   function test_getters() public view {
     assertEq(
-      proofOfReserveAggregator.getProofOfReserveFeedForAsset(current_asset_3),
+      proofOfReserveAggregator.getProofOfReserveFeedForAsset(tokenList.wbtc),
       feed_3
     );
     assertEq(
-      proofOfReserveAggregator.getBridgeWrapperForAsset(current_asset_3),
+      proofOfReserveAggregator.getBridgeWrapperForAsset(tokenList.wbtc),
       bridgeWrapper
     );
   }
 
   function _skipAddresses(address asset) internal view {
-    vm.assume(asset != asset_1);
-    vm.assume(asset != asset_2);
-    vm.assume(asset != current_asset_3);
+    vm.assume(asset != tokenList.usdx);
+    vm.assume(asset != tokenList.weth);
+    vm.assume(asset != tokenList.wbtc);
     vm.assume(asset != address(0));
   }
 }
