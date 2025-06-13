@@ -17,7 +17,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_areAllReservesBacked() public {
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
-    _mintBacked(asset_1, 1 ether);
+    _mintBacked(tokenList.usdx, 1 ether);
 
     (
       bool areReservesBacked,
@@ -44,16 +44,15 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
     answer = bound(answer, 0, maxAnswer);
 
-    // change asset_1 margin
-    vm.startPrank(defaultAdmin);
-    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1, margin);
+    // change tokenList.usdx margin
+    vm.prank(defaultAdmin);
+    proofOfReserveAggregator.setAssetMargin(tokenList.usdx, margin);
 
     // mint backed what PoR reported
-    _mintBacked(asset_1, answer);
+    _mintBacked(tokenList.usdx, answer);
     // mint excess unbacked
     uint256 excess = _percentMulDivUp(answer, margin);
-    _mintUnbacked(asset_1, excess);
+    _mintUnbacked(tokenList.usdx, excess);
 
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
 
@@ -70,7 +69,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     test_areAllReservesBackedTotalSupplyWithinMargin(answer, margin);
 
     // mint 1 wei above margin
-    _mintUnbacked(asset_1, 1);
+    _mintUnbacked(tokenList.usdx, 1);
 
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
 
@@ -81,9 +80,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
   }
 
   function test_areAllReservesBackedOneNotBacked() public {
-    _mintBacked(asset_1, 1 ether);
-    _mintBacked(asset_2, 1 ether);
-    _mintUnbacked(current_asset_3, 1 ether);
+    _mintBacked(tokenList.usdx, 1 ether);
+    _mintBacked(tokenList.weth, 1 ether);
+    _mintUnbacked(tokenList.wbtc, 1 ether);
 
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
     (
@@ -100,7 +99,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_areAllReservesBackedNegativeAnswer(int256 answer) public {
     answer = bound(answer, -type(int256).max, -1);
-    _setPoRAnswer(asset_1, answer);
+    _setPoRAnswer(tokenList.usdx, answer);
 
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
     (
@@ -119,7 +118,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     uint256 totalSupply
   ) public {
     totalSupply = bound(totalSupply, type(uint128).max, type(uint256).max);
-    _mintUnbacked(asset_1, totalSupply);
+    _mintUnbacked(tokenList.usdx, totalSupply);
 
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
     (
@@ -208,7 +207,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
-      asset_1,
+      tokenList.usdx,
       address(0),
       DEFAULT_MARGIN
     );
@@ -224,7 +223,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
       )
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
-      asset_1,
+      tokenList.usdx,
       feed_1,
       DEFAULT_MARGIN
     );
@@ -366,13 +365,13 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.prank(defaultAdmin);
     vm.expectEmit();
     emit IProofOfReserveAggregator.ProofOfReserveFeedStateChanged(
-      asset_1,
+      tokenList.usdx,
       feed_1,
       address(0),
       margin,
       true
     );
-    proofOfReserveAggregator.setAssetMargin(asset_1, margin);
+    proofOfReserveAggregator.setAssetMargin(tokenList.usdx, margin);
   }
 
   function test_setAssetMarginAssetNotEnabled(address asset) public {
@@ -398,7 +397,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.InvalidMargin.selector)
     );
-    proofOfReserveAggregator.setAssetMargin(asset_1, margin);
+    proofOfReserveAggregator.setAssetMargin(tokenList.usdx, margin);
   }
 
   function test_setAssetMarginOnlyOwner(address caller) public {
@@ -412,7 +411,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.setAssetMargin(asset_1, DEFAULT_MARGIN);
+    proofOfReserveAggregator.setAssetMargin(tokenList.usdx, DEFAULT_MARGIN);
   }
 
   function test_disableProofOfReserveFeed(address asset) public {
@@ -441,20 +440,20 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
+    proofOfReserveAggregator.disableProofOfReserveFeed(tokenList.usdx);
   }
 
   function test_getters() public view {
     assertEq(
-      proofOfReserveAggregator.getProofOfReserveFeedForAsset(current_asset_3),
+      proofOfReserveAggregator.getProofOfReserveFeedForAsset(tokenList.wbtc),
       feed_3
     );
     assertEq(
-      proofOfReserveAggregator.getBridgeWrapperForAsset(current_asset_3),
+      proofOfReserveAggregator.getBridgeWrapperForAsset(tokenList.wbtc),
       bridgeWrapper
     );
     assertEq(
-      proofOfReserveAggregator.getMarginForAsset(current_asset_3),
+      proofOfReserveAggregator.getMarginForAsset(tokenList.wbtc),
       DEFAULT_MARGIN
     );
   }
@@ -467,9 +466,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
   }
 
   function _skipAddresses(address asset) internal view {
-    vm.assume(asset != asset_1);
-    vm.assume(asset != asset_2);
-    vm.assume(asset != current_asset_3);
+    vm.assume(asset != tokenList.usdx);
+    vm.assume(asset != tokenList.weth);
+    vm.assume(asset != tokenList.wbtc);
     vm.assume(asset != address(0));
   }
 }
