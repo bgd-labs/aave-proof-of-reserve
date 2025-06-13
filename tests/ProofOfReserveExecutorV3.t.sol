@@ -15,7 +15,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
   }
 
   function test_executeEmergencyActionAssetsBacked() public {
-    _mintBacked(asset_1, 1 ether);
+    _mintBacked(tokenList.usdx, 1 ether);
 
     proofOfReserveExecutorV3.executeEmergencyAction();
 
@@ -23,7 +23,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
   }
 
   function test_executeEmergencyActionAssetUnbacked() public {
-    _mintUnbacked(asset_1, 1 ether);
+    _mintUnbacked(tokenList.usdx, 1 ether);
 
     proofOfReserveExecutorV3.executeEmergencyAction();
 
@@ -31,22 +31,22 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
   }
 
   function test_isEmergencyActionPossibleAssetsBacked() public {
-    _mintBacked(asset_1, 1 ether);
+    _mintBacked(tokenList.usdx, 1 ether);
 
     assertFalse(proofOfReserveExecutorV3.isEmergencyActionPossible());
   }
 
   function test_isEmergencyActionPossibleAssetUnbacked() public {
-    _mintUnbacked(asset_1, 1 ether);
+    _mintUnbacked(tokenList.usdx, 1 ether);
 
     assertTrue(proofOfReserveExecutorV3.isEmergencyActionPossible());
   }
 
   function test_areAllReservesBacked() public {
-    _mintBacked(asset_1, 1 ether);
+    _mintBacked(tokenList.usdx, 1 ether);
     assertTrue(proofOfReserveExecutorV3.areAllReservesBacked());
 
-    _mintUnbacked(asset_1, 1 ether);
+    _mintUnbacked(tokenList.usdx, 1 ether);
     assertFalse(proofOfReserveExecutorV3.areAllReservesBacked());
   }
 
@@ -93,10 +93,10 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
   }
 
   function test_configuration() public view {
-    assertEq(address(proofOfReserveExecutorV3.POOL()), address(poolV3));
+    assertEq(address(proofOfReserveExecutorV3.POOL()), report.poolProxy);
     assertEq(
       address(proofOfReserveExecutorV3.POOL_CONFIGURATOR()),
-      address(poolConfiguratorV3)
+      report.poolConfiguratorProxy
     );
     assertEq(
       address(proofOfReserveExecutorV3.PROOF_OF_RESERVE_AGGREGATOR()),
@@ -105,14 +105,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
     assertEq(proofOfReserveExecutorV3.owner(), defaultAdmin);
   }
 
-  function _initPoolReserves() internal override {
-    address[] memory assets = proofOfReserveExecutorV3.getAssets();
-
-    // this will keep the getFrozen flag = false and set ltv != 0
-    for (uint256 i = 0; i < assets.length; i++) {
-      poolConfiguratorV3.setReserveFreeze(assets[i], false);
-    }
-  }
+  function _initPoolReserves() internal override {}
 
   function _assertEmergencyAction() internal view {
     address[] memory assets = proofOfReserveExecutorV3.getAssets();
@@ -120,7 +113,8 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
       .areAllReservesBacked(assets);
 
     for (uint256 i = 0; i < assets.length; i++) {
-      DataTypes.ReserveConfigurationMap memory configuration = poolV3
+      DataTypes.ReserveConfigurationMap memory configuration = contracts
+        .poolProxy
         .getConfiguration(assets[i]);
       bool isFrozen = ReserveConfiguration.getFrozen(configuration);
       uint256 ltv = ReserveConfiguration.getLtv(configuration);
@@ -137,8 +131,8 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
 
   function _skipEnabledAssets(address[] memory assets) internal view {
     for (uint256 i = 0; i < assets.length; i++) {
-      vm.assume(assets[i] != asset_1);
-      vm.assume(assets[i] != asset_2);
+      vm.assume(assets[i] != tokenList.usdx);
+      vm.assume(assets[i] != tokenList.weth);
       vm.assume(assets[i] != current_asset_3);
     }
   }
