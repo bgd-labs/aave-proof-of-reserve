@@ -90,7 +90,8 @@ abstract contract PoRBaseTest is TestnetProcedures {
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       address(addressesProvider),
-      address(proofOfReserveAggregator)
+      address(proofOfReserveAggregator),
+      defaultAdmin
     );
     vm.stopPrank();
 
@@ -125,7 +126,8 @@ abstract contract PoRBaseTest is TestnetProcedures {
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       address(contracts.poolAddressesProvider),
-      address(proofOfReserveAggregator)
+      address(proofOfReserveAggregator),
+      defaultAdmin
     );
     vm.stopPrank();
 
