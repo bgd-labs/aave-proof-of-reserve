@@ -43,7 +43,7 @@ abstract contract PoRBaseTest is TestnetProcedures {
   address public assetsHolder = vm.addr(assetsHolderPrivateKey);
 
   bool public isV3Test;
-  uint256 public constant DEFAULT_MARGIN = 5_00;
+  uint16 public constant DEFAULT_MARGIN = 5_00;
 
   function setUp() public virtual {}
 

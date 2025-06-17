@@ -23,7 +23,7 @@ interface IProofOfReserveAggregator {
     address indexed asset,
     address indexed proofOfReserveFeed,
     address indexed bridgeWrapper,
-    uint256 margin,
+    uint16 margin,
     bool enabled
   );
 
@@ -81,7 +81,7 @@ interface IProofOfReserveAggregator {
   function getMarginForAsset(address asset)
     external
     view
-    returns (uint256);
+    returns (uint16);
 
   /**
    * @notice Sets the Proof of reserve feed for a given `asset` and its `margin`.
@@ -89,7 +89,7 @@ interface IProofOfReserveAggregator {
    * @param proofOfReserveFeed The address of the proof of reserve feed of the `asset`
    * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.  
    */
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed, uint256 margin) external;
+  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed, uint16 margin) external;
 
   /**
    * @notice Sets the Proof of reserve feed for a given `asset` with a bridge wrapper and its `margin`.
@@ -103,7 +103,7 @@ interface IProofOfReserveAggregator {
     address asset,
     address proofOfReserveFeed,
     address bridgeWrapper,
-    uint256 margin
+    uint16 margin
   ) external;
 
   /**
@@ -112,7 +112,7 @@ interface IProofOfReserveAggregator {
    * @param asset The address of the `asset` whose margin will be defined.
    * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
    */
-  function setAssetMargin(address asset, uint256 margin) external;
+  function setAssetMargin(address asset, uint16 margin) external;
 
   /**
    * @notice Removes a given `asset`, its proof of reserve feed, and its bridge wrapper address.

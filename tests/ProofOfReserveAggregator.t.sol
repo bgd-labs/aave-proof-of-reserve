@@ -33,9 +33,9 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_areAllReservesBackedTotalSupplyWithinMargin(
     uint256 answer,
-    uint256 margin
+    uint16 margin
   ) public {
-    margin = bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN());
+    margin = uint16(bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN()));
 
     // avoid div by zero
     uint256 maxAnswer = margin == 0
@@ -64,7 +64,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_areAllReservesBackedTotalSupply1WeiAboveMargin(
     uint256 answer,
-    uint256 margin
+    uint16 margin
   ) public {
     test_areAllReservesBackedTotalSupplyWithinMargin(answer, margin);
 
@@ -133,10 +133,10 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     assertFalse(unbackedAssetsFlags[2]);
   }
 
-  function test_enableProofOfReserveFeed(address asset, uint256 margin) public {
+  function test_enableProofOfReserveFeed(address asset, uint16 margin) public {
     _skipAddresses(asset);
 
-    margin = bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN());
+    margin = uint16(bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN()));
 
     vm.prank(defaultAdmin);
 
@@ -153,15 +153,15 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_enableProofOfReserveFeedInvalidMargin(
     address asset,
-    uint256 margin
+    uint16 margin
   ) public {
     _skipAddresses(asset);
 
-    margin = bound(
+    margin = uint16(bound(
       margin,
       proofOfReserveAggregator.MAX_MARGIN() + 1,
-      type(uint256).max
-    );
+      type(uint16).max
+    ));
 
     vm.prank(defaultAdmin);
 
@@ -231,10 +231,10 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_enableProofOfReserveFeedWithBridgeWrapper(
     address asset,
-    uint256 margin
+    uint16 margin
   ) public {
     _skipAddresses(asset);
-    margin = bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN());
+    margin = uint16(bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN()));
 
     vm.prank(defaultAdmin);
 
@@ -256,15 +256,15 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
 
   function test_enableProofOfReserveFeedWithBridgeWrapperInvalidMargin(
     address asset,
-    uint256 margin
+    uint16 margin
   ) public {
     _skipAddresses(asset);
 
-    margin = bound(
+    margin = uint16(bound(
       margin,
       proofOfReserveAggregator.MAX_MARGIN() + 1,
-      type(uint256).max
-    );
+      type(uint16).max
+    ));
 
     vm.prank(defaultAdmin);
 
@@ -359,8 +359,8 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     );
   }
 
-  function test_setAssetMargin(uint256 margin) public {
-    margin = bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN());
+  function test_setAssetMargin(uint16 margin) public {
+    margin = uint16(bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN()));
 
     vm.prank(defaultAdmin);
     vm.expectEmit();
@@ -385,12 +385,12 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     proofOfReserveAggregator.setAssetMargin(asset, DEFAULT_MARGIN);
   }
 
-  function test_setAssetMarginInvalidMargin(uint256 margin) public {
-    margin = bound(
+  function test_setAssetMarginInvalidMargin(uint16 margin) public {
+    margin = uint16(bound(
       margin,
       proofOfReserveAggregator.MAX_MARGIN() + 1,
-      type(uint256).max
-    );
+      type(uint16).max
+    ));
 
     vm.prank(defaultAdmin);
 
