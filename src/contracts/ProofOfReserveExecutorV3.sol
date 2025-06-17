@@ -37,7 +37,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
-    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+    (, bool[] memory unbackedAssetsFlags) = PROOF_OF_RESERVE_AGGREGATOR
       .areAllReservesBacked(_assets);
 
     uint256 assetsLength = _assets.length;
@@ -61,7 +61,7 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    ) = PROOF_OF_RESERVE_AGGREGATOR.areAllReservesBacked(_assets);
 
     if (!areReservesBacked) {
       uint256 assetsLength = _assets.length;

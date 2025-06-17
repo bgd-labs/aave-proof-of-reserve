@@ -18,7 +18,7 @@ abstract contract ProofOfReserveExecutorBase is
   Ownable
 {
   /// @dev proof of reserve aggregator contract that holds
-  IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
+  IProofOfReserveAggregator public immutable PROOF_OF_RESERVE_AGGREGATOR;
 
   /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
   address[] internal _assets;
@@ -31,7 +31,7 @@ abstract contract ProofOfReserveExecutorBase is
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
   constructor(address proofOfReserveAggregatorAddress) Ownable(msg.sender) {
-    _proofOfReserveAggregator = IProofOfReserveAggregator(
+    PROOF_OF_RESERVE_AGGREGATOR = IProofOfReserveAggregator(
       proofOfReserveAggregatorAddress
     );
   }
@@ -88,7 +88,7 @@ abstract contract ProofOfReserveExecutorBase is
       return true;
     }
 
-    (bool areReservesBacked, ) = _proofOfReserveAggregator.areAllReservesBacked(
+    (bool areReservesBacked, ) = PROOF_OF_RESERVE_AGGREGATOR.areAllReservesBacked(
       _assets
     );
 
