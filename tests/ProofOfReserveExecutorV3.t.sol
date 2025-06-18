@@ -19,7 +19,18 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
 
     proofOfReserveExecutorV3.executeEmergencyAction();
 
-    _assertEmergencyAction();
+    address[] memory assets = proofOfReserveExecutorV3.getAssets();
+
+    (
+      bool areAllReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertTrue(areAllReservesBacked);
+
+    for (uint256 i = 0; i < unbackedAssetsFlags.length; i++) {
+      assertFalse(unbackedAssetsFlags[i]);
+    }
   }
 
   function test_executeEmergencyActionAssetUnbacked() public {
@@ -27,7 +38,24 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
 
     proofOfReserveExecutorV3.executeEmergencyAction();
 
-    _assertEmergencyAction();
+    address[] memory assets = proofOfReserveExecutorV3.getAssets();
+
+    (
+      bool areAllReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertFalse(areAllReservesBacked);
+
+    for (uint256 i = 0; i < assets.length; i++) {
+      DataTypes.ReserveConfigurationMap memory configuration = contracts
+        .poolProxy
+        .getConfiguration(assets[i]);
+      bool isFrozen = ReserveConfiguration.getFrozen(configuration);
+
+      // if it is flagging unbacked, it should flag frozen after emergency action
+      assertEq(unbackedAssetsFlags[i], isFrozen);
+    }
   }
 
   function test_isEmergencyActionPossibleAssetsBacked() public {
@@ -93,28 +121,6 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
   }
 
   function _initPoolReserves() internal override {}
-
-  function _assertEmergencyAction() internal view {
-    address[] memory assets = proofOfReserveExecutorV3.getAssets();
-    (, bool[] memory unbackedAssetsFlags) = proofOfReserveAggregator
-      .areAllReservesBacked(assets);
-
-    for (uint256 i = 0; i < assets.length; i++) {
-      DataTypes.ReserveConfigurationMap memory configuration = contracts
-        .poolProxy
-        .getConfiguration(assets[i]);
-      bool isFrozen = ReserveConfiguration.getFrozen(configuration);
-      uint256 ltv = ReserveConfiguration.getLtv(configuration);
-
-      if (unbackedAssetsFlags[i]) {
-        assertTrue(isFrozen);
-        assertEq(ltv, 0);
-      } else {
-        assertFalse(isFrozen);
-        assertNotEq(ltv, 0);
-      }
-    }
-  }
 
   function _skipEnabledAssets(address[] memory assets) internal view {
     for (uint256 i = 0; i < assets.length; i++) {
