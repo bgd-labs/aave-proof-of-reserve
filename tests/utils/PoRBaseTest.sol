@@ -43,6 +43,7 @@ abstract contract PoRBaseTest is TestnetProcedures {
   address public assetsHolder = vm.addr(assetsHolderPrivateKey);
 
   bool public isV3Test;
+  uint16 public constant DEFAULT_MARGIN = 5_00;
 
   function setUp() public virtual {}
 
@@ -87,7 +88,7 @@ abstract contract PoRBaseTest is TestnetProcedures {
 
     vm.startPrank(defaultAdmin);
 
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
+    proofOfReserveAggregator = new ProofOfReserveAggregator(defaultAdmin);
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       address(addressesProvider),
       address(proofOfReserveAggregator)
@@ -122,7 +123,7 @@ abstract contract PoRBaseTest is TestnetProcedures {
 
     vm.startPrank(defaultAdmin);
 
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
+    proofOfReserveAggregator = new ProofOfReserveAggregator(defaultAdmin);
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       address(contracts.poolAddressesProvider),
       address(proofOfReserveAggregator)
@@ -159,12 +160,21 @@ abstract contract PoRBaseTest is TestnetProcedures {
     vm.startPrank(defaultAdmin);
 
     proofOfReserveExecutor.enableAssets(assets);
-    proofOfReserveAggregator.enableProofOfReserveFeed(assets[0], feeds[0]);
-    proofOfReserveAggregator.enableProofOfReserveFeed(assets[1], feeds[2]);
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      assets[0],
+      feeds[0],
+      DEFAULT_MARGIN
+    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      assets[1],
+      feeds[2],
+      DEFAULT_MARGIN
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithReserveProvider(
       assets[2],
       feeds[2],
-      bridgeWrapper
+      bridgeWrapper,
+      DEFAULT_MARGIN
     );
 
     vm.stopPrank();
