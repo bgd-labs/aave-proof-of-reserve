@@ -17,7 +17,17 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
 
     proofOfReserveExecutorV2.executeEmergencyAction();
 
-    _assertEmergencyAction();
+    address[] memory assets = proofOfReserveExecutorV2.getAssets();
+    (
+      bool areAllReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertTrue(areAllReservesBacked);
+
+    for (uint256 i = 0; i < unbackedAssetsFlags.length; i++) {
+      assertFalse(unbackedAssetsFlags[i]);
+    }
   }
 
   function test_executeEmergencyActionAssetUnbacked() public {
@@ -25,7 +35,22 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
 
     proofOfReserveExecutorV2.executeEmergencyAction();
 
-    _assertEmergencyAction();
+    address[] memory assets = proofOfReserveExecutorV2.getAssets();
+    (
+      bool areAllReservesBacked,
+      bool[] memory unbackedAssetsFlags
+    ) = proofOfReserveAggregator.areAllReservesBacked(assets);
+
+    assertFalse(areAllReservesBacked);
+
+    for (uint256 i = 0; i < assets.length; i++) {
+      DataTypes.ReserveConfigurationMap memory configuration = poolV2
+        .getConfiguration(assets[i]);
+      bool isFrozen = ReserveConfigurationV2.getFrozen(configuration);
+
+      // if it is flagging unbacked, it should flag frozen after emergency action
+      assertEq(unbackedAssetsFlags[i], isFrozen);
+    }
   }
 
   function test_isEmergencyActionPossibleAssetsBacked() public {
@@ -66,28 +91,5 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
     address[] memory assets = proofOfReserveExecutorV2.getAssets();
     // adds assets to the pool reserves list
     poolConfiguratorV2.initReserves(assets);
-  }
-
-  function _assertEmergencyAction() internal view {
-    address[] memory assets = proofOfReserveExecutorV2.getAssets();
-    (, bool[] memory unbackedAssetsFlags) = proofOfReserveAggregator
-      .areAllReservesBacked(assets);
-
-    for (uint256 i = 0; i < assets.length; i++) {
-      DataTypes.ReserveConfigurationMap memory configuration = poolV2
-        .getConfiguration(assets[i]);
-      bool isFrozen = ReserveConfigurationV2.getFrozen(configuration);
-      bool isBorrowingEnable = ReserveConfigurationV2.getBorrowingEnabled(
-        configuration
-      );
-
-      assertFalse(isBorrowingEnable);
-
-      if (unbackedAssetsFlags[i]) {
-        assertTrue(isFrozen);
-      } else {
-        assertFalse(isFrozen);
-      }
-    }
   }
 }
