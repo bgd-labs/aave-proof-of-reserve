@@ -6,13 +6,18 @@ import {IProofOfReserveAggregator} from '../src/interfaces/IProofOfReserveAggreg
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 contract ProofOfReserveAggregatorTest is PoRBaseTest {
+  address[] internal assets;
+
   function setUp() public override {
-    _setUpV3({enableAssets: true});
+    _setUpAggregatorTest();
+    assets = new address[](3);
+    assets[0] = asset_1;
+    assets[1] = asset_2;
+    assets[2] = current_asset_3;
   }
 
   function test_areAllReservesBacked() public {
-    address[] memory assets = proofOfReserveExecutorV3.getAssets();
-    _mintBacked(tokenList.usdx, 1 ether);
+    _mintBacked(asset_1, 1 ether);
 
     (
       bool areReservesBacked,
@@ -27,11 +32,10 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
   }
 
   function test_areAllReservesBackedOneNotBacked() public {
-    _mintBacked(tokenList.usdx, 1 ether);
-    _mintBacked(tokenList.weth, 1 ether);
-    _mintUnbacked(tokenList.wbtc, 1 ether);
+    _mintBacked(asset_1, 1 ether);
+    _mintBacked(asset_2, 1 ether);
+    _mintUnbacked(current_asset_3, 1 ether);
 
-    address[] memory assets = proofOfReserveExecutorV3.getAssets();
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags
@@ -81,10 +85,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(
-      tokenList.usdx,
-      address(0)
-    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, address(0));
   }
 
   function test_enableProofOfReserveFeedOnlyOwner(address caller) public {
@@ -96,7 +97,7 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.enableProofOfReserveFeed(tokenList.usdx, feed_1);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1);
   }
 
   function test_enableProofOfReserveFeedWithBridgeWrapper(
@@ -218,24 +219,24 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
         caller
       )
     );
-    proofOfReserveAggregator.disableProofOfReserveFeed(tokenList.usdx);
+    proofOfReserveAggregator.disableProofOfReserveFeed(asset_1);
   }
 
   function test_getters() public view {
     assertEq(
-      proofOfReserveAggregator.getProofOfReserveFeedForAsset(tokenList.wbtc),
+      proofOfReserveAggregator.getProofOfReserveFeedForAsset(current_asset_3),
       feed_3
     );
     assertEq(
-      proofOfReserveAggregator.getBridgeWrapperForAsset(tokenList.wbtc),
+      proofOfReserveAggregator.getBridgeWrapperForAsset(current_asset_3),
       bridgeWrapper
     );
   }
 
   function _skipAddresses(address asset) internal view {
-    vm.assume(asset != tokenList.usdx);
-    vm.assume(asset != tokenList.weth);
-    vm.assume(asset != tokenList.wbtc);
+    vm.assume(asset != asset_1);
+    vm.assume(asset != asset_2);
+    vm.assume(asset != current_asset_3);
     vm.assume(asset != address(0));
   }
 }

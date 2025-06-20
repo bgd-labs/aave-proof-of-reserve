@@ -2,20 +2,18 @@
 pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
-
+import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 import {MockERC20} from './mocks/MockERC20.sol';
 import {MockPoRFeed} from './mocks/MockPoRFeed.sol';
-import {MockPoolV2, MockPoolV3} from './mocks/MockPool.sol';
-import {MockAddressesProvider} from './mocks/MockAddressesProvider.sol';
 import {AvaxBridgeWrapper} from '../../src/contracts/AvaxBridgeWrapper.sol';
-import {MockPoolConfiguratorV2, MockPoolConfiguratorV3} from './mocks/MockPoolConfigurator.sol';
 import {ProofOfReserveAggregator} from '../../src/contracts/ProofOfReserveAggregator.sol';
 import {ProofOfReserveExecutorV2} from '../../src/contracts/ProofOfReserveExecutorV2.sol';
 import {ProofOfReserveExecutorV3} from '../../src/contracts/ProofOfReserveExecutorV3.sol';
 import {IProofOfReserveExecutor} from '../../src/interfaces/IProofOfReserveExecutor.sol';
-import {TestnetProcedures} from 'aave-v3-origin-tests/utils/TestnetProcedures.sol';
+import {AaveV3Ethereum, AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
+import {AaveV2Ethereum, AaveV2EthereumAssets} from 'aave-address-book/AaveV2Ethereum.sol';
 
-abstract contract PoRBaseTest is TestnetProcedures {
+abstract contract PoRBaseTest is Test {
   address public asset_1;
   address public asset_2;
   address public deprecated_asset_3;
@@ -26,15 +24,8 @@ abstract contract PoRBaseTest is TestnetProcedures {
   address public feed_3;
 
   address public bridgeWrapper;
-  MockAddressesProvider public addressesProvider;
   ProofOfReserveAggregator public proofOfReserveAggregator;
-
-  MockPoolV2 public poolV2;
-  MockPoolConfiguratorV2 public poolConfiguratorV2;
   ProofOfReserveExecutorV2 public proofOfReserveExecutorV2;
-
-  MockPoolV3 public poolV3;
-  MockPoolConfiguratorV3 public poolConfiguratorV3;
   ProofOfReserveExecutorV3 public proofOfReserveExecutorV3;
 
   address public defaultAdmin = vm.addr(0x1000);
@@ -42,131 +33,125 @@ abstract contract PoRBaseTest is TestnetProcedures {
   uint256 public assetsHolderPrivateKey = 0x4000;
   address public assetsHolder = vm.addr(assetsHolderPrivateKey);
 
-  bool public isV3Test;
-
   function setUp() public virtual {}
 
-  function _deployTokensAndFeeds() internal {
+  function _deployTokens() internal {
     asset_1 = address(new MockERC20('asset 1', 'A1'));
     asset_2 = address(new MockERC20('asset 2', 'A2'));
 
     deprecated_asset_3 = address(new MockERC20('asset 3', 'A3'));
     current_asset_3 = address(new MockERC20('asset 3', 'A3'));
     bridgeWrapper = address(
-      new AvaxBridgeWrapper(
-        isV3Test ? tokenList.wbtc : current_asset_3,
-        deprecated_asset_3
-      )
+      new AvaxBridgeWrapper(current_asset_3, deprecated_asset_3)
     );
-
-    feed_1 = address(new MockPoRFeed());
-    feed_2 = address(new MockPoRFeed());
-    feed_3 = address(new MockPoRFeed());
 
     vm.label(asset_1, 'asset_1');
     vm.label(asset_2, 'asset_2');
     vm.label(current_asset_3, 'current_asset_3');
     vm.label(deprecated_asset_3, 'deprecated_asset_3');
-    vm.label(address(bridgeWrapper), 'bridgeWrapper');
+    vm.label(bridgeWrapper, 'bridgeWrapper');
+  }
+
+  function _deployFeeds() internal {
+    feed_1 = address(new MockPoRFeed());
+    feed_2 = address(new MockPoRFeed());
+    feed_3 = address(new MockPoRFeed());
+
     vm.label(feed_1, 'feed_1');
     vm.label(feed_2, 'feed_2');
     vm.label(feed_3, 'feed_3');
   }
 
-  function _setUpV2(bool enableAssets) internal {
-    _deployTokensAndFeeds();
-
-    addressesProvider = new MockAddressesProvider();
-    poolV2 = new MockPoolV2(address(addressesProvider));
-    poolConfiguratorV2 = new MockPoolConfiguratorV2(poolV2);
-
-    addressesProvider.setAddressesV2(
-      address(poolV2),
-      address(poolConfiguratorV2)
-    );
+  function _setUpIntegrationTest() internal {
+    _deployFeeds();
 
     vm.startPrank(defaultAdmin);
 
+    // deploy PoR
     proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
-      address(addressesProvider),
+      address(AaveV2Ethereum.POOL_ADDRESSES_PROVIDER),
       address(proofOfReserveAggregator)
     );
-    vm.stopPrank();
-
-    if (enableAssets) {
-      address[] memory assets = new address[](3);
-      address[] memory feeds = new address[](3);
-      assets[0] = asset_1;
-      assets[1] = asset_2;
-      assets[2] = current_asset_3;
-
-      feeds[0] = feed_1;
-      feeds[1] = feed_2;
-      feeds[2] = feed_3;
-
-      _configureProofOfReserveForAssets(
-        proofOfReserveExecutorV2,
-        assets,
-        feeds
-      );
-      _initPoolReserves();
-    }
-  }
-
-  function _setUpV3(bool enableAssets) internal {
-    isV3Test = true;
-
-    initTestEnvironment(false);
-    _deployTokensAndFeeds();
-
-    vm.startPrank(defaultAdmin);
-
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
-      address(contracts.poolAddressesProvider),
+      address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
       address(proofOfReserveAggregator)
     );
+
+    // deploy bridge wrapper
+    deprecated_asset_3 = address(new MockERC20('asset 3', 'A3'));
+    bridgeWrapper = address(
+      new AvaxBridgeWrapper(
+        AaveV3EthereumAssets.WBTC_UNDERLYING,
+        deprecated_asset_3
+      )
+    );
+
     vm.stopPrank();
 
-    vm.prank(poolAdmin);
-    contracts.aclManager.addEmergencyAdmin(address(proofOfReserveExecutorV3));
+    // give emergency admin to executors
+    vm.startPrank(address(AaveV3Ethereum.ACL_ADMIN));
+    AaveV3Ethereum.ACL_MANAGER.addEmergencyAdmin(
+      address(proofOfReserveExecutorV3)
+    );
+    AaveV2Ethereum.POOL_ADDRESSES_PROVIDER.setEmergencyAdmin(
+      address(proofOfReserveExecutorV2)
+    );
 
-    if (enableAssets) {
-      address[] memory assets = new address[](3);
-      address[] memory feeds = new address[](3);
-      assets[0] = tokenList.usdx;
-      assets[1] = tokenList.weth;
-      assets[2] = tokenList.wbtc;
+    vm.stopPrank();
 
-      feeds[0] = feed_1;
-      feeds[1] = feed_2;
-      feeds[2] = feed_3;
-      _configureProofOfReserveForAssets(
-        proofOfReserveExecutorV3,
-        assets,
-        feeds
-      );
-      _initPoolReserves();
-    }
-  }
+    // setup assets PoR
+    address[] memory assets = new address[](3);
+    assets[0] = AaveV3EthereumAssets.USDT_UNDERLYING;
+    assets[1] = AaveV3EthereumAssets.USDC_UNDERLYING;
+    assets[2] = AaveV3EthereumAssets.WBTC_UNDERLYING;
 
-  function _configureProofOfReserveForAssets(
-    IProofOfReserveExecutor proofOfReserveExecutor,
-    address[] memory assets,
-    address[] memory feeds
-  ) internal {
     vm.startPrank(defaultAdmin);
+    proofOfReserveExecutorV2.enableAssets(assets);
+    proofOfReserveExecutorV3.enableAssets(assets);
 
-    proofOfReserveExecutor.enableAssets(assets);
-    proofOfReserveAggregator.enableProofOfReserveFeed(assets[0], feeds[0]);
-    proofOfReserveAggregator.enableProofOfReserveFeed(assets[1], feeds[2]);
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      AaveV3EthereumAssets.USDT_UNDERLYING,
+      feed_1
+    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      AaveV3EthereumAssets.USDC_UNDERLYING,
+      feed_2
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
-      assets[2],
-      feeds[2],
+      AaveV3EthereumAssets.WBTC_UNDERLYING,
+      feed_3,
       bridgeWrapper
     );
 
+    // set feeds answer
+    MockPoRFeed(feed_1).setAnswer(
+      int256(IERC20(AaveV3EthereumAssets.USDT_UNDERLYING).totalSupply())
+    );
+    MockPoRFeed(feed_2).setAnswer(
+      int256(IERC20(AaveV3EthereumAssets.USDC_UNDERLYING).totalSupply())
+    );
+    MockPoRFeed(feed_3).setAnswer(
+      int256(IERC20(AaveV3EthereumAssets.WBTC_UNDERLYING).totalSupply())
+    );
+
+    vm.stopPrank();
+  }
+
+  function _setUpAggregatorTest() internal {
+    _deployTokens();
+    _deployFeeds();
+
+    // deploy aggregator and enable assets PoR
+    vm.startPrank(defaultAdmin);
+    proofOfReserveAggregator = new ProofOfReserveAggregator();
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1);
+    proofOfReserveAggregator.enableProofOfReserveFeed(asset_2, feed_2);
+    proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
+      current_asset_3,
+      feed_3,
+      bridgeWrapper
+    );
     vm.stopPrank();
   }
 
@@ -176,32 +161,20 @@ abstract contract PoRBaseTest is TestnetProcedures {
   }
 
   function _mintUnbacked(address asset, uint256 amount) internal {
-    if (isV3Test) {
-      vm.prank(poolAdmin);
-    }
-    if (asset == tokenList.weth) {
-      deal(tokenList.weth, assetsHolder, amount);
-    } else {
-      MockERC20(asset).mint(assetsHolder, amount);
-    }
+    deal(asset, assetsHolder, amount, true);
   }
 
   function _burn(address asset, uint256 amount) internal {
-    if (isV3Test) {
-      vm.prank(poolAdmin);
-    }
     MockERC20(asset).burn(assetsHolder, amount);
   }
 
   function _setPoRAnswer(address asset, int256 answer) internal {
-    if (asset == asset_1 || asset == tokenList.usdx) {
+    if (asset == asset_1) {
       MockPoRFeed(feed_1).setAnswer(answer);
-    } else if (asset == asset_2 || asset == tokenList.weth) {
+    } else if (asset == asset_2) {
       MockPoRFeed(feed_2).setAnswer(answer);
     } else {
       MockPoRFeed(feed_3).setAnswer(answer);
     }
   }
-
-  function _initPoolReserves() internal virtual {}
 }
