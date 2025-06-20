@@ -20,14 +20,11 @@ contract ProofOfReserveExecutorV2Test is Test {
   address private constant PROOF_OF_RESERVE_FEED_1 = address(4321);
 
   address private constant AAVEE = 0x63a72806098Bd3D9520cC43356dD78afe5D386D9;
-  address private constant AAVEE_DEPRECATED =
-    0x8cE2Dee54bB9921a2AE0A63dBb2DF8eD88B91dD9;
-  address private constant PORF_AAVE =
-    0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7;
+  address private constant AAVEE_DEPRECATED = 0x8cE2Dee54bB9921a2AE0A63dBb2DF8eD88B91dD9;
+  address private constant PORF_AAVE = 0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7;
 
   address private constant BTCB = 0x152b9d0FdC40C096757F570A51E494bd4b943E50;
-  address private constant PORF_BTCB =
-    0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9;
+  address private constant PORF_BTCB = 0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9;
 
   event AssetStateChanged(address indexed asset, bool enabled);
   event AssetIsNotBacked(address indexed asset);
@@ -84,7 +81,9 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetsAreEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
+    vm.expectRevert(
+      bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0)))
+    );
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);
@@ -123,7 +122,9 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetAreDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
+    vm.expectRevert(
+      bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0)))
+    );
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);
@@ -169,8 +170,7 @@ contract ProofOfReserveExecutorV2Test is Test {
 
     proofOfReserveExecutorV2.executeEmergencyAction();
 
-    bool isBorrowingEnabled = proofOfReserveExecutorV2
-      .isEmergencyActionPossible();
+    bool isBorrowingEnabled = proofOfReserveExecutorV2.isEmergencyActionPossible();
 
     assertEq(isBorrowingEnabled, true);
   }
@@ -211,8 +211,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     proofOfReserveExecutorV2.executeEmergencyAction();
 
     // Assert
-    bool isEmergencyActionPossible = proofOfReserveExecutorV2
-      .isEmergencyActionPossible();
+    bool isEmergencyActionPossible = proofOfReserveExecutorV2.isEmergencyActionPossible();
 
     assertEq(isEmergencyActionPossible, false);
   }
@@ -239,8 +238,6 @@ contract ProofOfReserveExecutorV2Test is Test {
   function setPoolAdmin() private {
     vm.prank(AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.getPoolAdmin());
 
-    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setPoolAdmin(
-      address(proofOfReserveExecutorV2)
-    );
+    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setPoolAdmin(address(proofOfReserveExecutorV2));
   }
 }

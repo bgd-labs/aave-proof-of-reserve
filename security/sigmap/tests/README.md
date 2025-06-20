@@ -24,10 +24,10 @@ brownie test
 
 Note you can add all the pytest parameters/flags e.g.
 
-* `./tests/test_deploy.py`
-* `-s`
-* `-v`
-* `-k <test_name>`
+- `./tests/test_deploy.py`
+- `-s`
+- `-v`
+- `-k <test_name>`
 
 ## Writing tests
 

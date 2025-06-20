@@ -30,25 +30,23 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
     ILendingPoolAddressesProvider addressesProvider = ILendingPoolAddressesProvider(
-        poolAddressesProviderAddress
-      );
-    _pool = ILendingPool(addressesProvider.getLendingPool());
-    _configurator = ILendingPoolConfigurator(
-      addressesProvider.getLendingPoolConfigurator()
+      poolAddressesProviderAddress
     );
+    _pool = ILendingPool(addressesProvider.getLendingPool());
+    _configurator = ILendingPoolConfigurator(addressesProvider.getLendingPoolConfigurator());
   }
 
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
     address[] memory allAssets = _pool.getReservesList();
-    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
-      .areAllReservesBacked(_assets);
+    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
     // check if unbacked reserves are not frozen
     for (uint256 i; i < _assets.length; ++i) {
       if (unbackedAssetsFlags[i]) {
-        DataTypesV2.ReserveConfigurationMap memory configuration = _pool
-          .getConfiguration(_assets[i]);
+        DataTypesV2.ReserveConfigurationMap memory configuration = _pool.getConfiguration(
+          _assets[i]
+        );
 
         if (!ReserveConfiguration.getIsFrozen(configuration)) {
           return true;
@@ -58,8 +56,9 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
 
     // check if borrowing is enabled for any of the reserves
     for (uint256 i; i < allAssets.length; ++i) {
-      DataTypesV2.ReserveConfigurationMap memory configuration = _pool
-        .getConfiguration(allAssets[i]);
+      DataTypesV2.ReserveConfigurationMap memory configuration = _pool.getConfiguration(
+        allAssets[i]
+      );
 
       if (ReserveConfiguration.getBorrowingEnabled(configuration)) {
         return true;
@@ -71,10 +70,8 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() external override {
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    (bool areReservesBacked, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+      .areAllReservesBacked(_assets);
 
     if (!areReservesBacked) {
       _disableBorrowing();

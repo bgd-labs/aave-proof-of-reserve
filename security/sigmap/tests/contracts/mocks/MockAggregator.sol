@@ -13,14 +13,16 @@ contract MockAggregator {
   }
 
   function description() external pure returns (string memory) {
-    return "mock";
+    return 'mock';
   }
 
   function version() external pure returns (uint256) {
     return 3;
   }
 
-  function getRoundData(uint80 _roundId)
+  function getRoundData(
+    uint80 _roundId
+  )
     external
     view
     returns (
@@ -29,9 +31,10 @@ contract MockAggregator {
       uint256 startedAt,
       uint256 updatedAt,
       uint80 answeredInRound
-    ) {
-      return (_roundId, s_answer, block.timestamp, block.timestamp, _roundId);
-    }
+    )
+  {
+    return (_roundId, s_answer, block.timestamp, block.timestamp, _roundId);
+  }
 
   function latestRoundData()
     external
@@ -42,7 +45,8 @@ contract MockAggregator {
       uint256 startedAt,
       uint256 updatedAt,
       uint80 answeredInRound
-    ) {
-      return (1, s_answer, block.timestamp, block.timestamp, 1);
-    }
+    )
+  {
+    return (1, s_answer, block.timestamp, block.timestamp, 1);
+  }
 }
