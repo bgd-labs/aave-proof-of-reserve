@@ -61,13 +61,8 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     address proofOfReserveFeed,
     uint16 margin
   ) external onlyOwner {
-    _validateProofOfReserveParams(
-      asset,
-      proofOfReserveFeed,
-      margin,
-      address(0),
-      false
-    );
+    require(_assetsData[asset].feed == address(0), FeedAlreadyEnabled());
+
     _setAssetData(asset, proofOfReserveFeed, margin, address(0));
   }
 
@@ -78,13 +73,9 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     address bridgeWrapper,
     uint16 margin
   ) external onlyOwner {
-    _validateProofOfReserveParams(
-      asset,
-      proofOfReserveFeed,
-      margin,
-      bridgeWrapper,
-      true
-    );
+    require(_assetsData[asset].feed == address(0), FeedAlreadyEnabled());
+    require(bridgeWrapper != address(0), ZeroAddress());
+
     _setAssetData(asset, proofOfReserveFeed, margin, bridgeWrapper);
   }
 
@@ -92,7 +83,6 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   function setAssetMargin(address asset, uint16 margin) external onlyOwner {
     AssetPoRData memory assetData = _assetsData[asset];
     require(assetData.feed != address(0), AssetNotEnabled());
-    require(margin <= MAX_MARGIN, InvalidMargin());
 
     _setAssetData(asset, assetData.feed, margin, assetData.bridgeWrapper);
   }
@@ -135,6 +125,9 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     uint16 margin,
     address bridgeWrapper
   ) internal {
+    require(asset != address(0) && proofOfReserveFeed != address(0), ZeroAddress());
+    require(margin <= MAX_MARGIN, InvalidMargin());
+
     _assetsData[asset] = AssetPoRData({
       feed: proofOfReserveFeed,
       bridgeWrapper: bridgeWrapper,
@@ -148,32 +141,6 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
       margin,
       true
     );
-  }
-
-  /**
-   * @notice Validates the Proof Of Reserve params that will be set for a given asset
-   * @param asset The address of the `asset` whose PoR Data will be set
-   * @param proofOfReserveFeed The address of the proof of reserve feed of the `asset`.
-   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
-   * @param bridgeWrapper The bridge wrapper of the `asset`, which is used to retrieve the total
-   * @param bridgeWrapperEnabled Flag indicating whether the bridgeWrapper address can be the zero address.
-   */
-  function _validateProofOfReserveParams(
-    address asset,
-    address proofOfReserveFeed,
-    uint16 margin,
-    address bridgeWrapper,
-    bool bridgeWrapperEnabled
-  ) internal view {
-    if (bridgeWrapperEnabled) {
-      require(bridgeWrapper != address(0), ZeroAddress());
-    }
-    require(
-      asset != address(0) && proofOfReserveFeed != address(0),
-      ZeroAddress()
-    );
-    require(_assetsData[asset].feed == address(0), FeedAlreadyEnabled());
-    require(margin <= MAX_MARGIN, InvalidMargin());
   }
 
   /**
