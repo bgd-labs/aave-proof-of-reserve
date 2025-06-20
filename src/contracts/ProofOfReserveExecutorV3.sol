@@ -28,24 +28,20 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
-    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
-      poolAddressesProviderAddress
-    );
+    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
     _pool = IPool(addressesProvider.getPool());
     _configurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
   }
 
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
-    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
-      .areAllReservesBacked(_assets);
+    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
     uint256 assetsLength = _assets.length;
 
     for (uint256 i = 0; i < assetsLength; ++i) {
       if (unbackedAssetsFlags[i]) {
-        DataTypes.ReserveConfigurationMap memory configuration = _pool
-          .getConfiguration(_assets[i]);
+        DataTypes.ReserveConfigurationMap memory configuration = _pool.getConfiguration(_assets[i]);
 
         if (!ReserveConfiguration.getFrozen(configuration)) {
           return true;
@@ -58,10 +54,8 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() external override {
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    (bool areReservesBacked, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+      .areAllReservesBacked(_assets);
 
     if (!areReservesBacked) {
       uint256 assetsLength = _assets.length;

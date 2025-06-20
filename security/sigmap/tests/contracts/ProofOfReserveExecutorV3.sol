@@ -26,28 +26,22 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
   ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
-    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(
-      poolAddressesProviderAddress
-    );
+    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(poolAddressesProviderAddress);
     _pool = IPool(addressesProvider.getPool());
     _configurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
   }
 
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
-    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
-      .areAllReservesBacked(_assets);
+    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
 
     uint256 assetsLength = _assets.length;
 
     for (uint256 i = 0; i < assetsLength; ++i) {
       if (unbackedAssetsFlags[i]) {
-        DataTypes.ReserveConfigurationMap memory configuration = _pool
-          .getConfiguration(_assets[i]);
+        DataTypes.ReserveConfigurationMap memory configuration = _pool.getConfiguration(_assets[i]);
 
-        (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(
-          configuration
-        );
+        (uint256 ltv, , ) = ReserveConfiguration.getLtvAndLiquidationParams(configuration);
 
         if (ltv > 0) {
           return true;
@@ -60,10 +54,8 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() external override {
-    (
-      bool areReservesBacked,
-      bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    (bool areReservesBacked, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
+      .areAllReservesBacked(_assets);
 
     if (!areReservesBacked) {
       uint256 assetsLength = _assets.length;
@@ -71,13 +63,9 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
       for (uint256 i = 0; i < assetsLength; ++i) {
         if (unbackedAssetsFlags[i]) {
           address asset = _assets[i];
-          DataTypes.ReserveConfigurationMap memory configuration = _pool
-            .getConfiguration(asset);
-          (
-            ,
-            uint256 liquidationThreshold,
-            uint256 liquidationBonus
-          ) = ReserveConfiguration.getLtvAndLiquidationParams(configuration);
+          DataTypes.ReserveConfigurationMap memory configuration = _pool.getConfiguration(asset);
+          (, uint256 liquidationThreshold, uint256 liquidationBonus) = ReserveConfiguration
+            .getLtvAndLiquidationParams(configuration);
 
           // set LTV to 0
           _configurator.configureReserveAsCollateral(

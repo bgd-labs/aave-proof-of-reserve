@@ -14,7 +14,7 @@ index f3d8e40..9e41571 100644
 @@ -2114,7 +2115,16 @@ contract LendingPoolConfigurator is VersionedInitializable, ILendingPoolConfigur
      _;
    }
- 
+
 -  uint256 internal constant CONFIGURATOR_REVISION = 0x1;
 +  modifier onlyPoolOrProofOfReserveAdmin {
 +    require(
@@ -26,13 +26,13 @@ index f3d8e40..9e41571 100644
 +  }
 +
 +  uint256 internal constant CONFIGURATOR_REVISION = 0x2;
- 
+
    function getRevision() internal pure override returns (uint256) {
      return CONFIGURATOR_REVISION;
 @@ -2219,7 +2229,8 @@ contract LendingPoolConfigurator is VersionedInitializable, ILendingPoolConfigur
- 
+
      (, , , uint256 decimals, ) = cachedPool.getConfiguration(input.asset).getParamsMemory();
- 
+
 -    bytes memory encodedCall = abi.encodeWithSelector(
 +    bytes memory encodedCall =
 +      abi.encodeWithSelector(
@@ -42,20 +42,20 @@ index f3d8e40..9e41571 100644
 @@ -2231,11 +2242,7 @@ contract LendingPoolConfigurator is VersionedInitializable, ILendingPoolConfigur
          input.params
        );
- 
+
 -    _upgradeTokenImplementation(
 -      reserveData.aTokenAddress,
 -      input.implementation,
 -      encodedCall
 -    );
 +    _upgradeTokenImplementation(reserveData.aTokenAddress, input.implementation, encodedCall);
- 
+
      emit ATokenUpgraded(input.asset, reserveData.aTokenAddress, input.implementation);
    }
 @@ -2250,7 +2257,8 @@ contract LendingPoolConfigurator is VersionedInitializable, ILendingPoolConfigur
- 
+
      (, , , uint256 decimals, ) = cachedPool.getConfiguration(input.asset).getParamsMemory();
- 
+
 -    bytes memory encodedCall = abi.encodeWithSelector(
 +    bytes memory encodedCall =
 +      abi.encodeWithSelector(
@@ -72,11 +72,11 @@ index f3d8e40..9e41571 100644
 -  {
 +  function updateVariableDebtToken(UpdateDebtTokenInput calldata input) external onlyPoolAdmin {
      ILendingPool cachedPool = pool;
- 
+
      DataTypes.ReserveData memory reserveData = cachedPool.getReserveData(input.asset);
- 
+
      (, , , uint256 decimals, ) = cachedPool.getConfiguration(input.asset).getParamsMemory();
- 
+
 -    bytes memory encodedCall = abi.encodeWithSelector(
 +    bytes memory encodedCall =
 +      abi.encodeWithSelector(
@@ -90,7 +90,7 @@ index f3d8e40..9e41571 100644
 -  function disableBorrowingOnReserve(address asset) external onlyPoolAdmin {
 +  function disableBorrowingOnReserve(address asset) external onlyPoolOrProofOfReserveAdmin {
      DataTypes.ReserveConfigurationMap memory currentConfig = pool.getConfiguration(asset);
- 
+
      currentConfig.setBorrowingEnabled(false);
 @@ -2414,7 +2420,7 @@ contract LendingPoolConfigurator is VersionedInitializable, ILendingPoolConfigur
     * @dev Disable stable rate borrowing on a reserve
@@ -99,7 +99,7 @@ index f3d8e40..9e41571 100644
 -  function disableReserveStableRate(address asset) external onlyPoolAdmin {
 +  function disableReserveStableRate(address asset) external onlyPoolOrProofOfReserveAdmin {
      DataTypes.ReserveConfigurationMap memory currentConfig = pool.getConfiguration(asset);
- 
+
      currentConfig.setStableRateBorrowingEnabled(false);
 @@ -2459,7 +2465,7 @@ contract LendingPoolConfigurator is VersionedInitializable, ILendingPoolConfigur
     *  but allows repayments, liquidations, rate rebalances and withdrawals
@@ -108,6 +108,6 @@ index f3d8e40..9e41571 100644
 -  function freezeReserve(address asset) external onlyPoolAdmin {
 +  function freezeReserve(address asset) external onlyPoolOrProofOfReserveAdmin {
      DataTypes.ReserveConfigurationMap memory currentConfig = pool.getConfiguration(asset);
- 
+
      currentConfig.setFrozen(true);
 ```

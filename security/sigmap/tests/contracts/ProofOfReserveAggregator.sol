@@ -21,38 +21,22 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   mapping(address => address) internal _bridgeWrapperList;
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getProofOfReserveFeedForAsset(address asset) external view returns (address) {
     return _proofOfReserveList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getBridgeWrapperForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getBridgeWrapperForAsset(address asset) external view returns (address) {
     return _bridgeWrapperList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
-    external
-    onlyOwner
-  {
+  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed) external onlyOwner {
     require(asset != address(0), 'INVALID_ASSET');
     require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
-    emit ProofOfReserveFeedStateChanged(
-      asset,
-      proofOfReserveFeed,
-      address(0),
-      true
-    );
+    emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, address(0), true);
   }
 
   /// @inheritdoc IProofOfReserveAggregator
@@ -68,12 +52,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     _proofOfReserveList[asset] = proofOfReserveFeed;
     _bridgeWrapperList[asset] = bridgeWrapper;
 
-    emit ProofOfReserveFeedStateChanged(
-      asset,
-      proofOfReserveFeed,
-      bridgeWrapper,
-      true
-    );
+    emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, bridgeWrapper, true);
   }
 
   /// @inheritdoc IProofOfReserveAggregator
@@ -84,11 +63,9 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory)
-  {
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory) {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areReservesBacked = true;
 
@@ -97,18 +74,12 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
         address assetAddress = assets[i];
         address feedAddress = _proofOfReserveList[assetAddress];
         address bridgeAddress = _bridgeWrapperList[assetAddress];
-        address totalSupplyAddress = bridgeAddress != address(0)
-          ? bridgeAddress
-          : assetAddress;
+        address totalSupplyAddress = bridgeAddress != address(0) ? bridgeAddress : assetAddress;
 
         if (feedAddress != address(0)) {
-          (, int256 answer, , , ) = AggregatorV3Interface(feedAddress)
-            .latestRoundData();
+          (, int256 answer, , , ) = AggregatorV3Interface(feedAddress).latestRoundData();
 
-          if (
-            answer < 0 ||
-            IERC20(totalSupplyAddress).totalSupply() > uint256(answer)
-          ) {
+          if (answer < 0 || IERC20(totalSupplyAddress).totalSupply() > uint256(answer)) {
             unbackedAssetsFlags[i] = true;
             areReservesBacked = false;
           }

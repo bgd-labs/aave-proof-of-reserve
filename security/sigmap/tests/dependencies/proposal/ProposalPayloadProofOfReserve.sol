@@ -38,30 +38,23 @@ contract ProposalPayloadProofOfReserve is Ownable {
   address public immutable LENDING_POOL_CONFIGURATOR_IMPL;
   address public immutable PROOF_OF_RESERVE_KEEPER;
 
-  address public constant KEEPER_REGISTRAR =
-    address(0xDb8e8e2ccb5C033938736aa89Fe4fa1eDfD15a1d);
+  address public constant KEEPER_REGISTRAR = address(0xDb8e8e2ccb5C033938736aa89Fe4fa1eDfD15a1d);
 
   address public constant COLLECTOR_CONTROLLER =
     address(0xaCbE7d574EF8dC39435577eb638167Aca74F79f0);
 
-  address public constant AAVA_LINK_TOKEN =
-    address(0x191c10Aa4AF7C30e871E70C95dB0E4eb77237530);
+  address public constant AAVA_LINK_TOKEN = address(0x191c10Aa4AF7C30e871E70C95dB0E4eb77237530);
 
-  address public constant LINK_TOKEN =
-    address(0x5947BB275c521040051D82396192181b413227A3);
+  address public constant LINK_TOKEN = address(0x5947BB275c521040051D82396192181b413227A3);
 
-  address public constant KEEPER_REGISTRY =
-    address(0x02777053d6764996e594c3E88AF1D58D5363a2e6);
+  address public constant KEEPER_REGISTRY = address(0x02777053d6764996e594c3E88AF1D58D5363a2e6);
 
   /**
    * @dev emitted when the new upkeep is registered in Chainlink
    * @param name name of the upkeep
    * @param upkeepId id of the upkeep in chainlink
    */
-  event ChainlinkUpkeepRegistered(
-    string indexed name,
-    uint256 indexed upkeepId
-  );
+  event ChainlinkUpkeepRegistered(string indexed name, uint256 indexed upkeepId);
 
   constructor(
     address poolConfigurator,
@@ -76,9 +69,7 @@ contract ProposalPayloadProofOfReserve is Ownable {
     executorV2 = IProofOfReserveExecutor(executorV2Address);
     executorV3 = IProofOfReserveExecutor(executorV3Address);
     linkToken = LinkTokenInterface(LINK_TOKEN);
-    collectorController = ICollectorController(
-      AaveV3Avalanche.COLLECTOR_CONTROLLER
-    );
+    collectorController = ICollectorController(AaveV3Avalanche.COLLECTOR_CONTROLLER);
 
     PROOF_OF_RESERVE_KEEPER = keeperAddress;
   }
@@ -88,9 +79,7 @@ contract ProposalPayloadProofOfReserve is Ownable {
     assets[0] = address(0x63a72806098Bd3D9520cC43356dD78afe5D386D9);
 
     address[] memory proofOfReserveFeeds = new address[](1);
-    proofOfReserveFeeds[0] = address(
-      0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7
-    );
+    proofOfReserveFeeds[0] = address(0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7);
 
     // Add pairs of token and its proof of reserves to Proof Of Reserves Aggregator
     for (uint256 i; i < assets.length; i++) {
@@ -105,10 +94,7 @@ contract ProposalPayloadProofOfReserve is Ownable {
     );
 
     // set ProofOfReserveExecutorV2 as PROOF_OF_RESERVE_ADMIN
-    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setAddress(
-      PROOF_OF_RESERVE_ADMIN,
-      address(executorV2)
-    );
+    AaveV2Avalanche.POOL_ADDRESSES_PROVIDER.setAddress(PROOF_OF_RESERVE_ADMIN, address(executorV2));
 
     // enable checking of proof of reserve for the assets
     executorV2.enableAssets(assets);
@@ -123,11 +109,7 @@ contract ProposalPayloadProofOfReserve is Ownable {
     // transfer aAvaLink token from the treasury to the current address
     IERC20 aavaLinkToken = IERC20(AAVA_LINK_TOKEN);
 
-    collectorController.transfer(
-      aavaLinkToken,
-      address(this),
-      10100000000000000000
-    );
+    collectorController.transfer(aavaLinkToken, address(this), 10100000000000000000);
 
     // withdraw aAvaLINK from the aave pool and receive LINK.e
     AaveV3Avalanche.POOL.withdraw(LINK_TOKEN, type(uint256).max, address(this));
@@ -164,12 +146,9 @@ contract ProposalPayloadProofOfReserve is Ownable {
     uint96 amount,
     uint8 source
   ) internal {
-    KeeperRegistryInterface keeperRegistry = KeeperRegistryInterface(
-      KEEPER_REGISTRY
-    );
+    KeeperRegistryInterface keeperRegistry = KeeperRegistryInterface(KEEPER_REGISTRY);
 
-    (State memory state, Config memory _c, address[] memory _k) = keeperRegistry
-      .getState();
+    (State memory state, Config memory _c, address[] memory _k) = keeperRegistry.getState();
     uint256 oldNonce = state.nonce;
     bytes memory payload = abi.encode(
       name,
@@ -185,22 +164,14 @@ contract ProposalPayloadProofOfReserve is Ownable {
 
     bytes4 registerSig = KeeperRegistrarInterface.register.selector;
 
-    linkToken.transferAndCall(
-      KEEPER_REGISTRAR,
-      amount,
-      bytes.concat(registerSig, payload)
-    );
+    linkToken.transferAndCall(KEEPER_REGISTRAR, amount, bytes.concat(registerSig, payload));
 
     (state, _c, _k) = keeperRegistry.getState();
 
     if (state.nonce == oldNonce + 1) {
       uint256 upkeepID = uint256(
         keccak256(
-          abi.encodePacked(
-            blockhash(block.number - 1),
-            address(keeperRegistry),
-            uint32(oldNonce)
-          )
+          abi.encodePacked(blockhash(block.number - 1), address(keeperRegistry), uint32(oldNonce))
         )
       );
 

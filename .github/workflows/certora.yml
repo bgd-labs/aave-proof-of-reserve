@@ -35,7 +35,7 @@ jobs:
           cd certora
           touch applyHarness.patch
           make munged
-    
+
       - uses: Certora/certora-run-action@v1
         with:
           cli-version: 7.29.1
@@ -51,11 +51,3 @@ jobs:
           install-java: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
-          
-
-
-
-

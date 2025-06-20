@@ -8,7 +8,7 @@ import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainli
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
- * @title ProofOfReserveAggregator 
+ * @title ProofOfReserveAggregator
  * @notice This contract maintains a list of assets, their proof of reserve feeds,
  * and their bridge wrapper (if applicable), which verifies whether the asset is backed
  * by checking its total supply and the corresponding PoR feed's answer.
@@ -24,38 +24,22 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   constructor() Ownable(msg.sender) {}
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getProofOfReserveFeedForAsset(address asset) external view returns (address) {
     return _proofOfReserveList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getBridgeWrapperForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getBridgeWrapperForAsset(address asset) external view returns (address) {
     return _bridgeWrapperList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
-    external
-    onlyOwner
-  {
+  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed) external onlyOwner {
     require(asset != address(0) && proofOfReserveFeed != address(0), ZeroAddress());
     require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
-    emit ProofOfReserveFeedStateChanged(
-      asset,
-      proofOfReserveFeed,
-      address(0),
-      true
-    );
+    emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, address(0), true);
   }
 
   /// @inheritdoc IProofOfReserveAggregator
@@ -73,12 +57,7 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     _proofOfReserveList[asset] = proofOfReserveFeed;
     _bridgeWrapperList[asset] = bridgeWrapper;
 
-    emit ProofOfReserveFeedStateChanged(
-      asset,
-      proofOfReserveFeed,
-      bridgeWrapper,
-      true
-    );
+    emit ProofOfReserveFeedStateChanged(asset, proofOfReserveFeed, bridgeWrapper, true);
   }
 
   /// @inheritdoc IProofOfReserveAggregator
@@ -89,11 +68,9 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory)
-  {
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory) {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areReservesBacked = true;
 
@@ -102,18 +79,12 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
         address assetAddress = assets[i];
         address feedAddress = _proofOfReserveList[assetAddress];
         address bridgeAddress = _bridgeWrapperList[assetAddress];
-        address totalSupplyAddress = bridgeAddress != address(0)
-          ? bridgeAddress
-          : assetAddress;
+        address totalSupplyAddress = bridgeAddress != address(0) ? bridgeAddress : assetAddress;
 
         if (feedAddress != address(0)) {
-          (, int256 answer, , , ) = AggregatorInterface(feedAddress)
-            .latestRoundData();
+          (, int256 answer, , , ) = AggregatorInterface(feedAddress).latestRoundData();
 
-          if (
-            answer < 0 ||
-            IERC20(totalSupplyAddress).totalSupply() > uint256(answer)
-          ) {
+          if (answer < 0 || IERC20(totalSupplyAddress).totalSupply() > uint256(answer)) {
             unbackedAssetsFlags[i] = true;
             areReservesBacked = false;
           }
