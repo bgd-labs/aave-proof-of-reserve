@@ -89,12 +89,12 @@ abstract contract PoRBaseTest is Test {
 
     vm.stopPrank();
 
-    // give emergency admin to executors
+    // give emergency admin to executorV3 and poolAdmin to executor V2
     vm.startPrank(address(AaveV3Ethereum.ACL_ADMIN));
     AaveV3Ethereum.ACL_MANAGER.addEmergencyAdmin(
       address(proofOfReserveExecutorV3)
     );
-    AaveV2Ethereum.POOL_ADDRESSES_PROVIDER.setEmergencyAdmin(
+    AaveV2Ethereum.POOL_ADDRESSES_PROVIDER.setPoolAdmin(
       address(proofOfReserveExecutorV2)
     );
 
@@ -169,9 +169,11 @@ abstract contract PoRBaseTest is Test {
   }
 
   function _setPoRAnswer(address asset, int256 answer) internal {
-    if (asset == asset_1) {
+    if (asset == asset_1 || asset == AaveV3EthereumAssets.USDT_UNDERLYING) {
       MockPoRFeed(feed_1).setAnswer(answer);
-    } else if (asset == asset_2) {
+    } else if (
+      asset == asset_2 || asset == AaveV3EthereumAssets.USDC_UNDERLYING
+    ) {
       MockPoRFeed(feed_2).setAnswer(answer);
     } else {
       MockPoRFeed(feed_3).setAnswer(answer);

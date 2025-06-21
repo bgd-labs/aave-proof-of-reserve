@@ -50,15 +50,15 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
 
     assertFalse(areAllReservesBacked);
 
-    // for (uint256 i = 0; i < assets.length; i++) {
-    //   DataTypes.ReserveConfigurationMap memory configuration = contracts
-    //     .poolProxy
-    //     .getConfiguration(assets[i]);
-    //   bool isFrozen = ReserveConfiguration.getFrozen(configuration);
+    for (uint256 i = 0; i < assets.length; i++) {
+      DataTypes.ReserveConfigurationMap memory configuration = AaveV3Ethereum
+        .POOL
+        .getConfiguration(assets[i]);
+      bool isFrozen = ReserveConfiguration.getFrozen(configuration);
 
-    //   // if it is flagging unbacked, it should flag frozen after emergency action
-    //   assertEq(unbackedAssetsFlags[i], isFrozen);
-    // }
+      // if it is flagging unbacked, it should flag frozen after emergency action
+      assertEq(unbackedAssetsFlags[i], isFrozen);
+    }
   }
 
   function test_isEmergencyActionPossibleAssetsBacked() public {
@@ -77,7 +77,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
     _mintBacked(AaveV3EthereumAssets.USDT_UNDERLYING, 1 ether);
     assertTrue(proofOfReserveExecutorV3.areAllReservesBacked());
 
-    _mintUnbacked(AaveV3EthereumAssets.USDT_UNDERLYING, 1 ether);
+    _mintUnbacked(AaveV3EthereumAssets.USDT_UNDERLYING, 2 ether);
     assertFalse(proofOfReserveExecutorV3.areAllReservesBacked());
   }
 
@@ -125,9 +125,9 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
 
   function _skipEnabledAssets(address[] memory assets) internal view {
     for (uint256 i = 0; i < assets.length; i++) {
-      // vm.assume(assets[i] != AaveV3EthereumAssets.USDT_UNDERLYING);
-      // vm.assume(assets[i] != tokenList.weth);
-      // vm.assume(assets[i] != current_asset_3);
+      vm.assume(assets[i] != AaveV3EthereumAssets.USDT_UNDERLYING);
+      vm.assume(assets[i] != AaveV3EthereumAssets.USDC_UNDERLYING);
+      vm.assume(assets[i] != AaveV3EthereumAssets.WBTC_UNDERLYING);
     }
   }
 }
