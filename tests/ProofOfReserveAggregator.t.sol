@@ -217,24 +217,28 @@ contract ProofOfReserveAggregatorTest is PoRBaseTest {
     proofOfReserveAggregator.enableProofOfReserveFeed(asset, feed, margin);
   }
 
-  function test_enableProofOfReserveFeedZeroAddress() public {
+  function test_enableProofOfReserveFeedZeroAddress(address asset, address feed, uint16 margin) public {
+    margin = uint16(bound(margin, 0, proofOfReserveAggregator.MAX_MARGIN()));
+    _skipAddresses(asset);
+    vm.assume(feed != address(0));
+
     vm.startPrank(defaultAdmin);
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(0),
-      feed_1,
-      DEFAULT_MARGIN
+      feed,
+      margin
     );
 
     vm.expectRevert(
       abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
-      tokenList.usdx,
+      asset,
       address(0),
-      DEFAULT_MARGIN
+      margin
     );
   }
 
