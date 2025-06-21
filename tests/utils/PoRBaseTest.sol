@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
-import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 import {MockERC20} from './mocks/MockERC20.sol';
 import {MockPoRFeed} from './mocks/MockPoRFeed.sol';
 import {AvaxBridgeWrapper} from '../../src/contracts/AvaxBridgeWrapper.sol';
@@ -11,7 +10,7 @@ import {ProofOfReserveExecutorV2} from '../../src/contracts/ProofOfReserveExecut
 import {ProofOfReserveExecutorV3} from '../../src/contracts/ProofOfReserveExecutorV3.sol';
 import {IProofOfReserveExecutor} from '../../src/interfaces/IProofOfReserveExecutor.sol';
 import {AaveV3Ethereum, AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
-import {AaveV2Ethereum, AaveV2EthereumAssets} from 'aave-address-book/AaveV2Ethereum.sol';
+import {AaveV2Ethereum} from 'aave-address-book/AaveV2Ethereum.sol';
 
 abstract contract PoRBaseTest is Test {
   address public asset_1;
@@ -126,13 +125,13 @@ abstract contract PoRBaseTest is Test {
 
     // set feeds answer
     MockPoRFeed(feed_1).setAnswer(
-      int256(IERC20(AaveV3EthereumAssets.USDT_UNDERLYING).totalSupply())
+      int256(MockERC20(AaveV3EthereumAssets.USDT_UNDERLYING).totalSupply())
     );
     MockPoRFeed(feed_2).setAnswer(
-      int256(IERC20(AaveV3EthereumAssets.USDC_UNDERLYING).totalSupply())
+      int256(MockERC20(AaveV3EthereumAssets.USDC_UNDERLYING).totalSupply())
     );
     MockPoRFeed(feed_3).setAnswer(
-      int256(IERC20(AaveV3EthereumAssets.WBTC_UNDERLYING).totalSupply())
+      int256(MockERC20(AaveV3EthereumAssets.WBTC_UNDERLYING).totalSupply())
     );
 
     vm.stopPrank();
