@@ -30,7 +30,10 @@ abstract contract ProofOfReserveExecutorBase is
    * @notice Constructor.
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
-  constructor(address proofOfReserveAggregatorAddress, address owner) Ownable(owner) {
+  constructor(
+    address proofOfReserveAggregatorAddress,
+    address owner
+  ) Ownable(owner) {
     PROOF_OF_RESERVE_AGGREGATOR = IProofOfReserveAggregator(
       proofOfReserveAggregatorAddress
     );
@@ -65,9 +68,8 @@ abstract contract ProofOfReserveExecutorBase is
       return true;
     }
 
-    (bool areReservesBacked, ) = PROOF_OF_RESERVE_AGGREGATOR.areAllReservesBacked(
-      _enabledAssets.values()
-    );
+    (bool areReservesBacked, ) = PROOF_OF_RESERVE_AGGREGATOR
+      .areAllReservesBacked(_enabledAssets.values());
 
     return areReservesBacked;
   }

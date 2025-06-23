@@ -37,7 +37,9 @@ contract ProofOfReserveExecutorV3 is ProofOfReserveExecutorBase {
       poolAddressesProviderAddress
     );
     POOL = IPool(addressesProvider.getPool());
-    POOL_CONFIGURATOR = IPoolConfigurator(addressesProvider.getPoolConfigurator());
+    POOL_CONFIGURATOR = IPoolConfigurator(
+      addressesProvider.getPoolConfigurator()
+    );
   }
 
   /// @inheritdoc IProofOfReserveExecutor

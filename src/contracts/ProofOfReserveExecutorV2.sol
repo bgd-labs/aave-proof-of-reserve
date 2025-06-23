@@ -46,10 +46,10 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
   function isEmergencyActionPossible() external view override returns (bool) {
     address[] memory allAssets = POOL.getReservesList();
     address[] memory enabledAssets = _enabledAssets.values();
-    
+
     (, bool[] memory unbackedAssetsFlags) = PROOF_OF_RESERVE_AGGREGATOR
       .areAllReservesBacked(enabledAssets);
-    
+
     // check if unbacked reserves are not frozen
     for (uint256 i; i < enabledAssets.length; ++i) {
       if (unbackedAssetsFlags[i]) {
