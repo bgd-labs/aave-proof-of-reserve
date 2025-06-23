@@ -16,12 +16,9 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
    * @dev run off-chain, checks if all reserves are backed on passed market and decides whether to run emergency action on-chain
    * @param checkData address of the ProofOfReserveExecutor contract
    */
-  function checkUpkeep(bytes calldata checkData)
-    external
-    view
-    override
-    returns (bool, bytes memory)
-  {
+  function checkUpkeep(
+    bytes calldata checkData
+  ) external view override returns (bool, bytes memory) {
     address executorAddress = abi.decode(checkData, (address));
     IProofOfReserveExecutor proofOfReserveExecutor = IProofOfReserveExecutor(
       executorAddress

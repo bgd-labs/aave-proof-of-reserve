@@ -27,8 +27,7 @@ interface IPool {
     view
     returns (IPoolAddressesProvider);
 
-  function getConfiguration(address asset)
-    external
-    view
-    returns (ReserveConfigurationMap memory);
+  function getConfiguration(
+    address asset
+  ) external view returns (ReserveConfigurationMap memory);
 }

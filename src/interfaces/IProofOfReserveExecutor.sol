@@ -57,16 +57,16 @@ interface IProofOfReserveExecutor {
   /**
    * @notice Returns whether the emergency action can be executed.
    * @dev Helper function used by the automation-compatible contract to check
-   * whether the emergency action should be performed. 
-   * @return True if the emergency action can be taken, false otherwise. 
+   * whether the emergency action should be performed.
+   * @return True if the emergency action can be taken, false otherwise.
    */
   function isEmergencyActionPossible() external view returns (bool);
 
-/**
+  /**
    * @notice Performs the pool-specific action if at least one reserve of the enabled assets
    * failed during the validation performed against their PoR feed's answer.
    * @dev For the V2 instance, borrowing across all assets is disabled, and the reserves
-   * that failed PoR validation are frozen. 
+   * that failed PoR validation are frozen.
    * @dev For the V3 instance, the reserves that fail PoR validation are frozen, and their LTV is set to 0.
    */
   function executeEmergencyAction() external;
