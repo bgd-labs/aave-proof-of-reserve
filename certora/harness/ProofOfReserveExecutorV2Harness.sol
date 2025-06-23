@@ -8,7 +8,12 @@ contract ProofOfReserveExecutorV2Harness is ProofOfReserveExecutorV2 {
   constructor(
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
-  ) ProofOfReserveExecutorV2(poolAddressesProviderAddress, proofOfReserveAggregatorAddress) {}
+  )
+    ProofOfReserveExecutorV2(
+      poolAddressesProviderAddress,
+      proofOfReserveAggregatorAddress
+    )
+  {}
 
   bool public _disableBorrowingCalled = false;
 

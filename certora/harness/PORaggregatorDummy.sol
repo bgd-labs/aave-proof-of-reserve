@@ -12,7 +12,9 @@ contract PORaggregatorDummy {
     isFirst = false;
   }
 
-  function areAllReservesBacked(address[] calldata assets) public returns (bool, bool[] memory) {
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) public returns (bool, bool[] memory) {
     if (assets.length == 0) {
       areReservesBackedFlag = true;
     } else if (!isFirst) {

@@ -31,7 +31,9 @@ library ReserveConfiguration {
    * @param self The V2 reserve configuration
    * @return The frozen state
    **/
-  function getFrozen(DataTypesV2.ReserveConfigurationMap memory self) internal pure returns (bool) {
+  function getFrozen(
+    DataTypesV2.ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
     return (self.data & FROZEN_MASK) != 0;
   }
 
@@ -40,7 +42,9 @@ library ReserveConfiguration {
    * @param self The V3 reserve configuration
    * @return The frozen state
    **/
-  function getFrozen(DataTypesV3.ReserveConfigurationMap memory self) internal pure returns (bool) {
+  function getFrozen(
+    DataTypesV3.ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
     return (self.data & FROZEN_MASK) != 0;
   }
 }

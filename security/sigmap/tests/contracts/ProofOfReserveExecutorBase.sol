@@ -14,7 +14,10 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
  * - Stores list of token addresses that will be validated against their proof of reserve feed data
  * - Returns if all tokens of a list of assets are properly backed or not.
  */
-abstract contract ProofOfReserveExecutorBase is IProofOfReserveExecutor, Ownable {
+abstract contract ProofOfReserveExecutorBase is
+  IProofOfReserveExecutor,
+  Ownable
+{
   /// @dev proof of reserve aggregator contract that holds
   IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
 
@@ -29,7 +32,9 @@ abstract contract ProofOfReserveExecutorBase is IProofOfReserveExecutor, Ownable
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
   constructor(address proofOfReserveAggregatorAddress) {
-    _proofOfReserveAggregator = IProofOfReserveAggregator(proofOfReserveAggregatorAddress);
+    _proofOfReserveAggregator = IProofOfReserveAggregator(
+      proofOfReserveAggregatorAddress
+    );
   }
 
   /// @inheritdoc IProofOfReserveExecutor
@@ -84,7 +89,9 @@ abstract contract ProofOfReserveExecutorBase is IProofOfReserveExecutor, Ownable
       return true;
     }
 
-    (bool areReservesBacked, ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    (bool areReservesBacked, ) = _proofOfReserveAggregator.areAllReservesBacked(
+      _assets
+    );
 
     return areReservesBacked;
   }

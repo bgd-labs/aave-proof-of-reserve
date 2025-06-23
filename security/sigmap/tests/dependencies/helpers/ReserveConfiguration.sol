@@ -32,7 +32,9 @@ library ReserveConfiguration {
    * @param self The reserve configuration
    * @return The borrowing state
    **/
-  function getBorrowingEnabled(ReserveConfigurationMap memory self) internal pure returns (bool) {
+  function getBorrowingEnabled(
+    ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
     return (self.data & ~BORROWING_MASK) != 0;
   }
 }

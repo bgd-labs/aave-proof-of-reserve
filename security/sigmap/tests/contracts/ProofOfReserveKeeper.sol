@@ -20,7 +20,9 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
     bytes calldata checkData
   ) external view override returns (bool, bytes memory) {
     address executorAddress = abi.decode(checkData, (address));
-    IProofOfReserveExecutor proofOfReserveExecutor = IProofOfReserveExecutor(executorAddress);
+    IProofOfReserveExecutor proofOfReserveExecutor = IProofOfReserveExecutor(
+      executorAddress
+    );
 
     if (
       !proofOfReserveExecutor.areAllReservesBacked() &&
@@ -39,7 +41,9 @@ contract ProofOfReserveKeeper is KeeperCompatibleInterface {
   function performUpkeep(bytes calldata performData) external override {
     address executorAddress = abi.decode(performData, (address));
 
-    IProofOfReserveExecutor proofOfReserveExecutor = IProofOfReserveExecutor(executorAddress);
+    IProofOfReserveExecutor proofOfReserveExecutor = IProofOfReserveExecutor(
+      executorAddress
+    );
 
     proofOfReserveExecutor.executeEmergencyAction();
   }

@@ -326,21 +326,30 @@ interface IPoolAddressesProvider {
    * @param oldAddress The old address of the PoolConfigurator
    * @param newAddress The new address of the PoolConfigurator
    */
-  event PoolConfiguratorUpdated(address indexed oldAddress, address indexed newAddress);
+  event PoolConfiguratorUpdated(
+    address indexed oldAddress,
+    address indexed newAddress
+  );
 
   /**
    * @dev Emitted when the price oracle is updated.
    * @param oldAddress The old address of the PriceOracle
    * @param newAddress The new address of the PriceOracle
    */
-  event PriceOracleUpdated(address indexed oldAddress, address indexed newAddress);
+  event PriceOracleUpdated(
+    address indexed oldAddress,
+    address indexed newAddress
+  );
 
   /**
    * @dev Emitted when the ACL manager is updated.
    * @param oldAddress The old address of the ACLManager
    * @param newAddress The new address of the ACLManager
    */
-  event ACLManagerUpdated(address indexed oldAddress, address indexed newAddress);
+  event ACLManagerUpdated(
+    address indexed oldAddress,
+    address indexed newAddress
+  );
 
   /**
    * @dev Emitted when the ACL admin is updated.
@@ -354,14 +363,20 @@ interface IPoolAddressesProvider {
    * @param oldAddress The old address of the PriceOracleSentinel
    * @param newAddress The new address of the PriceOracleSentinel
    */
-  event PriceOracleSentinelUpdated(address indexed oldAddress, address indexed newAddress);
+  event PriceOracleSentinelUpdated(
+    address indexed oldAddress,
+    address indexed newAddress
+  );
 
   /**
    * @dev Emitted when the pool data provider is updated.
    * @param oldAddress The old address of the PoolDataProvider
    * @param newAddress The new address of the PoolDataProvider
    */
-  event PoolDataProviderUpdated(address indexed oldAddress, address indexed newAddress);
+  event PoolDataProviderUpdated(
+    address indexed oldAddress,
+    address indexed newAddress
+  );
 
   /**
    * @dev Emitted when a new proxy is created.
@@ -381,7 +396,11 @@ interface IPoolAddressesProvider {
    * @param oldAddress The address of the old contract
    * @param newAddress The address of the new contract
    */
-  event AddressSet(bytes32 indexed id, address indexed oldAddress, address indexed newAddress);
+  event AddressSet(
+    bytes32 indexed id,
+    address indexed oldAddress,
+    address indexed newAddress
+  );
 
   /**
    * @dev Emitted when the implementation of the proxy registered with id is updated
@@ -429,7 +448,10 @@ interface IPoolAddressesProvider {
    * @param id The id
    * @param newImplementationAddress The address of the new implementation
    */
-  function setAddressAsProxy(bytes32 id, address newImplementationAddress) external;
+  function setAddressAsProxy(
+    bytes32 id,
+    address newImplementationAddress
+  ) external;
 
   /**
    * @notice Sets an address for an id replacing the address saved in the addresses map.
@@ -550,7 +572,12 @@ interface IPool {
    * @param amount The amount added as backing
    * @param fee The amount paid in fees
    **/
-  event BackUnbacked(address indexed reserve, address indexed backer, uint256 amount, uint256 fee);
+  event BackUnbacked(
+    address indexed reserve,
+    address indexed backer,
+    uint256 amount,
+    uint256 fee
+  );
 
   /**
    * @dev Emitted on supply()
@@ -575,7 +602,12 @@ interface IPool {
    * @param to The address that will receive the underlying
    * @param amount The amount to be withdrawn
    **/
-  event Withdraw(address indexed reserve, address indexed user, address indexed to, uint256 amount);
+  event Withdraw(
+    address indexed reserve,
+    address indexed user,
+    address indexed to,
+    uint256 amount
+  );
 
   /**
    * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
@@ -645,21 +677,30 @@ interface IPool {
    * @param reserve The address of the underlying asset of the reserve
    * @param user The address of the user enabling the usage as collateral
    **/
-  event ReserveUsedAsCollateralEnabled(address indexed reserve, address indexed user);
+  event ReserveUsedAsCollateralEnabled(
+    address indexed reserve,
+    address indexed user
+  );
 
   /**
    * @dev Emitted on setUserUseReserveAsCollateral()
    * @param reserve The address of the underlying asset of the reserve
    * @param user The address of the user enabling the usage as collateral
    **/
-  event ReserveUsedAsCollateralDisabled(address indexed reserve, address indexed user);
+  event ReserveUsedAsCollateralDisabled(
+    address indexed reserve,
+    address indexed user
+  );
 
   /**
    * @dev Emitted on rebalanceStableBorrowRate()
    * @param reserve The address of the underlying asset of the reserve
    * @param user The address of the user for which the rebalance has been executed
    **/
-  event RebalanceStableBorrowRate(address indexed reserve, address indexed user);
+  event RebalanceStableBorrowRate(
+    address indexed reserve,
+    address indexed user
+  );
 
   /**
    * @dev Emitted on flashLoan()
@@ -761,7 +802,12 @@ interface IPool {
    * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
    *   0 if the action is executed directly by the user, without any middle-man
    **/
-  function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+  function supply(
+    address asset,
+    uint256 amount,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
 
   /**
    * @notice Supply with transfer approval of asset to be supplied done via permit function
@@ -800,7 +846,11 @@ interface IPool {
    *   different wallet
    * @return The final amount withdrawn
    **/
-  function withdraw(address asset, uint256 amount, address to) external returns (uint256);
+  function withdraw(
+    address asset,
+    uint256 amount,
+    address to
+  ) external returns (uint256);
 
   /**
    * @notice Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
@@ -912,7 +962,10 @@ interface IPool {
    * @param asset The address of the underlying asset supplied
    * @param useAsCollateral True if the user wants to use the supply as collateral, false otherwise
    **/
-  function setUserUseReserveAsCollateral(address asset, bool useAsCollateral) external;
+  function setUserUseReserveAsCollateral(
+    address asset,
+    bool useAsCollateral
+  ) external;
 
   /**
    * @notice Function to liquidate a non-healthy position collateral-wise, with Health Factor below 1
@@ -1074,21 +1127,27 @@ interface IPool {
    * @param asset The address of the underlying asset of the reserve
    * @return The reserve's normalized income
    */
-  function getReserveNormalizedIncome(address asset) external view returns (uint256);
+  function getReserveNormalizedIncome(
+    address asset
+  ) external view returns (uint256);
 
   /**
    * @notice Returns the normalized variable debt per unit of asset
    * @param asset The address of the underlying asset of the reserve
    * @return The reserve normalized variable debt
    */
-  function getReserveNormalizedVariableDebt(address asset) external view returns (uint256);
+  function getReserveNormalizedVariableDebt(
+    address asset
+  ) external view returns (uint256);
 
   /**
    * @notice Returns the state and configuration of the reserve
    * @param asset The address of the underlying asset of the reserve
    * @return The state and configuration data of the reserve
    **/
-  function getReserveData(address asset) external view returns (DataTypesV3.ReserveData memory);
+  function getReserveData(
+    address asset
+  ) external view returns (DataTypesV3.ReserveData memory);
 
   /**
    * @notice Validates and finalizes an aToken transfer
@@ -1157,14 +1216,19 @@ interface IPool {
    * @param id The id of the category
    * @param config The configuration of the category
    */
-  function configureEModeCategory(uint8 id, DataTypesV3.EModeCategory memory config) external;
+  function configureEModeCategory(
+    uint8 id,
+    DataTypesV3.EModeCategory memory config
+  ) external;
 
   /**
    * @notice Returns the data of an eMode category
    * @param id The id of the category
    * @return The configuration data of the category
    */
-  function getEModeCategoryData(uint8 id) external view returns (DataTypesV3.EModeCategory memory);
+  function getEModeCategoryData(
+    uint8 id
+  ) external view returns (DataTypesV3.EModeCategory memory);
 
   /**
    * @notice Allows a user to use the protocol in eMode
@@ -1190,7 +1254,10 @@ interface IPool {
    * @notice Returns the percentage of available liquidity that can be borrowed at once at stable rate
    * @return The percentage of available liquidity to borrow, expressed in bps
    */
-  function MAX_STABLE_RATE_BORROW_SIZE_PERCENT() external view returns (uint256);
+  function MAX_STABLE_RATE_BORROW_SIZE_PERCENT()
+    external
+    view
+    returns (uint256);
 
   /**
    * @notice Returns the total fee on flash loans
@@ -1242,7 +1309,12 @@ interface IPool {
    * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
    *   0 if the action is executed directly by the user, without any middle-man
    **/
-  function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
+  function deposit(
+    address asset,
+    uint256 amount,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
 }
 
 interface IPoolConfigurator {
@@ -1335,7 +1407,11 @@ interface IPoolConfigurator {
    * @param oldBorrowCap The old borrow cap
    * @param newBorrowCap The new borrow cap
    **/
-  event BorrowCapChanged(address indexed asset, uint256 oldBorrowCap, uint256 newBorrowCap);
+  event BorrowCapChanged(
+    address indexed asset,
+    uint256 oldBorrowCap,
+    uint256 newBorrowCap
+  );
 
   /**
    * @dev Emitted when the supply cap of a reserve is updated.
@@ -1343,7 +1419,11 @@ interface IPoolConfigurator {
    * @param oldSupplyCap The old supply cap
    * @param newSupplyCap The new supply cap
    **/
-  event SupplyCapChanged(address indexed asset, uint256 oldSupplyCap, uint256 newSupplyCap);
+  event SupplyCapChanged(
+    address indexed asset,
+    uint256 oldSupplyCap,
+    uint256 newSupplyCap
+  );
 
   /**
    * @dev Emitted when the liquidation protocol fee of a reserve is updated.
@@ -1351,7 +1431,11 @@ interface IPoolConfigurator {
    * @param oldFee The old liquidation protocol fee, expressed in bps
    * @param newFee The new liquidation protocol fee, expressed in bps
    **/
-  event LiquidationProtocolFeeChanged(address indexed asset, uint256 oldFee, uint256 newFee);
+  event LiquidationProtocolFeeChanged(
+    address indexed asset,
+    uint256 oldFee,
+    uint256 newFee
+  );
 
   /**
    * @dev Emitted when the unbacked mint cap of a reserve is updated.
@@ -1371,7 +1455,11 @@ interface IPoolConfigurator {
    * @param oldCategoryId The old eMode asset category
    * @param newCategoryId The new eMode asset category
    **/
-  event EModeAssetCategoryChanged(address indexed asset, uint8 oldCategoryId, uint8 newCategoryId);
+  event EModeAssetCategoryChanged(
+    address indexed asset,
+    uint8 oldCategoryId,
+    uint8 newCategoryId
+  );
 
   /**
    * @dev Emitted when a new eMode category is added.
@@ -1445,7 +1533,11 @@ interface IPoolConfigurator {
    * @param oldDebtCeiling The old debt ceiling
    * @param newDebtCeiling The new debt ceiling
    **/
-  event DebtCeilingChanged(address indexed asset, uint256 oldDebtCeiling, uint256 newDebtCeiling);
+  event DebtCeilingChanged(
+    address indexed asset,
+    uint256 oldDebtCeiling,
+    uint256 newDebtCeiling
+  );
 
   /**
    * @dev Emitted when the the siloed borrowing state for an asset is changed.
@@ -1453,14 +1545,21 @@ interface IPoolConfigurator {
    * @param oldState The old siloed borrowing state
    * @param newState The new siloed borrowing state
    **/
-  event SiloedBorrowingChanged(address indexed asset, bool oldState, bool newState);
+  event SiloedBorrowingChanged(
+    address indexed asset,
+    bool oldState,
+    bool newState
+  );
 
   /**
    * @dev Emitted when the bridge protocol fee is updated.
    * @param oldBridgeProtocolFee The old protocol fee, expressed in bps
    * @param newBridgeProtocolFee The new protocol fee, expressed in bps
    */
-  event BridgeProtocolFeeUpdated(uint256 oldBridgeProtocolFee, uint256 newBridgeProtocolFee);
+  event BridgeProtocolFeeUpdated(
+    uint256 oldBridgeProtocolFee,
+    uint256 newBridgeProtocolFee
+  );
 
   /**
    * @dev Emitted when the total premium on flashloans is updated.
@@ -1493,13 +1592,17 @@ interface IPoolConfigurator {
    * @notice Initializes multiple reserves.
    * @param input The array of initialization parameters
    **/
-  function initReserves(ConfiguratorInputTypes.InitReserveInput[] calldata input) external;
+  function initReserves(
+    ConfiguratorInputTypes.InitReserveInput[] calldata input
+  ) external;
 
   /**
    * @dev Updates the aToken implementation for the reserve.
    * @param input The aToken update parameters
    **/
-  function updateAToken(ConfiguratorInputTypes.UpdateATokenInput calldata input) external;
+  function updateAToken(
+    ConfiguratorInputTypes.UpdateATokenInput calldata input
+  ) external;
 
   /**
    * @notice Updates the stable debt token implementation for the reserve.
@@ -1633,7 +1736,10 @@ interface IPoolConfigurator {
    * @param asset The address of the underlying asset of the reserve
    * @param newUnbackedMintCap The new unbacked mint cap of the reserve
    **/
-  function setUnbackedMintCap(address asset, uint256 newUnbackedMintCap) external;
+  function setUnbackedMintCap(
+    address asset,
+    uint256 newUnbackedMintCap
+  ) external;
 
   /**
    * @notice Assign an efficiency mode (eMode) category to asset.
@@ -1685,7 +1791,9 @@ interface IPoolConfigurator {
    * @dev The premium is calculated on the total amount borrowed
    * @param newFlashloanPremiumTotal The total flashloan premium
    */
-  function updateFlashloanPremiumTotal(uint128 newFlashloanPremiumTotal) external;
+  function updateFlashloanPremiumTotal(
+    uint128 newFlashloanPremiumTotal
+  ) external;
 
   /**
    * @notice Updates the flash loan premium collected by protocol reserves
@@ -1693,7 +1801,9 @@ interface IPoolConfigurator {
    * @dev The premium to protocol is calculated on the total flashloan premium
    * @param newFlashloanPremiumToProtocol The part of the flashloan premium sent to the protocol treasury
    */
-  function updateFlashloanPremiumToProtocol(uint128 newFlashloanPremiumToProtocol) external;
+  function updateFlashloanPremiumToProtocol(
+    uint128 newFlashloanPremiumToProtocol
+  ) external;
 
   /**
    * @notice Sets the debt ceiling for an asset.
@@ -1763,7 +1873,10 @@ interface IAaveOracle is IPriceOracleGetter {
    * @param assets The addresses of the assets
    * @param sources The addresses of the price sources
    */
-  function setAssetSources(address[] calldata assets, address[] calldata sources) external;
+  function setAssetSources(
+    address[] calldata assets,
+    address[] calldata sources
+  ) external;
 
   /**
    * @notice Sets the fallback oracle
@@ -1776,7 +1889,9 @@ interface IAaveOracle is IPriceOracleGetter {
    * @param assets The list of assets addresses
    * @return The prices of the given assets
    */
-  function getAssetsPrices(address[] calldata assets) external view returns (uint256[] memory);
+  function getAssetsPrices(
+    address[] calldata assets
+  ) external view returns (uint256[] memory);
 
   /**
    * @notice Returns the address of the source for an asset address
@@ -1821,7 +1936,9 @@ interface IAaveProtocolDataProvider {
       bool isFrozen
     );
 
-  function getReserveEModeCategory(address asset) external view returns (uint256);
+  function getReserveEModeCategory(
+    address asset
+  ) external view returns (uint256);
 
   function getReserveCaps(
     address asset
@@ -1831,7 +1948,9 @@ interface IAaveProtocolDataProvider {
 
   function getSiloedBorrowing(address asset) external view returns (bool);
 
-  function getLiquidationProtocolFee(address asset) external view returns (uint256);
+  function getLiquidationProtocolFee(
+    address asset
+  ) external view returns (uint256);
 
   function getUnbackedMintCap(address asset) external view returns (uint256);
 
@@ -2113,7 +2232,11 @@ interface IACLManager {
    * `sender` is the account that originated the contract call, an admin role
    * bearer except when using {AccessControl-_setupRole}.
    */
-  event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
+  event RoleGranted(
+    bytes32 indexed role,
+    address indexed account,
+    address indexed sender
+  );
 
   // Parent Access Control Interface
   /**
@@ -2123,7 +2246,11 @@ interface IACLManager {
    *   - if using `revokeRole`, it is the admin role bearer
    *   - if using `renounceRole`, it is the role bearer (i.e. `account`)
    */
-  event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
+  event RoleRevoked(
+    bytes32 indexed role,
+    address indexed account,
+    address indexed sender
+  );
 
   /**
    * @dev Returns `true` if `account` has been granted `role`.
@@ -2203,7 +2330,10 @@ interface IInterestRateStrategy {
    * 1-optimal stable to total debt ratio. Added as a constant here for gas optimizations.
    * Expressed in ray
    */
-  function MAX_EXCESS_STABLE_TO_TOTAL_DEBT_RATIO() external view returns (uint256);
+  function MAX_EXCESS_STABLE_TO_TOTAL_DEBT_RATIO()
+    external
+    view
+    returns (uint256);
 
   function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
 

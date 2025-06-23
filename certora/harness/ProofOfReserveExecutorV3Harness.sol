@@ -8,7 +8,12 @@ contract ProofOfReserveExecutorV3Harness is ProofOfReserveExecutorV3 {
   constructor(
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress
-  ) ProofOfReserveExecutorV3(poolAddressesProviderAddress, proofOfReserveAggregatorAddress) {}
+  )
+    ProofOfReserveExecutorV3(
+      poolAddressesProviderAddress,
+      proofOfReserveAggregatorAddress
+    )
+  {}
 
   function enableAsset(address asset) public {
     address[] memory assetArr = new address[](1);

@@ -13,7 +13,10 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
  * will be verified against their proof of reserve feed data fetched from the ProofOfReserveAggregator contract.
  * @author BGD Labs
  */
-abstract contract ProofOfReserveExecutorBase is IProofOfReserveExecutor, Ownable {
+abstract contract ProofOfReserveExecutorBase is
+  IProofOfReserveExecutor,
+  Ownable
+{
   /// @dev proof of reserve aggregator contract that holds
   IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
 
@@ -28,7 +31,9 @@ abstract contract ProofOfReserveExecutorBase is IProofOfReserveExecutor, Ownable
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
   constructor(address proofOfReserveAggregatorAddress) Ownable(msg.sender) {
-    _proofOfReserveAggregator = IProofOfReserveAggregator(proofOfReserveAggregatorAddress);
+    _proofOfReserveAggregator = IProofOfReserveAggregator(
+      proofOfReserveAggregatorAddress
+    );
   }
 
   /// @inheritdoc IProofOfReserveExecutor
@@ -83,7 +88,9 @@ abstract contract ProofOfReserveExecutorBase is IProofOfReserveExecutor, Ownable
       return true;
     }
 
-    (bool areReservesBacked, ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    (bool areReservesBacked, ) = _proofOfReserveAggregator.areAllReservesBacked(
+      _assets
+    );
 
     return areReservesBacked;
   }

@@ -32,7 +32,9 @@ interface IProofOfReserveAggregator {
    * @param asset The address of the `asset` whose proof of reserve feed should be returned.
    * @return The address of the proof of reserve feed.
    */
-  function getProofOfReserveFeedForAsset(address asset) external view returns (address);
+  function getProofOfReserveFeedForAsset(
+    address asset
+  ) external view returns (address);
 
   /**
    * @notice Returns the address of the bridge wrapper for a given asset.
@@ -40,14 +42,19 @@ interface IProofOfReserveAggregator {
    * @param asset The address of the `asset` whose bridge wrapper should be returned.
    * @return The address of the bridge wrapper.
    */
-  function getBridgeWrapperForAsset(address asset) external view returns (address);
+  function getBridgeWrapperForAsset(
+    address asset
+  ) external view returns (address);
 
   /**
    * @notice Sets an `asset` and its corresponding proof of reserve feed address.
    * @param asset The address of the `asset` whose PoR will be enabled.
    * @param proofOfReserveFeed the address of the proof of reserve feed of the `asset`.
    */
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed) external;
+  function enableProofOfReserveFeed(
+    address asset,
+    address proofOfReserveFeed
+  ) external;
 
   /**
    * @notice Sets an `asset`, its corresponding proof of reserve feed, and its bridge wrapper address.

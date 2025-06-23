@@ -22,7 +22,12 @@ interface IPool {
 
   function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider);
 
-  function getAddressesProvider() external view returns (IPoolAddressesProvider);
+  function getAddressesProvider()
+    external
+    view
+    returns (IPoolAddressesProvider);
 
-  function getConfiguration(address asset) external view returns (ReserveConfigurationMap memory);
+  function getConfiguration(
+    address asset
+  ) external view returns (ReserveConfigurationMap memory);
 }
