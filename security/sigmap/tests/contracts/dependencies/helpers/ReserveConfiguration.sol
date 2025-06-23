@@ -41,11 +41,9 @@ library ReserveConfiguration {
    * @param self The reserve configuration
    * @return The borrowing state
    **/
-  function getBorrowingEnabled(DataTypesV2.ReserveConfigurationMap memory self)
-    internal
-    pure
-    returns (bool)
-  {
+  function getBorrowingEnabled(
+    DataTypesV2.ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
     return (self.data & ~BORROWING_MASK) != 0;
   }
 
@@ -54,11 +52,9 @@ library ReserveConfiguration {
    * @param self The reserve configuration
    * @return The frozen state
    **/
-  function getIsFrozen(DataTypesV2.ReserveConfigurationMap memory self)
-    internal
-    pure
-    returns (bool)
-  {
+  function getIsFrozen(
+    DataTypesV2.ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
     return (self.data & ~FROZEN_MASK) != 0;
   }
 
@@ -71,15 +67,7 @@ library ReserveConfiguration {
    **/
   function getLtvAndLiquidationParams(
     DataTypesV3.ReserveConfigurationMap memory self
-  )
-    internal
-    pure
-    returns (
-      uint256,
-      uint256,
-      uint256
-    )
-  {
+  ) internal pure returns (uint256, uint256, uint256) {
     uint256 dataLocal = self.data;
 
     return (

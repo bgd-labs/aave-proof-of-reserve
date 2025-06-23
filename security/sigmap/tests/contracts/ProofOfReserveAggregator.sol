@@ -21,28 +21,24 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   mapping(address => address) internal _bridgeWrapperList;
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getProofOfReserveFeedForAsset(
+    address asset
+  ) external view returns (address) {
     return _proofOfReserveList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getBridgeWrapperForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getBridgeWrapperForAsset(
+    address asset
+  ) external view returns (address) {
     return _bridgeWrapperList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
-    external
-    onlyOwner
-  {
+  function enableProofOfReserveFeed(
+    address asset,
+    address proofOfReserveFeed
+  ) external onlyOwner {
     require(asset != address(0), 'INVALID_ASSET');
     require(proofOfReserveFeed != address(0), 'INVALID_PROOF_OF_RESERVE_FEED');
 
@@ -84,11 +80,9 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory)
-  {
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory) {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areReservesBacked = true;
 

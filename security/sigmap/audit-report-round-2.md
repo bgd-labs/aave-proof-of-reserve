@@ -23,18 +23,18 @@ Setting the LTV to zero will prevent users from borrowing using this asset as co
 ### Scope
 
 The scope of the review covers the following components:
-* `AvaxBridgeWrapper.sol`
-* `ProofOrReserveAggregator.sol`
-* `ProofOfReserveExecutorBase.sol`
-* `ProofOfReserveExecutorV2.sol`
-* `ProofOfReserveExecutorV3.sol`
-* `ProofOfReserveKeeper.sol`
-* Integration of the contracts with `LendingPool` and `PoolConfigurator` for both Aave V2 and V3.
+
+- `AvaxBridgeWrapper.sol`
+- `ProofOrReserveAggregator.sol`
+- `ProofOfReserveExecutorBase.sol`
+- `ProofOfReserveExecutorV2.sol`
+- `ProofOfReserveExecutorV3.sol`
+- `ProofOfReserveKeeper.sol`
+- Integration of the contracts with `LendingPool` and `PoolConfigurator` for both Aave V2 and V3.
 
 ### Summary of Findings
 
 One informational finding was found during the review.
-
 
 ## 1. INF: Interchanging `enableProofOfReserveFeed()` and `enableProofOfReserveFeedWithBridgeWrapper()` May Cause An Invalid State.
 
@@ -59,6 +59,3 @@ To update the feed it would require first calling `disableProofOfReserveFeed()` 
 
 An alternative solution is to set `delete _bridgeWrapperList[asset]` in `enableProofofReserveFeed()`.
 This will delete any residual values from previous calls to `enableProofOfReserveFeedWithBridgeWrapper()`.
-
-
-

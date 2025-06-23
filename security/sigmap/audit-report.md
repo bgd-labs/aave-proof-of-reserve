@@ -17,7 +17,7 @@ project.
 The review covers the introduction of the Proof of Reserve functionality.
 The review is targeted at commit [23a1340](https://github.com/bgd-labs/aave-proof-of-reserve/tree/23a13401162a259495deacd46ee743510c382ca6).
 
-Proof of Reserve is a risk mitigation technique. 
+Proof of Reserve is a risk mitigation technique.
 The system uses a Chainlink oracle to fetch quantity of the underlying asset stored by the bridge.
 Using the total supply of the bridged ERC20 token it may then determine if the bridged token is fully backed by the underlying token.
 
@@ -27,18 +27,18 @@ The emergency action will disable all borrowing in the `LendingPool` if any brid
 ### Scope
 
 The scope of the review covers the following components:
-* `AvaxBridgeWrapper.sol`
-* `ProofOrReserveAggregator.sol`
-* `ProofOfReserveExecutorBase.sol`
-* `ProofOfReserveExecutorV2.sol`
-* `ProofOfReserveExecutorV3.sol`
-* `ProofOfReserveKeeper.sol`
-* Integration of the contracts with `LendingPool` and `PoolConfigurator` for both Aave V2 and V3.
+
+- `AvaxBridgeWrapper.sol`
+- `ProofOrReserveAggregator.sol`
+- `ProofOfReserveExecutorBase.sol`
+- `ProofOfReserveExecutorV2.sol`
+- `ProofOfReserveExecutorV3.sol`
+- `ProofOfReserveKeeper.sol`
+- Integration of the contracts with `LendingPool` and `PoolConfigurator` for both Aave V2 and V3.
 
 ### Summary of Findings
 
 One low, one informational and two miscellaneous findings were found during the review.
-
 
 ## 1. LOW: Race condition between malicious bridge operator and Chainlink Keeper
 
@@ -55,12 +55,11 @@ The solution works as `IERC20(assetAddress).totalSupply()` will be updated immed
 
 If this solution is implemented then the Chainlink Keeper would no longer be required as the logic would occur on every borrow.
 
-
 ## 2. INFORMATIONAL: Delayed or malfunctioning Chainlink Oracle will cause all borrowing to be paused on `LendingPool`
 
 If a Chainlink Oracle ceases to submit updates then the Keeper will trigger `executeEmergencyAction()` in turn pausing the borrowing of all reserves in the `LendingPool`.
 
-The Keeper is triggered if `areAllReservesBacked()` is `false`, which will arise if the following condition is `true`. 
+The Keeper is triggered if `areAllReservesBacked()` is `false`, which will arise if the following condition is `true`.
 
 ```solidity
 // ProofOfReserveAggregator.sol #63
@@ -76,14 +75,13 @@ Therefore, the keeper will trigger `executeEmergencyAction()` and pause all borr
 
 This issue is raised as information as it is by design of the protocol.
 The protocol is unable to determine if the issue is caused by a malfunctioning Chainlink Oracle or a malicious bridge which is not adequately backed.
-However, the testing team has deemed a low likelihood of this issue occurring. 
+However, the testing team has deemed a low likelihood of this issue occurring.
 It may occur if the Chainlink Oracle contract runs out of LINK tokens, there is a malformed update or a major bug in the Chainlink protocol.
 
 **Resolution**
 
 Consider implementing off-chain monitoring to validate the status of the Chainlink Oracle.
 Furthermore, consider preparing a set of steps which may be rapidly implemented, to enable borrowing in the `LendingPool` when `executeEmergencyAction()` is triggered incorrectly.
-
 
 ## Miscellaneous
 
@@ -106,9 +104,9 @@ It is significantly cheaper to use `immutable` values which are stored in the co
 The following variables are never modified except for in the constuctor.
 Hence, they may be safely changed to `immutable`.
 
-* `ProofOfReserveExecutorBase._proofOfReserveAggregator`
-* `ProofOfReserveExecutorV2._addressesProvider`
-* `ProofOfReserveExecutorV3._addressesProvider`
+- `ProofOfReserveExecutorBase._proofOfReserveAggregator`
+- `ProofOfReserveExecutorV2._addressesProvider`
+- `ProofOfReserveExecutorV3._addressesProvider`
 
 ### G2. `ProofOfReserveExecutorBase.sol` cache storage array length
 

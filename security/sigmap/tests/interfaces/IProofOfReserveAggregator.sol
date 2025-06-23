@@ -20,28 +20,28 @@ interface IProofOfReserveAggregator {
    * @param asset the address of the asset
    * @return address proof of reserve feed address
    */
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address);
+  function getProofOfReserveFeedForAsset(
+    address asset
+  ) external view returns (address);
 
   /**
    * @dev gets the address of the bridge wrapper for the passed asset.
    * @param asset the address of the asset
    * @return address the address of the bridge wrapper
    */
-  function getBridgeWrapperForAsset(address asset)
-    external
-    view
-    returns (address);
+  function getBridgeWrapperForAsset(
+    address asset
+  ) external view returns (address);
 
   /**
    * @dev add the asset and corresponding proof of reserve feed to the registry.
    * @param asset the address of the asset
    * @param proofOfReserveFeed the address of the proof of reserve aggregator feed
    */
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
-    external;
+  function enableProofOfReserveFeed(
+    address asset,
+    address proofOfReserveFeed
+  ) external;
 
   /**
    * @dev add the asset, bridge wrapper and corresponding proof of reserve feed to the registry
@@ -68,8 +68,7 @@ interface IProofOfReserveAggregator {
    * @return bool true if all of the assets are backed.
    * @return flags of the unbacked assets.
    */
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory);
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory);
 }
