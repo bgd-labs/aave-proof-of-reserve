@@ -55,8 +55,8 @@ contract ProofOfReserveAggregatorTest is Test {
       PROOF_OF_RESERVE_FEED_1
     );
     proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        ASSET_1
-      );
+      ASSET_1
+    );
     assertEq(proofOfReserveFeed, PROOF_OF_RESERVE_FEED_1);
   }
 
@@ -66,7 +66,11 @@ contract ProofOfReserveAggregatorTest is Test {
       PROOF_OF_RESERVE_FEED_1
     );
 
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.FeedAlreadyEnabled.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IProofOfReserveAggregator.FeedAlreadyEnabled.selector
+      )
+    );
     proofOfReserveAggregator.enableProofOfReserveFeed(ASSET_1, PORF_AAVE);
 
     address proofOfReserveFeed = proofOfReserveAggregator
@@ -75,7 +79,9 @@ contract ProofOfReserveAggregatorTest is Test {
   }
 
   function testProofOfReserveFeedIsEnabledWithZeroAsserAddress() public {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeed(
       address(0),
       PROOF_OF_RESERVE_FEED_1
@@ -83,12 +89,21 @@ contract ProofOfReserveAggregatorTest is Test {
   }
 
   function testProofOfReserveFeedIsEnabledWithZeroPoRAddress() public {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeed(ASSET_1, address(0));
   }
 
   function testProofOfReserveFeedIsEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
+    vm.expectRevert(
+      bytes(
+        abi.encodeWithSelector(
+          Ownable.OwnableUnauthorizedAccount.selector,
+          address(0)
+        )
+      )
+    );
     vm.prank(address(0));
     proofOfReserveAggregator.enableProofOfReserveFeed(
       ASSET_1,
@@ -115,8 +130,8 @@ contract ProofOfReserveAggregatorTest is Test {
       address(bridgeWrapper)
     );
     proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        AAVEE
-      );
+      AAVEE
+    );
     assertEq(proofOfReserveFeed, PORF_AAVE);
   }
 
@@ -128,7 +143,11 @@ contract ProofOfReserveAggregatorTest is Test {
       PROOF_OF_RESERVE_FEED_1
     );
 
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.FeedAlreadyEnabled.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IProofOfReserveAggregator.FeedAlreadyEnabled.selector
+      )
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
       PORF_AAVE,
@@ -144,7 +163,9 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroAsserAddress()
     public
   {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       address(0),
       PORF_AAVE,
@@ -155,7 +176,9 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroPoRAddress()
     public
   {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
       address(0),
@@ -166,7 +189,9 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWithZeroBridgeAddress()
     public
   {
-    vm.expectRevert(abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector));
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveAggregator.ZeroAddress.selector)
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
       PORF_AAVE,
@@ -177,7 +202,14 @@ contract ProofOfReserveAggregatorTest is Test {
   function testProofOfReserveFeedWithBridgeWrapperIsEnabledWhenNotOwner()
     public
   {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
+    vm.expectRevert(
+      bytes(
+        abi.encodeWithSelector(
+          Ownable.OwnableUnauthorizedAccount.selector,
+          address(0)
+        )
+      )
+    );
     vm.prank(address(0));
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AAVEE,
@@ -200,13 +232,20 @@ contract ProofOfReserveAggregatorTest is Test {
 
     proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
     proofOfReserveFeed = proofOfReserveAggregator.getProofOfReserveFeedForAsset(
-        ASSET_1
-      );
+      ASSET_1
+    );
     assertEq(proofOfReserveFeed, address(0));
   }
 
   function testProoOfReserveFeedIsDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
+    vm.expectRevert(
+      bytes(
+        abi.encodeWithSelector(
+          Ownable.OwnableUnauthorizedAccount.selector,
+          address(0)
+        )
+      )
+    );
     vm.prank(address(0));
     proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
   }

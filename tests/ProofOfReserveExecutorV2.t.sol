@@ -84,7 +84,14 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetsAreEnabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
+    vm.expectRevert(
+      bytes(
+        abi.encodeWithSelector(
+          Ownable.OwnableUnauthorizedAccount.selector,
+          address(0)
+        )
+      )
+    );
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);
@@ -123,7 +130,14 @@ contract ProofOfReserveExecutorV2Test is Test {
   }
 
   function testAssetAreDisabledWhenNotOwner() public {
-    vm.expectRevert(bytes(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0))));
+    vm.expectRevert(
+      bytes(
+        abi.encodeWithSelector(
+          Ownable.OwnableUnauthorizedAccount.selector,
+          address(0)
+        )
+      )
+    );
     vm.prank(address(0));
 
     address[] memory assets = new address[](1);

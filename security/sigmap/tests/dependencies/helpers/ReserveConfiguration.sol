@@ -14,16 +14,9 @@ library ReserveConfiguration {
   uint256 constant STABLE_BORROWING_MASK =      0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7FFFFFFFFFFFFFF; // prettier-ignore
   uint256 constant RESERVE_FACTOR_MASK =        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFF; // prettier-ignore
 
-  function getFlags(ReserveConfigurationMap memory configuration)
-    internal
-    pure
-    returns (
-      bool,
-      bool,
-      bool,
-      bool
-    )
-  {
+  function getFlags(
+    ReserveConfigurationMap memory configuration
+  ) internal pure returns (bool, bool, bool, bool) {
     uint256 dataLocal = configuration.data;
 
     return (
@@ -39,11 +32,9 @@ library ReserveConfiguration {
    * @param self The reserve configuration
    * @return The borrowing state
    **/
-  function getBorrowingEnabled(ReserveConfigurationMap memory self)
-    internal
-    pure
-    returns (bool)
-  {
+  function getBorrowingEnabled(
+    ReserveConfigurationMap memory self
+  ) internal pure returns (bool) {
     return (self.data & ~BORROWING_MASK) != 0;
   }
 }

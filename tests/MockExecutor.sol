@@ -7,7 +7,9 @@ pragma solidity ^0.8.0;
  */
 contract MockExecutor {
   function execute(address payload) public {
-    (bool success, ) = address(payload).delegatecall(abi.encodeWithSignature('execute()'));
+    (bool success, ) = address(payload).delegatecall(
+      abi.encodeWithSignature('execute()')
+    );
     require(success, 'PROPOSAL_EXECUTION_FAILED');
   }
 }

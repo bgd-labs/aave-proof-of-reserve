@@ -419,8 +419,10 @@ interface ILendingPool {
    * @param asset The address of the underlying asset deposited
    * @param useAsCollateral `true` if the user wants to use the deposit as collateral, `false` otherwise
    **/
-  function setUserUseReserveAsCollateral(address asset, bool useAsCollateral)
-    external;
+  function setUserUseReserveAsCollateral(
+    address asset,
+    bool useAsCollateral
+  ) external;
 
   /**
    * @dev Function to liquidate a non-healthy position collateral-wise, with Health Factor below 1
@@ -478,7 +480,9 @@ interface ILendingPool {
    * @return ltv the loan to value of the user
    * @return healthFactor the current health factor of the user
    **/
-  function getUserAccountData(address user)
+  function getUserAccountData(
+    address user
+  )
     external
     view
     returns (
@@ -510,50 +514,45 @@ interface ILendingPool {
    * @param asset The address of the underlying asset of the reserve
    * @return The configuration of the reserve
    **/
-  function getConfiguration(address asset)
-    external
-    view
-    returns (DataTypesV2.ReserveConfigurationMap memory);
+  function getConfiguration(
+    address asset
+  ) external view returns (DataTypesV2.ReserveConfigurationMap memory);
 
   /**
    * @dev Returns the configuration of the user across all the reserves
    * @param user The user address
    * @return The configuration of the user
    **/
-  function getUserConfiguration(address user)
-    external
-    view
-    returns (DataTypesV2.UserConfigurationMap memory);
+  function getUserConfiguration(
+    address user
+  ) external view returns (DataTypesV2.UserConfigurationMap memory);
 
   /**
    * @dev Returns the normalized income normalized income of the reserve
    * @param asset The address of the underlying asset of the reserve
    * @return The reserve's normalized income
    */
-  function getReserveNormalizedIncome(address asset)
-    external
-    view
-    returns (uint256);
+  function getReserveNormalizedIncome(
+    address asset
+  ) external view returns (uint256);
 
   /**
    * @dev Returns the normalized variable debt per unit of asset
    * @param asset The address of the underlying asset of the reserve
    * @return The reserve normalized variable debt
    */
-  function getReserveNormalizedVariableDebt(address asset)
-    external
-    view
-    returns (uint256);
+  function getReserveNormalizedVariableDebt(
+    address asset
+  ) external view returns (uint256);
 
   /**
    * @dev Returns the state and configuration of the reserve
    * @param asset The address of the underlying asset of the reserve
    * @return The state of the reserve
    **/
-  function getReserveData(address asset)
-    external
-    view
-    returns (DataTypesV2.ReserveData memory);
+  function getReserveData(
+    address asset
+  ) external view returns (DataTypesV2.ReserveData memory);
 
   function finalizeTransfer(
     address asset,
@@ -751,24 +750,30 @@ interface ILendingPoolConfigurator {
    * @param asset The address of the underlying asset of the reserve to be updated
    * @param implementation The address of the new aToken implementation
    **/
-  function updateStableDebtToken(address asset, address implementation)
-    external;
+  function updateStableDebtToken(
+    address asset,
+    address implementation
+  ) external;
 
   /**
    * @dev Updates the variable debt token implementation for the asset
    * @param asset The address of the underlying asset of the reserve to be updated
    * @param implementation The address of the new aToken implementation
    **/
-  function updateVariableDebtToken(address asset, address implementation)
-    external;
+  function updateVariableDebtToken(
+    address asset,
+    address implementation
+  ) external;
 
   /**
    * @dev Enables borrowing on a reserve
    * @param asset The address of the underlying asset of the reserve
    * @param stableBorrowRateEnabled True if stable borrow rate needs to be enabled by default on this reserve
    **/
-  function enableBorrowingOnReserve(address asset, bool stableBorrowRateEnabled)
-    external;
+  function enableBorrowingOnReserve(
+    address asset,
+    bool stableBorrowRateEnabled
+  ) external;
 
   /**
    * @dev Disables borrowing on a reserve
