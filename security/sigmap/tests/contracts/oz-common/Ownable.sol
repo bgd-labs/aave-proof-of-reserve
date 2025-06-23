@@ -21,7 +21,10 @@ import './Context.sol';
 abstract contract Ownable is Context {
   address private _owner;
 
-  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+  event OwnershipTransferred(
+    address indexed previousOwner,
+    address indexed newOwner
+  );
 
   /**
    * @dev Initializes the contract setting the deployer as the initial owner.

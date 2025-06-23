@@ -8,7 +8,7 @@ import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainli
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
- * @title ProofOfReserveAggregator 
+ * @title ProofOfReserveAggregator
  * @notice This contract maintains a list of assets, their proof of reserve feeds,
  * and their bridge wrapper (if applicable), which verifies whether the asset is backed
  * by checking its total supply and the corresponding PoR feed's answer.
@@ -24,29 +24,28 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   constructor() Ownable(msg.sender) {}
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getProofOfReserveFeedForAsset(
+    address asset
+  ) external view returns (address) {
     return _proofOfReserveList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getBridgeWrapperForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getBridgeWrapperForAsset(
+    address asset
+  ) external view returns (address) {
     return _bridgeWrapperList[asset];
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
-    external
-    onlyOwner
-  {
-    require(asset != address(0) && proofOfReserveFeed != address(0), ZeroAddress());
+  function enableProofOfReserveFeed(
+    address asset,
+    address proofOfReserveFeed
+  ) external onlyOwner {
+    require(
+      asset != address(0) && proofOfReserveFeed != address(0),
+      ZeroAddress()
+    );
     require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
 
     _proofOfReserveList[asset] = proofOfReserveFeed;
@@ -65,7 +64,9 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
     address bridgeWrapper
   ) external onlyOwner {
     require(
-      asset != address(0) && proofOfReserveFeed != address(0) && bridgeWrapper != address(0),
+      asset != address(0) &&
+        proofOfReserveFeed != address(0) &&
+        bridgeWrapper != address(0),
       ZeroAddress()
     );
     require(_proofOfReserveList[asset] == address(0), FeedAlreadyEnabled());
@@ -89,11 +90,9 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory)
-  {
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory) {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areReservesBacked = true;
 

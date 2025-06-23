@@ -18,18 +18,19 @@ interface IProofOfReserveAggregator {
    * @dev add the asset and corresponding proof of reserve feed to the registry.
    * @param asset the address of the asset
    */
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address);
+  function getProofOfReserveFeedForAsset(
+    address asset
+  ) external view returns (address);
 
   /**
    * @dev add the asset and corresponding proof of reserve feed to the registry.
    * @param asset the address of the asset
    * @param proofOfReserveFeed the address of the proof of reserve aggregator feed
    */
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed)
-    external;
+  function enableProofOfReserveFeed(
+    address asset,
+    address proofOfReserveFeed
+  ) external;
 
   /**
    * @dev delete the asset and the proof of reserve feed from the registry.
@@ -41,8 +42,7 @@ interface IProofOfReserveAggregator {
    * @dev returns if all the assets that have been passed are backed;
    * @param assets list of the assets to check
    */
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory);
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory);
 }
