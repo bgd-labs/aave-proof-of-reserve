@@ -27,9 +27,10 @@ contract AvaxBridgeWrapperTest is Test {
     checkTotalSupplyAndMetadata(DAIE, DAIE_DEPRECATED);
   }
 
-  function checkTotalSupplyAndMetadata(address token, address deprecatedToken)
-    private
-  {
+  function checkTotalSupplyAndMetadata(
+    address token,
+    address deprecatedToken
+  ) private {
     // Arrange
     IERC20Metadata bridge = IERC20Metadata(token);
     IERC20Metadata deprecatedBridge = IERC20Metadata(deprecatedToken);

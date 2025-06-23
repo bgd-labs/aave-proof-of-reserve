@@ -5,12 +5,12 @@ interface IProofOfReserveAggregator {
   struct AssetPoRData {
     /// @notice Chainlink Proof of Reserve feed address for a given asset
     address feed;
-    /// @notice Bridge wrapper address for a given asset 
+    /// @notice Bridge wrapper address for a given asset
     address bridgeWrapper;
     /// @notice Margin for a given asset
     uint16 margin;
   }
-  
+
   /**
    * @notice Event is emitted whenever a Proof of Reserve feed is enabled or disabled for an `asset`
    * @param asset The address of the asset
@@ -38,13 +38,13 @@ interface IProofOfReserveAggregator {
   error FeedAlreadyEnabled();
 
   /**
-   * 
+   *
    * @dev Attempted to set the margin to an asset not enabled.
    */
   error AssetNotEnabled();
 
   /**
-   * 
+   *
    * @dev Attempted to set the margin higher than allowed.
    */
   error InvalidMargin();
@@ -55,10 +55,9 @@ interface IProofOfReserveAggregator {
    * @param asset The address of the `asset` whose proof of reserve feed should be returned.
    * @return The address of the proof of reserve feed.
    */
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address);
+  function getProofOfReserveFeedForAsset(
+    address asset
+  ) external view returns (address);
 
   /**
    * @notice Returns the address of the bridge wrapper for a given asset.
@@ -66,30 +65,30 @@ interface IProofOfReserveAggregator {
    * @param asset The address of the `asset` whose bridge wrapper should be returned.
    * @return The address of the bridge wrapper.
    */
-  function getBridgeWrapperForAsset(address asset)
-    external
-    view
-    returns (address);
+  function getBridgeWrapperForAsset(
+    address asset
+  ) external view returns (address);
 
   /**
    * @notice Returns the acceptable margin in which the total reserves/supply of the asset
-   * can exceed the PoR feeds answer. 
+   * can exceed the PoR feeds answer.
    * @dev returns zero if the given asset was not set.
    * @param asset The address of the `asset` whose bridge wrapper should be returned.
-   * @return The margin allowed for the given asset in Bps 
+   * @return The margin allowed for the given asset in Bps
    */
-  function getMarginForAsset(address asset)
-    external
-    view
-    returns (uint16);
+  function getMarginForAsset(address asset) external view returns (uint16);
 
   /**
    * @notice Sets the Proof of reserve feed for a given `asset` and its `margin`.
    * @param asset The address of `asset` whose PoR will be enabled.
    * @param proofOfReserveFeed The address of the proof of reserve feed of the `asset`
-   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.  
+   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
    */
-  function enableProofOfReserveFeed(address asset, address proofOfReserveFeed, uint16 margin) external;
+  function enableProofOfReserveFeed(
+    address asset,
+    address proofOfReserveFeed,
+    uint16 margin
+  ) external;
 
   /**
    * @notice Sets the Proof of reserve feed for a given `asset` with a bridge wrapper and its `margin`.
@@ -97,7 +96,7 @@ interface IProofOfReserveAggregator {
    * @param asset The address of the `asset` whose PoR and bridge wrapper will be enabled.
    * @param proofOfReserveFeed The address of the proof of reserve aggregator feed of the `asset`.
    * @param bridgeWrapper The bridge wrapper of the `asset`, which is used to retrieve the total supply.
-   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.  
+   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
    */
   function enableProofOfReserveFeedWithBridgeWrapper(
     address asset,
@@ -127,8 +126,7 @@ interface IProofOfReserveAggregator {
    * @return bool True if all of the assets are backed, false otherwise.
    * @return List of flags indicating whether the asset is backed or not.
    */
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory);
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory);
 }

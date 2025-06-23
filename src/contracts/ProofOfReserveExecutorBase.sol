@@ -9,7 +9,7 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
 
 /**
  * @title ProofOfReserveExecutorBase
- * @notice An abstract pool-specific contract that maintains a list of assets whose total supply 
+ * @notice An abstract pool-specific contract that maintains a list of assets whose total supply
  * will be verified against their proof of reserve feed data fetched from the ProofOfReserveAggregator contract.
  * @author BGD Labs
  */

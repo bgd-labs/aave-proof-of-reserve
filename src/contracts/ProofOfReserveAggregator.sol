@@ -9,7 +9,7 @@ import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainli
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
- * @title ProofOfReserveAggregator 
+ * @title ProofOfReserveAggregator
  * @notice This contract maintains a list of assets, their proof of reserve feeds,
  * and their bridge wrapper (if applicable), which verifies whether the asset is backed
  * by checking its total supply and the corresponding PoR feed's answer.
@@ -29,33 +29,25 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   constructor(address owner) Ownable(owner) {}
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getProofOfReserveFeedForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getProofOfReserveFeedForAsset(
+    address asset
+  ) external view returns (address) {
     return _assetsData[asset].feed;
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getBridgeWrapperForAsset(address asset)
-    external
-    view
-    returns (address)
-  {
+  function getBridgeWrapperForAsset(
+    address asset
+  ) external view returns (address) {
     return _assetsData[asset].bridgeWrapper;
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function getMarginForAsset(address asset)
-    external
-    view
-    returns (uint16)
-  {
+  function getMarginForAsset(address asset) external view returns (uint16) {
     return _assetsData[asset].margin;
   }
 
-/// @inheritdoc IProofOfReserveAggregator
+  /// @inheritdoc IProofOfReserveAggregator
   function enableProofOfReserveFeed(
     address asset,
     address proofOfReserveFeed,
@@ -90,15 +82,19 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   /// @inheritdoc IProofOfReserveAggregator
   function disableProofOfReserveFeed(address asset) external onlyOwner {
     delete _assetsData[asset];
-    emit ProofOfReserveFeedStateChanged(asset, address(0), address(0), 0, false);
+    emit ProofOfReserveFeedStateChanged(
+      asset,
+      address(0),
+      address(0),
+      0,
+      false
+    );
   }
 
   /// @inheritdoc IProofOfReserveAggregator
-  function areAllReservesBacked(address[] calldata assets)
-    external
-    view
-    returns (bool, bool[] memory)
-  {
+  function areAllReservesBacked(
+    address[] calldata assets
+  ) external view returns (bool, bool[] memory) {
     bool[] memory unbackedAssetsFlags = new bool[](assets.length);
     bool areReservesBacked = true;
 
@@ -125,7 +121,10 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     uint16 margin,
     address bridgeWrapper
   ) internal {
-    require(asset != address(0) && proofOfReserveFeed != address(0), ZeroAddress());
+    require(
+      asset != address(0) && proofOfReserveFeed != address(0),
+      ZeroAddress()
+    );
     require(margin <= MAX_MARGIN, InvalidMargin());
 
     _assetsData[asset] = AssetPoRData({
@@ -150,17 +149,18 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
    * @return True if the reserves passed in the total supply validation, false otherwise.
    */
   function _isReserveBacked(address asset) internal view returns (bool) {
-    AssetPoRData memory assetData  = _assetsData[asset];
+    AssetPoRData memory assetData = _assetsData[asset];
     if (assetData.feed != address(0)) {
-      (, int256 answer, , , ) = AggregatorInterface(assetData.feed).latestRoundData();
+      (, int256 answer, , , ) = AggregatorInterface(assetData.feed)
+        .latestRoundData();
 
       if (answer < 0) {
         return false;
       }
 
       uint256 totalSupply = assetData.bridgeWrapper != address(0)
-      ? IERC20(assetData.bridgeWrapper).totalSupply()
-      : IERC20(asset).totalSupply();
+        ? IERC20(assetData.bridgeWrapper).totalSupply()
+        : IERC20(asset).totalSupply();
 
       uint256 excess = _percentMulDivUp(uint256(answer), assetData.margin);
 
@@ -171,7 +171,10 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
     return true;
   }
 
-  function _percentMulDivUp(uint256 value, uint256 percent) internal pure returns (uint256) {
+  function _percentMulDivUp(
+    uint256 value,
+    uint256 percent
+  ) internal pure returns (uint256) {
     return value.mulDiv(percent, PERCENTAGE_FACTOR, Math.Rounding.Ceil);
   }
 }
