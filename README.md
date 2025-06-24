@@ -38,21 +38,78 @@ The ProofOfReserveAggregator is the contract responsible for keeping the list of
 
 #### Access Control
 
--
+The contract uses OZ ownable for access control, which will be assigned to the Aave governance. The owner's role is to configure new assets, their Chainlink Proof of Reserve feeds, their margin, and if necessary, their bridge wrapper. It's also possible to remove assets.
 
 #### Key Functions
 
--
+- **`areAllReservesBacked`**
+
+  - **purpose**: It flags whether all provided assets with Proof of Reserve enabled are still backed or not.
+  - **functionality**:
+    - Permissionless view function that iterates through a list of assets and checks the backing status of each.
+    - It verifies whether the PoR feed’s latest answer is non-negative and whether the asset’s total supply does not exceed the feed’s reported supply plus a configured margin. If either condition fails, the asset is flagged as unbacked.
+    - Returns a boolean indicating if all reserves are backed, and a list flagging each asset's backing status.
+
+- **`enableProofOfReserveFeed`**
+
+  - **purpose**: Adds a new reserve and its Proof of Reserve configuration with Chainlink PoR feed and margin.
+  - **functionality**:
+    - Only the owner can call this function.
+      It validates that this asset PoR was not previously configured, the addresses of the asset and feed are not the zero address, and the margin does not exceed the maximum margin allowed.
+    - Stores in the assetsData mapping the feed address and margin.
+
+- **`enableProofOfReserveFeedWithBridgeWrapper`**
+
+  - **purpose**: Adds a new reserve with a bridge wrapper and its Proof of Reserve configuration with Chainlink PoR feed and margin.
+  - **functionality**:
+    - Only the owner can call this function.
+    - It validates that this asset PoR was not previously configured, the addresses of the asset, feed and bridge wrapper are not the zero address, and the margin does not exceed the maximum margin allowed.
+    - Stores in the assetsData mapping the feed address and margin.
+
+- **`setReserveMargin`**
+
+  - **purpose**: Sets a new margin for a reserve that is already enabled.
+  - **functionality**:
+    - Only the owner can call this function.
+    - Requires that the reserve already has a PoR feed configured and the new margin does not exceed the maximum margin allowed.
+    - Stores in the assetsData mapping the new margin while keeping the same parameters for the feed and bridge wrapper.
+
+- **`disableProofOfReserveFeed`**
+
+  - **purpose**: Removes a reserve with PoR enabled.
+  - **functionality**:
+    - Only the owner can call this function.
+    - Deletes the asset’s PoR feed, margin and bridge wrapper from storage.
+
+<br>
 
 ### `ProofOfReserveExecutor`
 
 #### Access Control
 
--
+- The contract uses OZ ownable for access control, which will be assigned to the Aave governance. The owner's role is to enable or disable assets that will be monitored by the Executor.
 
 #### Key Functions
 
--
+- **`isEmergencyActionPossible`**
+
+  - **purpose**:
+  - **functionality**:
+
+- **`executeEmergencyAction`**
+
+  - **purpose**:
+  - **functionality**:
+
+- **`enableAssets`**
+
+  - **purpose**:
+  - **functionality**:
+
+- **`disableAssets`**
+
+  - **purpose**:
+  - **functionality**:
 
 # SetUp
 
