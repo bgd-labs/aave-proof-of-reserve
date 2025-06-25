@@ -32,6 +32,10 @@ abstract contract PoRBaseTest is Test {
   uint256 public assetsHolderPrivateKey = 0x4000;
   address public assetsHolder = vm.addr(assetsHolderPrivateKey);
 
+  uint16 public constant DEFAULT_MARGIN = 5_00;
+
+  bool isAggregatorTest;
+
   function setUp() public virtual {}
 
   function _deployTokens() internal {
@@ -67,7 +71,7 @@ abstract contract PoRBaseTest is Test {
     vm.startPrank(defaultAdmin);
 
     // deploy PoR
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
+    proofOfReserveAggregator = new ProofOfReserveAggregator(defaultAdmin);
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       address(AaveV2Ethereum.POOL_ADDRESSES_PROVIDER),
       address(proofOfReserveAggregator)
@@ -111,16 +115,19 @@ abstract contract PoRBaseTest is Test {
 
     proofOfReserveAggregator.enableProofOfReserveFeed(
       AaveV3EthereumAssets.USDT_UNDERLYING,
-      feed_1
+      feed_1,
+      DEFAULT_MARGIN
     );
     proofOfReserveAggregator.enableProofOfReserveFeed(
       AaveV3EthereumAssets.USDC_UNDERLYING,
-      feed_2
+      feed_2,
+      DEFAULT_MARGIN
     );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       AaveV3EthereumAssets.WBTC_UNDERLYING,
       feed_3,
-      bridgeWrapper
+      bridgeWrapper,
+      DEFAULT_MARGIN
     );
 
     // set feeds answer
@@ -138,18 +145,28 @@ abstract contract PoRBaseTest is Test {
   }
 
   function _setUpAggregatorTest() internal {
+    isAggregatorTest = true;
     _deployTokens();
     _deployFeeds();
 
     // deploy aggregator and enable assets PoR
     vm.startPrank(defaultAdmin);
-    proofOfReserveAggregator = new ProofOfReserveAggregator();
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset_1, feed_1);
-    proofOfReserveAggregator.enableProofOfReserveFeed(asset_2, feed_2);
+    proofOfReserveAggregator = new ProofOfReserveAggregator(defaultAdmin);
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      asset_1,
+      feed_1,
+      DEFAULT_MARGIN
+    );
+    proofOfReserveAggregator.enableProofOfReserveFeed(
+      asset_2,
+      feed_2,
+      DEFAULT_MARGIN
+    );
     proofOfReserveAggregator.enableProofOfReserveFeedWithBridgeWrapper(
       current_asset_3,
       feed_3,
-      bridgeWrapper
+      bridgeWrapper,
+      DEFAULT_MARGIN
     );
     vm.stopPrank();
   }
@@ -160,7 +177,11 @@ abstract contract PoRBaseTest is Test {
   }
 
   function _mintUnbacked(address asset, uint256 amount) internal {
-    deal(asset, assetsHolder, amount, true);
+    if (isAggregatorTest) {
+      MockERC20(asset).mint(assetsHolder, amount);
+    } else {
+      deal(asset, assetsHolder, amount, true);
+    }
   }
 
   function _burn(address asset, uint256 amount) internal {
