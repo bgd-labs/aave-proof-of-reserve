@@ -123,7 +123,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
     proofOfReserveExecutorV3.disableAssets(assets);
   }
 
-  function _skipEnabledAssets(address[] memory assets) internal view {
+  function _skipEnabledAssets(address[] memory assets) internal pure {
     for (uint256 i = 0; i < assets.length; i++) {
       vm.assume(assets[i] != AaveV3EthereumAssets.USDT_UNDERLYING);
       vm.assume(assets[i] != AaveV3EthereumAssets.USDC_UNDERLYING);
