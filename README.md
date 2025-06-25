@@ -55,7 +55,7 @@ The contract uses OZ ownable for access control, which will be assigned to the A
   - **purpose**: Adds a new reserve and its Proof of Reserve configuration with Chainlink PoR feed and margin.
   - **functionality**:
     - Only the owner can call this function.
-      It validates that this asset PoR was not previously configured, the addresses of the asset and feed are not the zero address, and the margin does not exceed the maximum margin allowed.
+    - It validates that this asset PoR was not previously configured, the addresses of the asset and feed are not the zero address, and the margin does not exceed the maximum margin allowed.
     - Stores in the assetsData mapping the feed address and margin.
 
 - **`enableProofOfReserveFeedWithBridgeWrapper`**
@@ -64,7 +64,7 @@ The contract uses OZ ownable for access control, which will be assigned to the A
   - **functionality**:
     - Only the owner can call this function.
     - It validates that this asset PoR was not previously configured, the addresses of the asset, feed and bridge wrapper are not the zero address, and the margin does not exceed the maximum margin allowed.
-    - Stores in the assetsData mapping the feed address and margin.
+    - Stores in the assetsData mapping the bridge wrapper address, feed address and margin.
 
 - **`setReserveMargin`**
 
@@ -93,23 +93,32 @@ The contract uses OZ ownable for access control, which will be assigned to the A
 
 - **`isEmergencyActionPossible`**
 
-  - **purpose**:
+  - **purpose**: Determines whether the emergency action can be performed, with logic specific to each pool.
   - **functionality**:
+    - Permissionless view function that uses the configured ProofOfReserveAggregator to check the collateralization status of the enabled assets in this contract.
+    - For unbacked reserves, it checks whether the reserve is already frozen, and if is not, the emergency action can be triggered.
+    - The Executor V2 includes an additional step that verifies whether any pool V2 reserves are borrowable. If so, the emergency action can also be triggered.
 
 - **`executeEmergencyAction`**
 
-  - **purpose**:
+  - **purpose**: Performs the emergency action, with logic specific to each pool.
   - **functionality**:
+    - Permissionless function that uses the configured ProofOfReserveAggregator to get the collateralization status of the enabled assets in this contract and freeze undercollateralized reserves.
+    - The Executor V2 includes an additional action that turns off borrowing of all pool V2 reserves.
 
 - **`enableAssets`**
 
-  - **purpose**:
+  - **purpose**: Adds a list of reserves to be included in the monitoring and will be eligible for the emergency action.
   - **functionality**:
+    - Only the owner can call this function.
+    - It verifies that the reserve was not enabled before being stored in the assets array.
 
 - **`disableAssets`**
 
-  - **purpose**:
+  - **purpose**: Removes a reserve from the assets list that are monitored by this contract.
   - **functionality**:
+    - Only the owner can call this function.
+    - It verifies if the reserve is enabled and deletes it from the assets array.
 
 # SetUp
 
