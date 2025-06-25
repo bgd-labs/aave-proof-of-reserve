@@ -105,6 +105,9 @@ The contract uses OZ ownable for access control, which will be assigned to the A
   - **functionality**:
     - Permissionless function that uses the configured ProofOfReserveAggregator to get the collateralization status of the enabled assets in this contract and freeze undercollateralized reserves.
     - The Executor V2 includes an additional action that turns off borrowing of all pool V2 reserves.
+    - To Executors be able to perform the emergency action they must be granted pool specific roles:
+      - On V2: a `PROOF_OF_RESERVE_ADMIN` role must be granted to the Executor V2 via the Addresses Provider V2. Additionally, the Lending Pool Configurator must be upgraded to support the `PROOF_OF_RESERVE_ADMIN` role, enabling it to freeze reserves and disable borrowing.
+      - On V3: The `EMERGENCY_ADMIN_ROLE` must be granted to the Executor via the ACL Manager, allowing the Executor V3 to perform the freeze action.
 
 - **`enableAssets`**
 
@@ -119,6 +122,45 @@ The contract uses OZ ownable for access control, which will be assigned to the A
   - **functionality**:
     - Only the owner can call this function.
     - It verifies if the reserve is enabled and deletes it from the assets array.
+
+  <br>
+
+### `AvaxBridgeWrapper`
+
+This contract is specific for the Avalanche network, as several reserves have a deprecated bridge coexisting with the actual one. This bridge wrapper contract is used to return to the ProofOfReserveAggregator the correct total supply of a reserve with deprecated bridges by summing the total supply of the actual and deprecated bridges.
+
+#### Access Control
+
+- The bridge addresses are set in the constructor during the deployment, meaning that this contract does not provide any setters that could change bridge addresses.
+
+#### Key Functions
+
+- **`totalSupply`**
+
+  - **purpose**: Returns the real total supply of a cross-chain reserve.
+  - **functionality**:
+    - Permissionless view function that sums the total supply of the actual and deprecated bridge for the reserve to which this contract was deployed.
+
+  <br>
+
+### `ProofOfReserveKeeper`
+
+This contract is Chainlink Automation compatible, which will execute the emergency action by constantly monitoring the Aave Proof of Reserve system through the Executors.
+
+#### Key Functions
+
+- **`checkUpkeep`**
+  - **purpose**: Getter checked by Chainlink Automation to determine whether an emergency action should be performed by a specific ProofOfReserveExecutor.
+  - **functionality**:
+    - Accepts as input the encoded address of a ProofOfReserveExecutor contract and calls `areAllReservesBacked()` and `isEmergencyActionPossible()` to confirm that if a reserve is undercollateralized the emergency action can be triggered.
+    - Returns true if both conditions are met. False otherwise.
+- **`performUpkeep`**
+
+  - **purpose**: Called by Chainlink Automation after the `checkUpkeep` indicates that the emergency action can be executed.
+  - **functionality**:
+    - Accepts as input the encoded address of a ProofOfReserveExecutor contract in which the emergency action will be performed and calls the `executeEmergencyAction()` function in the specific Executor.
+
+  <br>
 
 # SetUp
 
