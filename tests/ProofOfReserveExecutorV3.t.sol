@@ -126,6 +126,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
     for (uint256 i = 0; i < assets.length; i++) {
       vm.assume(assets[i] != tokenList.usdx);
       vm.assume(assets[i] != tokenList.weth);
+      vm.assume(assets[i] != tokenList.wbtc);
       vm.assume(assets[i] != current_asset_3);
     }
   }
