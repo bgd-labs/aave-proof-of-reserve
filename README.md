@@ -24,7 +24,7 @@ The Aave Proof of Reserve comprises two main components:
 Other components of the Proof of Reserve system:
 
 - `AvaxBridgeWrapper`: A contract-specific for the Avalanche network, it wraps the sum of the total supply of deprecated bridges with the active ones, providing the correct total supply of cross-chain assets.
-- `Keeper`: Chainlink automation that monitors the reserves and can perform emergency actions through the ProofOfReserveExecutor.
+- `ProofOfReserveKeeper`: Chainlink automation that monitors the reserves and can perform emergency actions through the ProofOfReserveExecutor.
 
 <br>
 
