@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
+
 interface IProofOfReserveExecutor {
   /**
    * @notice Event is emitted whenever an `asset` is enabled or disabled.
@@ -19,6 +21,15 @@ interface IProofOfReserveExecutor {
    * @notice Event is emitted whenever the emergency action is activated
    */
   event EmergencyActionExecuted();
+
+  /**
+   * @notice Returns the Aave Proof of Reserve Aggregator for which this `Proof of Reserve Executor` instance is configured.
+   * @return The Proof of Reserve Aggregator address
+   */
+  function PROOF_OF_RESERVE_AGGREGATOR()
+    external
+    view
+    returns (IProofOfReserveAggregator);
 
   /**
    * @notice Returns the list of assets enabled whose total supply will be validated against their PoR feed's answer.

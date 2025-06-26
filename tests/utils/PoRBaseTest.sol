@@ -74,11 +74,13 @@ abstract contract PoRBaseTest is Test {
     proofOfReserveAggregator = new ProofOfReserveAggregator(defaultAdmin);
     proofOfReserveExecutorV2 = new ProofOfReserveExecutorV2(
       address(AaveV2Ethereum.POOL_ADDRESSES_PROVIDER),
-      address(proofOfReserveAggregator)
+      address(proofOfReserveAggregator),
+      defaultAdmin
     );
     proofOfReserveExecutorV3 = new ProofOfReserveExecutorV3(
       address(AaveV3Ethereum.POOL_ADDRESSES_PROVIDER),
-      address(proofOfReserveAggregator)
+      address(proofOfReserveAggregator),
+      defaultAdmin
     );
 
     // deploy bridge wrapper
