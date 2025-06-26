@@ -7,11 +7,13 @@ import {IProofOfReserveExecutor} from '../munged/interfaces/IProofOfReserveExecu
 contract ProofOfReserveExecutorV2Harness is ProofOfReserveExecutorV2 {
   constructor(
     address poolAddressesProviderAddress,
-    address proofOfReserveAggregatorAddress
+    address proofOfReserveAggregatorAddress,
+    address owner
   )
     ProofOfReserveExecutorV2(
       poolAddressesProviderAddress,
-      proofOfReserveAggregatorAddress
+      proofOfReserveAggregatorAddress,
+      owner
     )
   {}
 
