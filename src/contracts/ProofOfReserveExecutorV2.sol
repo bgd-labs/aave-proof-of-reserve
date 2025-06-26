@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
 import {DataTypes, ILendingPoolAddressesProvider, ILendingPool, ILendingPoolConfigurator} from 'aave-address-book/AaveV2.sol';
 import {ProofOfReserveExecutorBase} from './ProofOfReserveExecutorBase.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
+import {EnumerableSet} from 'openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol';
 
 /**
  * @title ProofOfReserveExecutorV2
@@ -14,40 +15,46 @@ import {ReserveConfiguration} from '../helpers/ReserveConfiguration.sol';
  * @author BGD Labs
  */
 contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
+  using EnumerableSet for EnumerableSet.AddressSet;
+
   /// @notice The Aave V2 Pool
-  ILendingPool internal immutable _pool;
+  ILendingPool public immutable POOL;
   /// @notice Aave V2 Pool Configurator
-  ILendingPoolConfigurator internal immutable _configurator;
+  ILendingPoolConfigurator public immutable POOL_CONFIGURATOR;
 
   /**
    * @notice Constructor.
    * @param poolAddressesProviderAddress The address of the Aave's V2 pool addresses provider
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
+   * @param owner The owner address
    */
   constructor(
     address poolAddressesProviderAddress,
-    address proofOfReserveAggregatorAddress
-  ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress) {
+    address proofOfReserveAggregatorAddress,
+    address owner
+  ) ProofOfReserveExecutorBase(proofOfReserveAggregatorAddress, owner) {
     ILendingPoolAddressesProvider addressesProvider = ILendingPoolAddressesProvider(
         poolAddressesProviderAddress
       );
-    _pool = ILendingPool(addressesProvider.getLendingPool());
-    _configurator = ILendingPoolConfigurator(
+    POOL = ILendingPool(addressesProvider.getLendingPool());
+    POOL_CONFIGURATOR = ILendingPoolConfigurator(
       addressesProvider.getLendingPoolConfigurator()
     );
   }
 
   /// @inheritdoc IProofOfReserveExecutor
   function isEmergencyActionPossible() external view override returns (bool) {
-    address[] memory allAssets = _pool.getReservesList();
-    (, bool[] memory unbackedAssetsFlags) = _proofOfReserveAggregator
-      .areAllReservesBacked(_assets);
+    address[] memory allAssets = POOL.getReservesList();
+    address[] memory enabledAssets = _enabledAssets.values();
+
+    (, bool[] memory unbackedAssetsFlags) = PROOF_OF_RESERVE_AGGREGATOR
+      .areAllReservesBacked(enabledAssets);
 
     // check if unbacked reserves are not frozen
-    for (uint256 i; i < _assets.length; ++i) {
+    for (uint256 i; i < enabledAssets.length; ++i) {
       if (unbackedAssetsFlags[i]) {
-        DataTypes.ReserveConfigurationMap memory configuration = _pool
-          .getConfiguration(_assets[i]);
+        DataTypes.ReserveConfigurationMap memory configuration = POOL
+          .getConfiguration(enabledAssets[i]);
 
         if (!ReserveConfiguration.getFrozen(configuration)) {
           return true;
@@ -57,7 +64,7 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
 
     // check if borrowing is enabled for any of the reserves
     for (uint256 i; i < allAssets.length; ++i) {
-      DataTypes.ReserveConfigurationMap memory configuration = _pool
+      DataTypes.ReserveConfigurationMap memory configuration = POOL
         .getConfiguration(allAssets[i]);
 
       if (ReserveConfiguration.getBorrowingEnabled(configuration)) {
@@ -70,22 +77,22 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
 
   /// @inheritdoc IProofOfReserveExecutor
   function executeEmergencyAction() external override {
+    address[] memory enabledAssets = _enabledAssets.values();
     (
       bool areReservesBacked,
       bool[] memory unbackedAssetsFlags
-    ) = _proofOfReserveAggregator.areAllReservesBacked(_assets);
+    ) = PROOF_OF_RESERVE_AGGREGATOR.areAllReservesBacked(enabledAssets);
 
     if (!areReservesBacked) {
       _disableBorrowing();
 
-      uint256 assetsLength = _assets.length;
-
-      for (uint256 i = 0; i < assetsLength; ++i) {
+      for (uint256 i; i < enabledAssets.length; ++i) {
         if (unbackedAssetsFlags[i]) {
+          address asset = enabledAssets[i];
           // freeze reserve
-          _configurator.freezeReserve(_assets[i]);
+          POOL_CONFIGURATOR.freezeReserve(asset);
 
-          emit AssetIsNotBacked(_assets[i]);
+          emit AssetIsNotBacked(asset);
         }
       }
 
@@ -97,12 +104,12 @@ contract ProofOfReserveExecutorV2 is ProofOfReserveExecutorBase {
    * @dev disable borrowing for every asset on the pool.
    */
   function _disableBorrowing() internal {
-    address[] memory reservesList = _pool.getReservesList();
+    address[] memory reservesList = POOL.getReservesList();
 
     // disable borrowing for all the reserves on the pool
     for (uint256 i = 0; i < reservesList.length; ++i) {
-      _configurator.disableReserveStableRate(reservesList[i]);
-      _configurator.disableBorrowingOnReserve(reservesList[i]);
+      POOL_CONFIGURATOR.disableReserveStableRate(reservesList[i]);
+      POOL_CONFIGURATOR.disableBorrowingOnReserve(reservesList[i]);
     }
   }
 }

@@ -1,11 +1,12 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.27;
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
 import {IProofOfReserveExecutor} from '../interfaces/IProofOfReserveExecutor.sol';
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
+import {EnumerableSet} from 'openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol';
 
 /**
  * @title ProofOfReserveExecutorBase
@@ -14,83 +15,61 @@ import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator
  * @author BGD Labs
  */
 abstract contract ProofOfReserveExecutorBase is
-  IProofOfReserveExecutor,
-  Ownable
+  Ownable,
+  IProofOfReserveExecutor
 {
-  /// @dev proof of reserve aggregator contract that holds
-  IProofOfReserveAggregator internal immutable _proofOfReserveAggregator;
+  using EnumerableSet for EnumerableSet.AddressSet;
 
-  /// @dev the list of the tokens, which total supply we would check against data of the associated proof of reserve feed
-  address[] internal _assets;
+  /// @inheritdoc IProofOfReserveExecutor
+  IProofOfReserveAggregator public immutable PROOF_OF_RESERVE_AGGREGATOR;
 
-  /// @dev token address = > is it contained in the list
-  mapping(address => bool) internal _assetsState;
+  /// @notice List of assets whose total supply will be validated against their PoR feed's answer on the Aggregator contract.
+  EnumerableSet.AddressSet internal _enabledAssets;
 
   /**
    * @notice Constructor.
    * @param proofOfReserveAggregatorAddress The address of Proof of Reserve aggregator contract
    */
-  constructor(address proofOfReserveAggregatorAddress) Ownable(msg.sender) {
-    _proofOfReserveAggregator = IProofOfReserveAggregator(
+  constructor(
+    address proofOfReserveAggregatorAddress,
+    address owner
+  ) Ownable(owner) {
+    PROOF_OF_RESERVE_AGGREGATOR = IProofOfReserveAggregator(
       proofOfReserveAggregatorAddress
     );
   }
 
   /// @inheritdoc IProofOfReserveExecutor
   function getAssets() external view returns (address[] memory) {
-    return _assets;
+    return _enabledAssets.values();
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function enableAssets(address[] memory assets) external onlyOwner {
-    for (uint256 i = 0; i < assets.length; ++i) {
-      if (!_assetsState[assets[i]]) {
-        _assets.push(assets[i]);
-        _assetsState[assets[i]] = true;
+  function enableAssets(address[] calldata assets) external onlyOwner {
+    for (uint256 i; i < assets.length; ++i) {
+      if (_enabledAssets.add(assets[i])) {
         emit AssetStateChanged(assets[i], true);
       }
     }
   }
 
   /// @inheritdoc IProofOfReserveExecutor
-  function disableAssets(address[] memory assets) external onlyOwner {
-    for (uint256 i = 0; i < assets.length; ++i) {
-      if (_assetsState[assets[i]]) {
-        _deleteAssetFromArray(assets[i]);
-        delete _assetsState[assets[i]];
+  function disableAssets(address[] calldata assets) external onlyOwner {
+    for (uint256 i; i < assets.length; ++i) {
+      if (_enabledAssets.remove(assets[i])) {
         emit AssetStateChanged(assets[i], false);
-      }
-    }
-  }
-
-  /**
-   * @dev delete asset from array.
-   * @param asset the address to delete
-   */
-  function _deleteAssetFromArray(address asset) internal {
-    uint256 assetsLength = _assets.length;
-
-    for (uint256 i = 0; i < assetsLength; ++i) {
-      if (_assets[i] == asset) {
-        if (i != assetsLength - 1) {
-          _assets[i] = _assets[assetsLength - 1];
-        }
-
-        _assets.pop();
-        break;
       }
     }
   }
 
   /// @inheritdoc IProofOfReserveExecutor
   function areAllReservesBacked() external view returns (bool) {
-    if (_assets.length == 0) {
+    if (_enabledAssets.length() == 0) {
       return true;
     }
 
-    (bool areReservesBacked, ) = _proofOfReserveAggregator.areAllReservesBacked(
-      _assets
-    );
+    (bool areReservesBacked, ) = PROOF_OF_RESERVE_AGGREGATOR
+      .areAllReservesBacked(_enabledAssets.values());
 
     return areReservesBacked;
   }

@@ -2,17 +2,28 @@
 pragma solidity ^0.8.0;
 
 interface IProofOfReserveAggregator {
+  struct AssetPoRData {
+    /// @notice Chainlink Proof of Reserve feed address for a given asset
+    address feed;
+    /// @notice Bridge wrapper address for a given asset
+    address bridgeWrapper;
+    /// @notice Margin for a given asset
+    uint16 margin;
+  }
+
   /**
    * @notice Event is emitted whenever a Proof of Reserve feed is enabled or disabled for an `asset`
    * @param asset The address of the asset
    * @param proofOfReserveFeed The address of the PoR feed
    * @param bridgeWrapper The address of the bridgeWrapper, if any.
+   * @param margin The margin allowed in which total reserves/supply can exceed the PoR feed's answer.
    * @param enabled Whether the PoR feed for the asset was turned on or off
    */
   event ProofOfReserveFeedStateChanged(
     address indexed asset,
     address indexed proofOfReserveFeed,
     address indexed bridgeWrapper,
+    uint16 margin,
     bool enabled
   );
 
@@ -25,6 +36,18 @@ interface IProofOfReserveAggregator {
    * @dev Attempted to set feed address to an asset already enabled.
    */
   error FeedAlreadyEnabled();
+
+  /**
+   *
+   * @dev Attempted to set the margin to an asset not enabled.
+   */
+  error AssetNotEnabled();
+
+  /**
+   *
+   * @dev Attempted to set the margin higher than allowed.
+   */
+  error InvalidMargin();
 
   /**
    * @notice Returns the address of the proof of reserve feed for a given asset.
@@ -47,27 +70,48 @@ interface IProofOfReserveAggregator {
   ) external view returns (address);
 
   /**
-   * @notice Sets an `asset` and its corresponding proof of reserve feed address.
-   * @param asset The address of the `asset` whose PoR will be enabled.
-   * @param proofOfReserveFeed the address of the proof of reserve feed of the `asset`.
+   * @notice Returns the acceptable margin in which the total reserves/supply of the asset
+   * can exceed the PoR feeds answer.
+   * @dev returns zero if the given asset was not set.
+   * @param asset The address of the `asset` whose bridge wrapper should be returned.
+   * @return The margin allowed for the given asset in Bps
+   */
+  function getMarginForAsset(address asset) external view returns (uint16);
+
+  /**
+   * @notice Sets the Proof of reserve feed for a given `asset` and its `margin`.
+   * @param asset The address of `asset` whose PoR will be enabled.
+   * @param proofOfReserveFeed The address of the proof of reserve feed of the `asset`
+   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
    */
   function enableProofOfReserveFeed(
     address asset,
-    address proofOfReserveFeed
+    address proofOfReserveFeed,
+    uint16 margin
   ) external;
 
   /**
-   * @notice Sets an `asset`, its corresponding proof of reserve feed, and its bridge wrapper address.
+   * @notice Sets the Proof of reserve feed for a given `asset` with a bridge wrapper and its `margin`.
    * @dev This method should be used for the assets with the existing deprecated bridge.
    * @param asset The address of the `asset` whose PoR and bridge wrapper will be enabled.
    * @param proofOfReserveFeed The address of the proof of reserve aggregator feed of the `asset`.
-   * @param bridgeWrapper The bridge wrapper of the `asset`
+   * @param bridgeWrapper The bridge wrapper of the `asset`, which is used to retrieve the total supply.
+   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
    */
   function enableProofOfReserveFeedWithBridgeWrapper(
     address asset,
     address proofOfReserveFeed,
-    address bridgeWrapper
+    address bridgeWrapper,
+    uint16 margin
   ) external;
+
+  /**
+   * @notice Sets a `margin` for a given `asset`.
+   * @dev This method requires the `asset` to have a PoR already enabled.
+   * @param asset The address of the `asset` whose margin will be defined.
+   * @param margin The acceptable margin in which the total reserves/supply of the asset can exceed the PoR feeds answer.
+   */
+  function setAssetMargin(address asset, uint16 margin) external;
 
   /**
    * @notice Removes a given `asset`, its proof of reserve feed, and its bridge wrapper address.
