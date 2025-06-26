@@ -74,6 +74,19 @@ contract ProofOfReserveExecutorV2Test is PoRBaseTest {
     assertTrue(proofOfReserveExecutorV2.isEmergencyActionPossible());
   }
 
+  function test_configuration() public view {
+    assertEq(address(proofOfReserveExecutorV2.POOL()), address(poolV2));
+    assertEq(
+      address(proofOfReserveExecutorV2.POOL_CONFIGURATOR()),
+      address(poolConfiguratorV2)
+    );
+    assertEq(
+      address(proofOfReserveExecutorV2.PROOF_OF_RESERVE_AGGREGATOR()),
+      address(proofOfReserveAggregator)
+    );
+    assertEq(proofOfReserveExecutorV2.owner(), defaultAdmin);
+  }
+
   function _initPoolReserves() internal override {
     address[] memory assets = proofOfReserveExecutorV2.getAssets();
     // adds assets to the pool reserves list
