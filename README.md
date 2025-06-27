@@ -1,81 +1,166 @@
-# Aave Proof of Reserve overview
+# Aave Proof of Reserve
 
-Repository containing the necessary smart contracts to propose Proof of Reserve for AAVE v2/v3 pools.
+[banner]
 
-Proof-of-Reserve is a system by Chainlink that allows for reliable monitoring of reserve assets, and usage of that data feed directly on-chain. If anomaly will be detected for a single asset, the system will try to apply the highest possible protections on the pool.
+<br>
 
-![proof-of-reserve overview](./proof-of-reserve.png)
+## Proof of Reserve overview
 
-Below is the general flow of the proof of reserve check:
+Proof of Reserve introduces a reliable way of verifying asset collateralization on-chain.
 
-1. Anyone can call publicly opened method executeEmergencyAction() of the Executor for the desired pool.
-2. The Executor asks the Aggregator if any of the reserves is unhealthy at the moment.
-3. Aggregator compares total supply against Chainlink's Proof of Reserve feed for every token enabled in prior.
-4. If at least one reserve is compromised, then
-   - for Aave V2 Executor disables borrowing for every asset on the pool and freezes only the exploited assets.
-   - for V3 the broken asset is freezed.
+The Aave Proof of Reserve system is an extra safeguard for Pool reserves, monitoring the collateralization data published by the [Chainlink Proof of Reserve feeds](https://chain.link/proof-of-reserve) of on-chain, off-chain, and cross-chain backed assets. The system can quickly isolate an undercollateralized reserve, thereby protecting the remaining reserves in the pool.
 
-## Aggregator
+<br>
 
-A common [ProofOfReserveAggregator](./src/contracts/ProofOfReserveAggregator.sol) smart contract, acting as a registry of pairs (asset address, proof of reserve feed address) and also implementing and exposing a areAllReservesBacked() function, which, for a list of asset addresses does the validation of **proof of reserve feed value ≥ total supply of the asset**. If any asset passed on the list of inputs will not fulfill that requirement, the result of areAllReservesBacked() will be false. It is also possible to use the bridge wrapper to get the total supply, if the asset has two bridges on the network.
+## Proof of Reserve key components
 
-This contract is common, to be used by both Aave v2 and v3 systems, each one with different pool logic.
+The Aave Proof of Reserve comprises two main components:
 
-## Executors
+- `ProofOfReserveAggregator`: This contract provides the data of reserves and their Chainlink Proof of Reserve data feed. It flags whether the reserves are collateralized by checking against the data provided by the Chainlink feed.
+- `ProofOfReserveExecutor`: Its role is to monitor and freeze the reserve (or reserves) that the ProofOfReserveAggregator flagged as undercollateralized.
 
-- Each Aave v2 and Aave v3 pools will have their own associated smart contract implementing [ProofOfReserveExecutorBase](./src/contracts/ProofOfReserveExecutorBase.sol), exposing mainly 2 functions:
-  1. areAllReservesBacked(). Returning at any time if all the assets with a proof of reserve feed associated are properly backed.
-  2. executeEmergencyAction(). Callable by anybody and allowing to execute the appropriate protective actions on the Aave pool if areAllReservesBacked() would be returning a false value.
-- The action to be executed on v2 is stopping borrowing of all the assets and freezing only the assets which did not pass proof of reserve validation.
-- on v3 the assets which did not pass proof of reserve validations will be freezed and their LTV will be set to 0.
-- The [ProofOfReserveExecutorV3](./src/contracts/ProofOfReserveExecutorV3.sol) of Aave v3 will have riskAdmin permissions from the Aave v3 protocol, allowing this way to adjust LTV when the defined conditions are met.
-- To allow the [ProofOfReserveExecutorV2](./src/contracts/ProofOfReserveExecutorV2.sol) of Aave v2 to halt borrowing and freeze exploited reserves, as the permissions system on Aave v2 is less granular than in v3, we have added a new role PROOF_OF_RESERVE_ADMIN on the v2 addresses provider smart contract, and updated the pool configurator contract to allow both the pool admin (previously) and the new proof of reserve admin (the ProofOfReserveExecutor of v2) to disable borrowing and freeze reserve.
-- The addition/removal of assets with a proof of reserve will be controlled via the standard Aave governance procedures. Everything else (monitoring if all reserves are backed, execute the emergency action if not) is completely permissionless, algorithmically defined.
+<br>
 
-## Keeper
+Other components of the Proof of Reserve system:
 
-[ProofOfReserveKeeper](./src/contracts/ProofOfReserveKeeper.sol) contract which is compatible with [Chainlink ~~Keeper~~ Automation](https://docs.chain.link/docs/chainlink-automation/introduction/) to add more assurances on the execution timing.
+- `AvaxBridgeWrapper`: A contract-specific for the Avalanche network, it wraps the sum of the total supply of deprecated bridges with the active ones, providing the correct total supply of cross-chain assets.
+- `ProofOfReserveKeeper`: Chainlink automation that monitors the reserves and can perform emergency actions through the ProofOfReserveExecutor.
 
-> `performUpkeep()` won't be executed if it will consume more than 5m gas. Currently gas consumption is about 500k for six assets; eye should be kept on this metric upon adding of every new asset.
+<br>
 
-## AvaxBridgeWrapper
+## Technical overview of the smart contracts
 
-As for several assets on the Avalanche network deprecated bridge co-exist with the actual one, [AvaxBridgeWrapper](./src/contracts/AvaxBridgeWrapper.sol) was implemented to return the sum of supplies.
+![proof-of-reserve contracts overview](./aave-proof-of-reserve-contracts-high-level.png)
 
-# Assets to be protected by PoR
+### `ProofOfReserveAggregator`
 
-| Asset                                                                           |                                                          PoR feed                                                          | Bridge Wrapper |
-| ------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------: | -------------: |
-| [AAVE.e](https://snowtrace.io/token/0x63a72806098bd3d9520cc43356dd78afe5d386d9) |   [0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7](https://snowtrace.io/address/0x14c4c668e34c09e1fba823ad5db47f60aebdd4f7)    | To be deployed |
-| [WETH.e](https://snowtrace.io/token/0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab) | [0xDDaf9290D057BfA12d7576e6dADC109421F31948](https://snowtrace.io/address/0xddaf9290d057bfa12d7576e6dadc109421f31948#code) | To be deployed |
-| [DAI.e](https://snowtrace.io/token/0xd586e7f844cea2f87f50152665bcbc2c279d8d70)  |   [0x976D7fAc81A49FA71EF20694a3C56B9eFB93c30B](https://snowtrace.io/address/0x976d7fac81a49fa71ef20694a3c56b9efb93c30b)    | To be deployed |
-| [LINK.e](https://snowtrace.io/token/0x5947bb275c521040051d82396192181b413227a3) |   [0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6](https://snowtrace.io/address/0x943cef1b112ca9fd7edadc9a46477d3812a382b6)    | To be deployed |
-| [WBTC.e](https://snowtrace.io/token/0x50b7545627a5162f82a992c33b87adc75187b218) |   [0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87](https://snowtrace.io/address/0xebefeaa58636df9b20a4fad78fad8759e6a20e87)    | To be deployed |
-| [BTC.b](https://snowtrace.io/token/0x152b9d0FdC40C096757F570A51E494bd4b943E50)  |   [0x99311B4bf6D8E3D3B4b9fbdD09a1B0F4Ad8e06E9](https://snowtrace.io/address/0x99311b4bf6d8e3d3b4b9fbdd09a1b0f4ad8e06e9)    |              - |
+The ProofOfReserveAggregator is the contract responsible for keeping the list of assets, their Proof of Reserve Chainlink feed, and their bridge wrapper in the case of assets with deprecated bridges. It is mainly used by each ProofOfReserveExecutor to validate whether any of the reserves set in this contract are undercollateralized by checking against its Proof of Reserve feed.
 
-# Deployment
+#### Access Control
 
-1. [DeployProofOfReserveAvax.s.sol](./scripts/DeployProofOfReserveAvax.s.sol): This script will deploy Aggregator, Executors, Keeper, all Bridge Wrappers and two proposal contracts.
-2. [ProposalPayloadProofOfReserve](./src/proposal/ProposalPayloadProofOfReserve.sol) will
+The contract uses OZ ownable for access control, which will be assigned to the Aave governance. The owner's role is to configure new assets, their Chainlink Proof of Reserve feeds, their margin, and if necessary, their bridge wrapper. It's also possible to remove assets.
 
-- enable proof of reserve feeds and assets in Aggregator, ExecutorV2 and ExecutorV3 contracts
-- set ExecutorV3 as the Risk Admin
-- register Chainlink Automation for v2 and v3
+#### Key Functions
 
-3. [UpgradeAaveV2ConfiguratorPayload](./src/proposal/UpgradeAaveV2ConfiguratorPayload.sol) will
+- **`areAllReservesBacked`**
 
-- deploy new implementation of the V2 Pool Configurator contract
-- set ExecutorV2 as PROOF_OF_RESERVE_ADMIN
+  - **purpose**: It flags whether all provided assets with Proof of Reserve enabled are still backed or not.
+  - **functionality**:
+    - Permissionless view function that iterates through a list of assets and checks the backing status of each.
+    - It verifies whether the PoR feed’s latest answer is non-negative and whether the asset’s total supply does not exceed the feed’s reported supply plus a configured margin. If either condition fails, the asset is flagged as unbacked.
+    - Returns a boolean indicating if all reserves are backed, and a list flagging each asset's backing status.
 
-# Security
+- **`enableProofOfReserveFeed`**
 
-Audit reports:
+  - **purpose**: Adds a new reserve and its Proof of Reserve configuration with Chainlink PoR feed and margin.
+  - **functionality**:
+    - Only the owner can call this function.
+    - It validates that this asset PoR was not previously configured, the addresses of the asset and feed are not the zero address, and the margin does not exceed the maximum margin allowed.
+    - Stores in the assetsData mapping the feed address and margin.
 
-[SigmaPrime](./security/sigmap/audit-report-round-2.md)
+- **`enableProofOfReserveFeedWithBridgeWrapper`**
 
-[Certora](./security/Certora)
+  - **purpose**: Adds a new reserve with a bridge wrapper and its Proof of Reserve configuration with Chainlink PoR feed and margin.
+  - **functionality**:
+    - Only the owner can call this function.
+    - It validates that this asset PoR was not previously configured, the addresses of the asset, feed and bridge wrapper are not the zero address, and the margin does not exceed the maximum margin allowed.
+    - Stores in the assetsData mapping the bridge wrapper address, feed address and margin.
 
-To add a new `PROOF_OF_RESERVE_ADMIN` role to the V2 pool new implementation of the LendingPoolConfigurator contract is deployed. Difference between current implementation and the new one is [here](./diffs/avalanche_configurator_%200xc7938af7EC68C3d5aC3a396E28661B3E366b8fcf.md).
+- **`setReserveMargin`**
+
+  - **purpose**: Sets a new margin for a reserve that is already enabled.
+  - **functionality**:
+    - Only the owner can call this function.
+    - Requires that the reserve already has a PoR feed configured and the new margin does not exceed the maximum margin allowed.
+    - Stores in the assetsData mapping the new margin while keeping the same parameters for the feed and bridge wrapper.
+
+- **`disableProofOfReserveFeed`**
+
+  - **purpose**: Removes a reserve with PoR enabled.
+  - **functionality**:
+    - Only the owner can call this function.
+    - Deletes the asset’s PoR feed, margin and bridge wrapper from storage.
+
+<br>
+
+### `ProofOfReserveExecutor`
+
+#### Access Control
+
+- The contract uses OZ ownable for access control, which will be assigned to the Aave governance. The owner's role is to enable or disable assets that will be monitored by the Executor.
+
+#### Key Functions
+
+- **`isEmergencyActionPossible`**
+
+  - **purpose**: Determines whether the emergency action can be performed, with logic specific to each pool.
+  - **functionality**:
+    - Permissionless view function that uses the configured ProofOfReserveAggregator to check the collateralization status of the enabled assets in this contract.
+    - For unbacked reserves, it checks whether the reserve is already frozen, and if is not, the emergency action can be triggered.
+    - The Executor V2 includes an additional step that verifies whether any pool V2 reserves are borrowable. If so, the emergency action can also be triggered.
+
+- **`executeEmergencyAction`**
+
+  - **purpose**: Performs the emergency action, with logic specific to each pool.
+  - **functionality**:
+    - Permissionless function that uses the configured ProofOfReserveAggregator to get the collateralization status of the enabled assets in this contract and freeze undercollateralized reserves.
+    - The Executor V2 includes an additional action that turns off borrowing of all pool V2 reserves.
+    - To Executors be able to perform the emergency action they must be granted pool specific roles:
+      - On V2: a `PROOF_OF_RESERVE_ADMIN` role must be granted to the Executor V2 via the Addresses Provider V2. Additionally, the Lending Pool Configurator must be upgraded to support the `PROOF_OF_RESERVE_ADMIN` role, enabling it to freeze reserves and disable borrowing.
+      - On V3: The `EMERGENCY_ADMIN_ROLE` must be granted to the Executor via the ACL Manager, allowing the Executor V3 to perform the freeze action.
+
+- **`enableAssets`**
+
+  - **purpose**: Adds a list of reserves to be included in the monitoring and will be eligible for the emergency action.
+  - **functionality**:
+    - Only the owner can call this function.
+    - It verifies that the reserve was not enabled before being stored in the assets array.
+
+- **`disableAssets`**
+
+  - **purpose**: Removes a reserve from the assets list that are monitored by this contract.
+  - **functionality**:
+    - Only the owner can call this function.
+    - It verifies if the reserve is enabled and deletes it from the assets array.
+
+  <br>
+
+### `AvaxBridgeWrapper`
+
+This contract is specific for the Avalanche network, as several reserves have a deprecated bridge coexisting with the actual one. This bridge wrapper contract is used to return to the ProofOfReserveAggregator the correct total supply of a reserve with deprecated bridges by summing the total supply of the actual and deprecated bridges.
+
+#### Access Control
+
+- The bridge addresses are set in the constructor during the deployment, meaning that this contract does not provide any setters that could change bridge addresses.
+
+#### Key Functions
+
+- **`totalSupply`**
+
+  - **purpose**: Returns the real total supply of a cross-chain reserve.
+  - **functionality**:
+    - Permissionless view function that sums the total supply of the actual and deprecated bridge for the reserve to which this contract was deployed.
+
+  <br>
+
+### `ProofOfReserveKeeper`
+
+This contract is Chainlink Automation compatible, which will execute the emergency action by constantly monitoring the Aave Proof of Reserve system through the Executors.
+
+#### Key Functions
+
+- **`checkUpkeep`**
+  - **purpose**: Getter checked by Chainlink Automation to determine whether an emergency action should be performed by a specific ProofOfReserveExecutor.
+  - **functionality**:
+    - Accepts as input the encoded address of a ProofOfReserveExecutor contract and calls `areAllReservesBacked()` and `isEmergencyActionPossible()` to confirm that if a reserve is undercollateralized the emergency action can be triggered.
+    - Returns true if both conditions are met. False otherwise.
+- **`performUpkeep`**
+
+  - **purpose**: Called by Chainlink Automation after the `checkUpkeep` indicates that the emergency action can be executed.
+  - **functionality**:
+    - Accepts as input the encoded address of a ProofOfReserveExecutor contract in which the emergency action will be performed and calls the `executeEmergencyAction()` function in the specific Executor.
+
+  <br>
 
 # SetUp
 
@@ -98,3 +183,10 @@ To run the tests just run:
 ```
 forge test
 ```
+
+## License
+
+Copyright © 2025, Aave DAO, represented by its governance smart contracts.
+
+The [BUSL1.1](./LICENSE) license of this repository allows for any usage of the software, if respecting the Additional Use Grant limitations, forbidding any use case damaging anyhow the Aave DAO's interests.
+Interfaces and other components required for integrations are explicitly MIT licensed.

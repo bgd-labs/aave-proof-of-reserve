@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: AGPL-3.0
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
 import {Test} from 'forge-std/Test.sol';
 import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
-import {AvaxBridgeWrapper} from '../src/contracts/AvaxBridgeWrapper.sol';
+import {AvaxBridgeWrapper} from '../../src/contracts/AvaxBridgeWrapper.sol';
 
 contract AvaxBridgeWrapperTest is Test {
   address private constant AAVEE =
