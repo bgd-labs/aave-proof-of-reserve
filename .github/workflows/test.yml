@@ -1,0 +1,16 @@
+name: Test
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    uses: bgd-labs/github-workflows/.github/workflows/foundry-lint-prettier.yml@main
+  test:
+    uses: bgd-labs/github-workflows/.github/workflows/foundry-test.yml@main
