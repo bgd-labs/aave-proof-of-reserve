@@ -9,7 +9,7 @@ contract ProofOfReserveAggregatorHarness is ProofOfReserveAggregator {
 
   constructor(address owner) ProofOfReserveAggregator(owner) {}
 
- function areAllReservesBackedCorrelation(
+  function areAllReservesBackedCorrelation(
     address[] calldata assets
   ) public returns (bool) {
     bool exist_unbacked = false;

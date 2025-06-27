@@ -5,7 +5,6 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {AggregatorInterface} from 'aave-v3-origin/contracts/dependencies/chainlink/AggregatorInterface.sol';
-
 import {IProofOfReserveAggregator} from '../interfaces/IProofOfReserveAggregator.sol';
 
 /**
@@ -151,8 +150,7 @@ contract ProofOfReserveAggregator is Ownable, IProofOfReserveAggregator {
   function _isReserveBacked(address asset) internal view returns (bool) {
     AssetPoRData memory assetData = _assetsData[asset];
     if (assetData.feed != address(0)) {
-      (, int256 answer, , , ) = AggregatorInterface(assetData.feed)
-        .latestRoundData();
+      int256 answer = AggregatorInterface(assetData.feed).latestAnswer();
 
       if (answer < 0) {
         return false;
