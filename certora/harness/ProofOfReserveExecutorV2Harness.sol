@@ -5,6 +5,8 @@ import '../munged/contracts/ProofOfReserveExecutorV2.sol';
 import {IProofOfReserveExecutor} from '../munged/interfaces/IProofOfReserveExecutor.sol';
 
 contract ProofOfReserveExecutorV2Harness is ProofOfReserveExecutorV2 {
+  using EnumerableSet for EnumerableSet.AddressSet;
+    
   constructor(
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress,
@@ -32,21 +34,35 @@ contract ProofOfReserveExecutorV2Harness is ProofOfReserveExecutorV2 {
   }
 
   function getAssetState(address asset) public view returns (bool) {
-    return _assetsState[asset];
+    return _enabledAssets.contains(asset);
   }
 
   function getAssetsLength() public view returns (uint256) {
-    return _assets.length;
+    return _enabledAssets.length();
   }
 
   function getAsset(uint256 index) public view returns (address) {
-    if (index >= _assets.length) {
+    if (index >= _enabledAssets.length()) {
       return address(0);
     }
-    return _assets[index];
+    return _enabledAssets.at(index);
   }
 
   function _disableBorrowing() internal override {
     _disableBorrowingCalled = true;
+  }
+
+
+  
+  function get_values_len() external view returns (uint256) {
+    return _enabledAssets.length();
+  }
+
+  function get_value(uint256 index) external view returns (address) {
+    return _enabledAssets.at(index);
+  }
+
+  function contains(address asset) external view returns (bool) {
+    return _enabledAssets.contains(asset);
   }
 }

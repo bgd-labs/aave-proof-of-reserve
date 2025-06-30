@@ -20,9 +20,19 @@ methods {
   function aggregator.areReservesBackedFlag() external returns (bool) envfree;
   function aggregator.initFlags(bool) external envfree;
 
-    // Dummy configurator functions:
+  // Dummy configurator functions:
   function configurator._ltv() external returns (uint256) envfree;
   function configurator.freezeWasCalled() external returns (bool) envfree;
+
+  // For internal hooks check
+  function get_values_len() external returns (uint256) envfree;
+  function get_value(uint256 index) external returns (address) envfree;
+  function contains(address asset) external returns (bool) envfree;
+}
+
+function assetsRequirements() {
+  requireInvariant enabledAssets_integrity();
+  require getAssetsLength() < max_uint160 - 1;
 }
 
 
@@ -49,23 +59,22 @@ methods {
     @Notes:
     @Link:
 */
+
 rule integrityOfDisableAssets(address asset) {
-    env e;
-    require OneToOne_arrOfTokens && (setLength == 0);
-    require Consistant_flag && setLengthFlag == 0;  
-    require assetInitLength == getAssetsLength();  
-    bool assetStateBefore = getAssetState(asset);
-    uint256 assetsLengthBefore = getAssetsLength();
-    require assetsLengthBefore < max_uint256 - 2;
-
-    disableAsset(e, asset);
-
-    bool assetStateAfter = getAssetState(asset);
-    uint256 assetsLengthAfter = getAssetsLength();
-
-    assert !assetStateAfter;
-    assert !assetStateBefore => assetsLengthBefore == assetsLengthAfter;
-    assert assetStateBefore => assetsLengthBefore == assetsLengthAfter + 1;
+  env e;
+  assetsRequirements();
+  bool assetStateBefore = getAssetState(asset);
+  uint256 assetsLengthBefore = getAssetsLength();
+  require assetsLengthBefore < max_uint256 - 2;
+  
+  disableAsset(e, asset);
+  
+  bool assetStateAfter = getAssetState(asset);
+  uint256 assetsLengthAfter = getAssetsLength();
+  
+  assert !assetStateAfter;
+  assert !assetStateBefore => assetsLengthBefore == assetsLengthAfter;
+  assert assetStateBefore => assetsLengthBefore == assetsLengthAfter + 1;
 }
 
 /*
@@ -90,23 +99,22 @@ rule integrityOfDisableAssets(address asset) {
     @Notes:
     @Link:
 */
+
 rule integrityOfEnableAssets(address asset) {
-    env e;
-    require OneToOne_arrOfTokens && (setLength == 0);
-    require Consistant_flag && setLengthFlag == 0;
-    require assetInitLength == getAssetsLength();
-    bool assetStateBefore = getAssetState(asset);
-    uint256 assetsLengthBefore = getAssetsLength();
-    require assetsLengthBefore < max_uint256 - 2;
+  env e;
+  assetsRequirements();
+  bool assetStateBefore = getAssetState(asset);
+  uint256 assetsLengthBefore = getAssetsLength();
+  require assetsLengthBefore < max_uint256 - 2;
 
-    enableAsset(e, asset);
-
-    bool assetStateAfter = getAssetState(asset);
-    uint256 assetsLengthAfter = getAssetsLength();
-
-    assert assetStateAfter;
-    assert assetStateBefore => assetsLengthBefore == assetsLengthAfter;
-    assert !assetStateBefore => assetsLengthBefore == assetsLengthAfter - 1;
+  enableAsset(e, asset);
+  
+  bool assetStateAfter = getAssetState(asset);
+  uint256 assetsLengthAfter = getAssetsLength();
+  
+  assert assetStateAfter;
+  assert assetStateBefore => assetsLengthBefore == assetsLengthAfter;
+  assert !assetStateBefore => assetsLengthBefore == assetsLengthAfter - 1;
 }
 
 /*
@@ -139,30 +147,28 @@ rule integrityOfEnableAssets(address asset) {
     @Link:
 */
 rule enableDuplicationsWithStorage(address asset) {
-    env e;
-    require e.msg.value == 0;
-    require OneToOne_arrOfTokens && (setLength == 0);
-    require Consistant_flag && setLengthFlag == 0;
-    require assetInitLength == getAssetsLength();
-    bool assetStateBefore = getAssetState(asset);
-    uint256 assetsLengthBefore = getAssetsLength();
-    require assetsLengthBefore < max_uint256 - 2;
+  env e;
+  require e.msg.value == 0;
+  assetsRequirements();
+  bool assetStateBefore = getAssetState(asset);
+  uint256 assetsLengthBefore = getAssetsLength();
+  require assetsLengthBefore < max_uint256 - 2;
+    
+  storage initialStorage = lastStorage;
 
-    storage initialStorage = lastStorage;
+  enableAsset(e, asset);
+  enableAsset(e, asset);
 
-    enableAsset(e, asset);
-    enableAsset(e, asset);
+  bool assetStateAfter2Calls = getAssetState(asset);
+  uint256 assetsLengthAfter2Calls = getAssetsLength();
 
-    bool assetStateAfter2Calls = getAssetState(asset);
-    uint256 assetsLengthAfter2Calls = getAssetsLength();
+  enableAsset(e, asset) at initialStorage;
 
-    enableAsset(e, asset) at initialStorage;
+  bool assetStateAfter1Call = getAssetState(asset);
+  uint256 assetsLengthAfter1Call = getAssetsLength();
 
-    bool assetStateAfter1Call = getAssetState(asset);
-    uint256 assetsLengthAfter1Call = getAssetsLength();
-
-    assert assetStateAfter2Calls == assetStateAfter1Call;
-    assert assetsLengthAfter2Calls == assetsLengthAfter1Call;
+  assert assetStateAfter2Calls == assetStateAfter1Call;
+  assert assetsLengthAfter2Calls == assetsLengthAfter1Call;
 }
 
 /*
@@ -195,30 +201,28 @@ rule enableDuplicationsWithStorage(address asset) {
     @Link:
 */
 rule disableDuplicationsWithStorage(address asset) {
-    env e;
-    require e.msg.value == 0;
-    require OneToOne_arrOfTokens && (setLength == 0);
-    require Consistant_flag && setLengthFlag == 0;
-    require assetInitLength == getAssetsLength();
-    bool assetStateBefore = getAssetState(asset);
-    uint256 assetsLengthBefore = getAssetsLength();
-    require assetsLengthBefore < max_uint256 - 2;
+  env e;
+  require e.msg.value == 0;
+  assetsRequirements();
+  bool assetStateBefore = getAssetState(asset);
+  uint256 assetsLengthBefore = getAssetsLength();
+  require assetsLengthBefore < max_uint256 - 2;
 
-    storage initialStorage = lastStorage;
+  storage initialStorage = lastStorage;
 
-    disableAsset(e, asset);
-    disableAsset(e, asset);
+  disableAsset(e, asset);
+  disableAsset(e, asset);
 
-    bool assetStateAfter2Calls = getAssetState(asset);
-    uint256 assetsLengthAfter2Calls = getAssetsLength();
+  bool assetStateAfter2Calls = getAssetState(asset);
+  uint256 assetsLengthAfter2Calls = getAssetsLength();
 
-    disableAsset(e, asset) at initialStorage;
+  disableAsset(e, asset) at initialStorage;
 
-    bool assetStateAfter1Call = getAssetState(asset);
-    uint256 assetsLengthAfter1Call = getAssetsLength();
+  bool assetStateAfter1Call = getAssetState(asset);
+  uint256 assetsLengthAfter1Call = getAssetsLength();
 
-    assert assetStateAfter2Calls == assetStateAfter1Call;
-    assert assetsLengthAfter2Calls == assetsLengthAfter1Call;
+  assert assetStateAfter2Calls == assetStateAfter1Call;
+  assert assetsLengthAfter2Calls == assetsLengthAfter1Call;
 }
 
 /*
@@ -252,107 +256,83 @@ rule integrityOfExecuteEmergencyAction(bool rand) {
     assert allReservesBacked => !freezeReserveWasCalled;
 }
 
-// invariant - if asset is active then it is in _assets array
 
-persistent ghost mapping(uint256 => address) indexSetArrayFlag;
-persistent ghost mapping(address => uint256) indexSetShortcutFlag;
-persistent ghost mapping(address => bool) mirrorInitFlag;
-persistent ghost uint256 setLengthFlag;
-persistent ghost bool Consistant_flag;
 
-persistent ghost mapping(uint256 => uint256) indexSetArray;
-persistent ghost mapping(uint256 => uint256) indexSetShortcut;
-persistent ghost mapping(address => uint256) reverseMapInit;
-persistent ghost uint256 setLength;
-persistent ghost bool OneToOne_arrOfTokens;
 
-persistent ghost mapping(uint256 => address) mirrorInitArray;
-persistent ghost mapping(address => uint256) reverseMap;
-persistent ghost uint256 assetInitLength;
+// *********************************************************************
+// The following ghost are mirrors of the enumerableSet: _enabledAssets
+// --------------------------------------------------------------------
+persistent ghost mapping(uint256 => bytes32) mirrorArray {
+  init_state axiom forall uint256 i. mirrorArray[i] == to_bytes32(0);
+}
+persistent ghost uint256 mirrorArrayLen {
+  init_state axiom mirrorArrayLen == 0;
+}
+persistent ghost mapping(bytes32 => uint256) mirrorMap {
+  init_state axiom forall bytes32 a. mirrorMap[a] == 0;
+}
+// **********************************************************************
 
-hook Sstore _assets[INDEX uint256 index] address newValue (address oldValue) {
+hook Sstore _enabledAssets.(offset 0).(offset 0) uint256 newLen (uint256 oldLen) {
+  mirrorArrayLen = newLen;
+}
+hook Sload uint256 len _enabledAssets.(offset 0).(offset 0) {
+  require mirrorArrayLen == len;
+}
 
-    // this is for the require that the _assets array is unique 
-    uint256 shortcutIndex = indexSetShortcut[index];
-    bool firstAccess = (shortcutIndex >= setLength) || indexSetArray[shortcutIndex] != index;
-    indexSetShortcut[index] = firstAccess ? setLength : indexSetShortcut[index];
-    indexSetArray[setLength] = index;
-    setLength = require_uint256(setLength + (firstAccess ? 1 : 0));
-    require (OneToOne_arrOfTokens && firstAccess) => (reverseMapInit[oldValue] == index);
-    //end
+hook Sstore _enabledAssets.(offset 0)[INDEX uint256 index] bytes32 newValue (bytes32 oldValue) {
+  mirrorArray[index] = newValue;
+  address newAddress = require_address(newValue);
+}
+hook Sload bytes32 value _enabledAssets.(offset 0)[INDEX uint256 index] {
+  require(mirrorArray[index] == value);
+}
 
-    require (Consistant_flag && firstAccess) => (mirrorInitFlag[oldValue]);
-    require firstAccess => mirrorInitArray[index] == oldValue;
-    reverseMap[newValue] = index;
-    }
-hook Sload address value _assets[INDEX uint256 index] {
-
-    //this is for the require that the _assets array is unique 
-    uint256 shortcutIndex = indexSetShortcut[index];
-    bool firstAccess = (shortcutIndex >= setLength) || indexSetArray[shortcutIndex] != index;
-    indexSetShortcut[index] = firstAccess?setLength:indexSetShortcut[index];
-    indexSetArray[setLength] = index;
-    setLength = require_uint256 (setLength + (firstAccess ? 1 : 0));
-    require (OneToOne_arrOfTokens && firstAccess) => (reverseMapInit[value] == index);
-    //end
-
-    require (Consistant_flag && firstAccess) => (mirrorInitFlag[value]);
-    require firstAccess => mirrorInitArray[index] == value;
+hook Sstore _enabledAssets.(offset 32)[KEY bytes32 key] uint256 newIndex (uint256 oldIndex) {
+  mirrorMap[key] = newIndex;
+}
+hook Sload uint256 index _enabledAssets .(offset 32)[KEY bytes32 key] {
+  require(mirrorMap[key] == index);
 }
 
 
-hook Sstore _assetsState[KEY address a] bool newValue (bool oldValue) {
+// *********************************************************************
+// The following 3 rules are for internal checking that our hooks are correct
+// --------------------------------------------------------------------
+rule mirrorMap_correctness() {
+  address asset;
+  assert mirrorMap[to_bytes32(asset)]!=0 <=> contains(asset);
+}
+rule mirrorArrayLen_correctness() {
+  assert mirrorArrayLen == get_values_len();
+}
+rule mirrorArray_correctness() {
+  uint256 index;
+  address real_add = require_address(mirrorArray[index]);
+  assert to_bytes32(get_value(index))==mirrorArray[index];
+}
+// *********************************************************************
 
-    //this is for the require that the validator array is unique 
-    uint256 shortcutIndex = indexSetShortcutFlag[a];
-    bool firstAccess = (shortcutIndex >= setLengthFlag) || indexSetArrayFlag[shortcutIndex] != a;
-    indexSetShortcutFlag[a] = firstAccess?setLengthFlag:indexSetShortcutFlag[a];
-    indexSetArrayFlag[setLengthFlag] = a;
-    setLengthFlag = require_uint256(setLengthFlag + (firstAccess ? 1 : 0));
-    require firstAccess => (mirrorInitFlag[a] == oldValue);
-    require (Consistant_flag && firstAccess && oldValue) => (reverseMapInit[a] < assetInitLength);
-    require (Consistant_flag && firstAccess && oldValue) => mirrorInitArray[reverseMapInit[a]] == a;
-    //end
 
-    }
-hook Sload bool value _assetsState[KEY address a] {
 
-    //this is for the require that the validator array is unique 
-    uint256 shortcutIndex = indexSetShortcutFlag[a];
-    bool firstAccess = (shortcutIndex >= setLengthFlag) || indexSetArrayFlag[shortcutIndex] != a;
-    indexSetShortcutFlag[a] = firstAccess?setLengthFlag:indexSetShortcutFlag[a];
-    indexSetArrayFlag[setLengthFlag] = a;
-    setLengthFlag = require_uint256 (setLengthFlag + (firstAccess ? 1 : 0));
-    require firstAccess => (mirrorInitFlag[a] == value);
-    require (Consistant_flag && firstAccess && value) => (reverseMapInit[a] < assetInitLength);
-    require (Consistant_flag && firstAccess && value) => mirrorInitArray[reverseMapInit[a]] == a;
-    //end
+// *********************************************************************
+// The main invariant for the enumerableSet
+// --------------------------------------------------------------------
+invariant enabledAssets_integrity()
+  (forall uint256 i. i < mirrorArrayLen => mirrorMap[mirrorArray[i]]==i+1)
+  &&
+  (forall bytes32 val. forall uint256 index. forall uint256 index_minus_1.
+   (index==mirrorMap[val] && index!=0 && index_minus_1==index-1) => (mirrorMap[val]-1 < mirrorArrayLen &&
+                                                                     mirrorArray[index_minus_1] == val)
+  )
+  &&
+  (forall uint256 i. forall uint256 j. (i < mirrorArrayLen && j < mirrorArrayLen && i!=j) => (mirrorArray[i] != mirrorArray[j]))
+  &&
+  (forall uint256 i. (i < mirrorArrayLen) => (mirrorArray[i] != to_bytes32(0)))
+{
+  preserved{
+    require getAssetsLength() < max_uint160 - 1;
+  }
 }
 
-invariant flagConsistancy(uint256 i)
-    i < getAssetsLength() => getAssetState(getAsset(i))
-    {
-        preserved{
-            require OneToOne_arrOfTokens && (setLength == 0);
-            require Consistant_flag && setLengthFlag == 0;
-        }
-    }
 
-invariant flagConsistancy2(address val)
-    getAssetState(val) => getAsset(reverseMap[val]) == val || val == 0
-    {
-        preserved{
-            require OneToOne_arrOfTokens && (setLength == 0);
-            require Consistant_flag && setLengthFlag == 0;
-            require getAssetsLength() < max_uint256 - 10;
-        }
-    }
-
-invariant uniqueArray(uint256 i, uint256 j)
-    i != j => ((getAsset(i) != getAsset(j)) || (i >= getAssetsLength() ||  j >= getAssetsLength()))
-    {
-        preserved{
-            require OneToOne_arrOfTokens && (setLength == 0);
-            require Consistant_flag && setLengthFlag == 0;
-        }
-    }
