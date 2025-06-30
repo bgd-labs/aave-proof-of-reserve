@@ -162,6 +162,18 @@ This contract is Chainlink Automation compatible, which will execute the emergen
 
   <br>
 
+# Misc system's properties
+
+- Margin is a percentage buffer applied to the Proof of Reserve feed data.
+- A reserve is considered unbacked if the data provided by the feed plus a margin is less than the reserve's total supply.
+- The margin can be zero, but it cannot exceed 10%.
+- A reserve must be enabled in the Proof of Reserve Aggregator and Executor for the Emergency action to be possible.
+- Reserves cannot be duplicated in the system.
+- A reserve can only be enabled by the owner of the contracts.
+- The Emergency action is permissionless and can be performed by anyone if the Aggregator flags at least one reserve as unbacked and unfrozen.
+
+<br>
+
 # SetUp
 
 This repo has forge and npm dependencies, so you will need to install foundry then run:
