@@ -1,6 +1,6 @@
 # Aave Proof of Reserve
 
-[banner]
+![proof-of-reserve1](https://github.com/user-attachments/assets/0c1f80d3-6a0a-41d5-8e03-859d17f23345)
 
 <br>
 
