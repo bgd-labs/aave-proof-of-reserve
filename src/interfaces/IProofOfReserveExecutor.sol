@@ -23,6 +23,11 @@ interface IProofOfReserveExecutor {
   event EmergencyActionExecuted();
 
   /**
+   * @dev Attempted to set zero address.
+   */
+  error ZeroAddress();
+
+  /**
    * @notice Returns the Aave Proof of Reserve Aggregator for which this `Proof of Reserve Executor` instance is configured.
    * @return The Proof of Reserve Aggregator address
    */

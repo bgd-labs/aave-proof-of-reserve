@@ -46,6 +46,7 @@ abstract contract ProofOfReserveExecutorBase is
   /// @inheritdoc IProofOfReserveExecutor
   function enableAssets(address[] calldata assets) external onlyOwner {
     for (uint256 i; i < assets.length; ++i) {
+      require(assets[i] != address(0), ZeroAddress());
       if (_enabledAssets.add(assets[i])) {
         emit AssetStateChanged(assets[i], true);
       }

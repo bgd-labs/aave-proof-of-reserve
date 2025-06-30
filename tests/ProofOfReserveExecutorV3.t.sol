@@ -105,6 +105,15 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
     proofOfReserveExecutorV3.enableAssets(assets);
   }
 
+  function test_enableAssetsZeroAddress() public {
+    address[] memory assets = new address[](1);
+    vm.startPrank(defaultAdmin);
+    vm.expectRevert(
+      abi.encodeWithSelector(IProofOfReserveExecutor.ZeroAddress.selector)
+    );
+    proofOfReserveExecutorV3.enableAssets(assets);
+  }
+
   function test_disableAssets(address asset1, address asset2) public {
     vm.assume(asset1 != asset2);
     address[] memory assets = new address[](2);
@@ -128,6 +137,7 @@ contract ProofOfReserveExecutorV3Test is PoRBaseTest {
       vm.assume(assets[i] != AaveV3EthereumAssets.USDT_UNDERLYING);
       vm.assume(assets[i] != AaveV3EthereumAssets.USDC_UNDERLYING);
       vm.assume(assets[i] != AaveV3EthereumAssets.WBTC_UNDERLYING);
+      vm.assume(assets[i] != address(0));
     }
   }
 }
