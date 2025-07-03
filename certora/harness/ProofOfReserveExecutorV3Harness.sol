@@ -46,7 +46,6 @@ contract ProofOfReserveExecutorV3Harness is ProofOfReserveExecutorV3 {
     return _enabledAssets.at(index);
   }
 
-
   function get_values_len() external view returns (uint256) {
     return _enabledAssets.length();
   }

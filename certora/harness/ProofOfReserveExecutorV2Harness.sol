@@ -6,7 +6,7 @@ import {IProofOfReserveExecutor} from '../munged/interfaces/IProofOfReserveExecu
 
 contract ProofOfReserveExecutorV2Harness is ProofOfReserveExecutorV2 {
   using EnumerableSet for EnumerableSet.AddressSet;
-    
+
   constructor(
     address poolAddressesProviderAddress,
     address proofOfReserveAggregatorAddress,
@@ -52,8 +52,6 @@ contract ProofOfReserveExecutorV2Harness is ProofOfReserveExecutorV2 {
     _disableBorrowingCalled = true;
   }
 
-
-  
   function get_values_len() external view returns (uint256) {
     return _enabledAssets.length();
   }
