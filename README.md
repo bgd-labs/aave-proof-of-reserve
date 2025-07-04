@@ -8,7 +8,13 @@
 
 Proof of Reserve introduces a reliable way of verifying asset collateralization on-chain.
 
-The Aave Proof of Reserve system is an extra safeguard for Pool reserves, monitoring the collateralization data published by the [Chainlink Proof of Reserve feeds](https://chain.link/proof-of-reserve) of on-chain, off-chain, and cross-chain backed assets. The system can quickly isolate an undercollateralized reserve, thereby protecting the remaining reserves in the pool.
+The Aave Proof of Reserve system is an extra safeguard for Pool reserves, monitoring the collateralization data published by the [Chainlink Proof of Reserve feeds](https://chain.link/proof-of-reserve). The system can quickly isolate an undercollateralized reserve, thereby protecting the remaining reserves in the pool.
+
+A Proof of Reserve feed can report three types of reserves based on where assets are held:
+
+- **Off-chain** reserves can be characterized as reserves stored in the real world, for example, US dollars in a bank backing issued stablecoins.
+- **Cross-chain** reserves refer to assets in blockchain A that serve as backing for assets in another blockchain, B. For example, Bitcoin is stored in a BTC wallet, which issues BTC on Ethereum, or Aave tokens locked in a bridge, backing Aave on an L2 chain.
+- **On-chain** reserves are specifically for LSTs/LRTs that have their backing assets locked in a different layer of the chain. For example, LSTs on Ethereum are systems that lock ETH in the Beacon Chain to earn staking fees by securing the blockchain.
 
 <br>
 
@@ -174,23 +180,25 @@ This contract is Chainlink Automation compatible, which will execute the emergen
 
 <br>
 
-# Rationale on the margin parameter
+# Rationale for the margin parameter
 
-Firstly, we should step back and understand the differences between Proof of Reserve feeds. We have three types of PoR feeds: off-chain reserves PoR feed, cross-chain reserves PoR feed, and on-chain reserves PoR feed.
+The previous system could cover both **off-chain** and **cross-chain** reserves perfectly. This is because the flow of those assets involves depositing the collateral before minting new tokens and burning tokens before redeeming collateral.
 
-- **Off-chain** reserves can be characterized as reserves stored in the real world, for example, US dollars in a bank backing issued stablecoins.
-- **Cross-chain** reserves refer to assets in blockchain A that serve as backing for assets in another blockchain, B. For example, Bitcoin is stored in a BTC wallet, which issues BTC on Ethereum, or Aave tokens locked in a bridge, backing Aave on an L2 chain.
-- The **on-chain** reserves are specifically for LSTs/LRTs that have their backing assets locked in a different layer of the chain. For example, LSTs on Ethereum are systems that lock ETH in the Beacon Chain to earn staking fees by securing the blockchain.
+However, for on-chain reserves, specifically LSTs, such as stETH and eETH, which have a rebase mechanism, the total supply can increase or decrease before the PoR feed can update the data, causing deviations from the Proof of Reserve feed. Although most deviations are harmless and self-correcting, without a margin, they can cause the system to malfunction, as any deviation above the source data from Chainlink would trigger an emergency action that freezes the asset.
 
-The previous system could cover both **off-chain** and **cross-chain** assets perfectly, as the source of those assets is updated first, and after the assets are issued. For example, the BTC amount is first moved to a specific BTC custody address, and after minting, meaning that it has more reserves than issued assets. To redeem the BTC, the BTC is first burned and then transferred from the BTC custody address to the user's BTC address.
+## How the stETH Proof of Reserve feed works
 
-However, for on-chain assets, specifically the different types of LSTs, we could identify deviations (up and down) of the total supply and total reserves by comparing the historical data of the asset and its PoR feed. While a total supply deviation below the total reserves is acceptable for the previous system, any deviation above the source data from Chainlink would trigger an emergency action that freezes the asset.
+Under the hood, the Chainlink proof of reserves DON every few minutes fetches the balance of all validators in the Consensus Layer, as well as the ETH in the Execution Layer (ETH in the Lido contract plus MEV rewards minus withdrawals), and calculates the total ETH that is covering stETH. Once a day, the Lido Oracle updates the stETH by checking the state of the execution and consensus layer, rebasing the stETH total supply, repaying node validations, and finalizing withdrawal requests.
 
-Checking how the stETH PoR works under the hood, the Chainlink proof of reserves DON every few minutes fetches the balance of all validators in the Consensus Layer, as well as the ETH in the Execution Layer (ETH in the Lido contract plus MEV rewards minus withdrawals), and calculates the total ETH that is covering stETH. At noon UTC, the Lido Oracle updates the stETH by checking the state of the execution and consensus layer, rebasing the stETH total supply, repaying node validations, and finalizing withdrawal requests. The two scenarios in which these deviations occur are when there is an update in the Lido Oracle and when the buffered ether is moved from stETH. For eETH, updates and rebases occur more frequently, every 6 hours, resulting in a higher number of deviations being observed.
+## Deviations
 
-Given the nature of these assets and the high on-chain activity, it's necessary to add a buffer on top of the source data of Chainlink feeds to correctly monitor the asset's collateralization and avoid unnecessary emergency actions.
+The two scenarios in which these deviations occur are when there is an update in the Lido Oracle and when the buffered ether is moved from stETH. For eETH, updates and rebases occur more frequently, every 6 hours, resulting in a higher number of deviations being observed.
 
-In the tables below we select a few blocks that we could observe deviations that would trigger an emergency action.
+Because these deviations are predictable and temporary, we need a buffer on top of the source data of Chainlink feeds to prevent unnecessary emergency freezes while still guaranteeing full collateralization.
+
+## Historical data
+
+In the tables below, we select a few blocks where we could observe deviations that would trigger a _false-positive_ emergency action.
 
 **stETH**
 | Block | Total Supply | Answer | Diff | Percentage |
