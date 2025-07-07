@@ -8,7 +8,13 @@
 
 Proof of Reserve introduces a reliable way of verifying asset collateralization on-chain.
 
-The Aave Proof of Reserve system is an extra safeguard for Pool reserves, monitoring the collateralization data published by the [Chainlink Proof of Reserve feeds](https://chain.link/proof-of-reserve) of on-chain, off-chain, and cross-chain backed assets. The system can quickly isolate an undercollateralized reserve, thereby protecting the remaining reserves in the pool.
+The Aave Proof of Reserve system is an extra safeguard for Pool reserves, monitoring the collateralization data published by the [Chainlink Proof of Reserve feeds](https://chain.link/proof-of-reserve). The system can quickly isolate an undercollateralized reserve, thereby protecting the remaining reserves in the pool.
+
+A Proof of Reserve feed can report three types of reserves based on where assets are held:
+
+- **Off-chain** reserves can be characterized as reserves stored in the real world, for example, US dollars in a bank backing issued stablecoins.
+- **Cross-chain** reserves refer to assets in blockchain A that serve as backing for assets in another blockchain, B. For example, Bitcoin is stored in a BTC wallet, which issues BTC on Ethereum, or Aave tokens locked in a bridge, backing Aave on an L2 chain.
+- **On-chain** reserves are specifically for LSTs/LRTs that have their backing assets locked in a different layer of the chain. For example, LSTs on Ethereum are systems that lock ETH in the Beacon Chain to earn staking fees by securing the blockchain.
 
 <br>
 
@@ -169,8 +175,58 @@ This contract is Chainlink Automation compatible, which will execute the emergen
 - The margin can be zero, but it cannot exceed 10%.
 - A reserve must be enabled in the Proof of Reserve Aggregator and Executor for the Emergency action to be possible.
 - Reserves cannot be duplicated in the system.
-- A reserve can only be enabled by the owner of the contracts.
+- A reserve can only be enabled or disabled by the owner of the contracts.
 - The Emergency action is permissionless and can be performed by anyone if the Aggregator flags at least one reserve as unbacked and unfrozen.
+
+<br>
+
+# Rationale for the margin parameter
+
+The previous system could cover both **off-chain** and **cross-chain** reserves perfectly. This is because the flow of those assets involves depositing the collateral before minting new tokens and burning tokens before redeeming collateral.
+
+However, for on-chain reserves, specifically LSTs, such as stETH and eETH, which have a rebase mechanism, the total supply can increase or decrease before the PoR feed can update the data, causing deviations from the Proof of Reserve feed. Although most deviations are harmless and self-correcting, without a margin, they can cause the system to malfunction, as any deviation above the source data from Chainlink would trigger an emergency action that freezes the asset.
+
+## How the stETH Proof of Reserve feed works
+
+Under the hood, the Chainlink proof of reserves DON every few minutes fetches the balance of all validators in the Consensus Layer, as well as the ETH in the Execution Layer (ETH in the Lido contract plus MEV rewards minus withdrawals), and calculates the total ETH that is covering stETH. Once a day, the Lido Oracle updates the stETH by checking the state of the execution and consensus layer, rebasing the stETH total supply, repaying node validations, and finalizing withdrawal requests.
+
+## Deviations
+
+The two scenarios in which these deviations occur are when there is an update in the Lido Oracle and when the buffered ether is moved from stETH. For eETH, updates and rebases occur more frequently, every 6 hours, resulting in a higher number of deviations being observed.
+
+Because these deviations are predictable and temporary, we need a buffer on top of the source data of Chainlink feeds to prevent unnecessary emergency freezes while still guaranteeing full collateralization.
+
+## Historical data
+
+In the tables below, we select a few blocks where we could observe deviations that would trigger a _false-positive_ emergency action.
+
+**stETH**
+| Block | Total Supply | Answer | Diff | Percentage |
+| -------- | --------------- | --------------- | ---- | ---------- |
+| 21989322 | 9372836.221084611513531133 | 9355872.392482988041820015 | 16963.828601623471711118 | 0.19% |
+| 21992972 | 9379395.808086873131296832 | 9366167.275511780125648846 | 13228.532575093005647986 | 0.15% |
+| 22051372 | 9346858.065625596068944123 | 9328689.639867760285459899 | 18168.425757835783484224 | 0.20% |
+| 22055022 | 9322715.405406724376961322 | 9319621.746162086495884561 | 3093.659244637881076761 | 0.04% |
+| 22058672 | 9328019.851897005516368775 | 9317059.961124252078020328 | 10959.890772753438348447 | 0.12% |
+| 22248472 | 9370475.043364368272739260 | 9358349.863263813774480441 | 12125.180100554498258819 | 0.13% |
+| 22252122 | 9375371.554306323483719697 | 9338880.298440962468700220 | 36491.255865361015019477 | 0.39% |
+| 22255772 | 9325136.019890660609267699 | 9321065.117055607329825459 | 4070.902835053279442240 | 0.05% |
+| 22259422 | 9326772.041337038123532051 | 9308666.511698527743535570 | 18105.529638510379996481 | 0.20% |
+| 22263072 | 9307668.895483963341408940 | 9306697.697558236911724571 | 971.197925726429684369 | 0.02% |
+
+**eETH**
+| Block | Total Supply | Answer | Diff | Percentage |
+| -------- | --------------- | --------------- | ---- | ---------- |
+| 22051372 | 2243275.651611325744441112 | 2237439.880209789090302493 | 5835.771401536654138619 | 0.27% |
+| 22055022 | 2268443.325132437083240863 | 2254602.469165715999451643 | 13840.855966721083789220 | 0.62% |
+| 22058672 | 2286170.664888526331096600 | 2254602.469165715999451643 | 31568.195722810331644957 | 1.39% |
+| 22062322 | 2305853.963233937755163197 | 2300395.701357155878485588 | 5458.261876781876677609 | 0.24% |
+| 22489372 | 2518516.239520553483271283 | 2485696.415032386394114434 | 32819.824488167089156849 | 1.31% |
+| 22493022 | 2528960.193940448419478780 | 2514805.228380033325695116 | 14154.965560415093783664 | 0.56% |
+| 22580622 | 2614292.255111350703825018 | 2584092.014428180050615155 | 30200.240683170653209863 | 1.16% |
+| 22584272 | 2620316.081847071366131083 | 2611004.155043179630121952 | 9311.926803891736009131 | 0.36% |
+| 22587922 | 2650405.573796151187766880 | 2611004.155043179630121952 | 39401.418752971557644928 | 1.49% |
+| 22591572 | 2681453.664575353073790808 | 2650896.595413163203203500 | 30557.069162189870587308 | 1.14% |
 
 <br>
 
