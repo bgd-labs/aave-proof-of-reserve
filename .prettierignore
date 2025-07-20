@@ -2,3 +2,7 @@ out
 lib
 cache
 node_modules
+reports/csv/eETH.csv
+reports/csv/stETH.csv
+reports/eETH_por_mainnet.md
+reports/stETH_por_mainnet.md
