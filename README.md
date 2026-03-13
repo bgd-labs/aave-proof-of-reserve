@@ -13,7 +13,7 @@ The Aave Proof of Reserve system is an extra safeguard for Pool reserves, monito
 A Proof of Reserve feed can report two types of reserves based on where assets are held:
 
 - **Off-chain** reserves can be characterized as reserves stored in the real world, for example, US dollars in a bank backing issued stablecoins.
-- **Cross-chain** reserves refer to assets in blockchain A that serve as backing for assets in another blockchain, B. For example, Bitcoin is stored in a BTC wallet, which issues BTC on Ethereum, or Aave tokens locked in a bridge, backing Aave on an L2 chain.
+- **Cross-chain** reserves refer to assets in blockchain "A" that serve as backing for assets in another blockchain, "B". For example, Bitcoin is stored in a BTC wallet, which issues BTC on Ethereum, or Aave tokens locked in a bridge, backing Aave on an L2 chain.
 
 <br>
 
@@ -21,14 +21,14 @@ A Proof of Reserve feed can report two types of reserves based on where assets a
 
 The Aave Proof of Reserve comprises two main components:
 
-- `ProofOfReserveAggregator`: This contract provides the data of reserves and their Chainlink Proof of Reserve data feed. It flags whether the reserves are collateralized by checking against the data provided by the Chainlink feed.
-- `ProofOfReserveExecutor`: Its role is to monitor and freeze the reserve (or reserves) that the ProofOfReserveAggregator flagged as undercollateralized.
+- `ProofOfReserveAggregator`: This contract keeps a registry of assets and their related Chainlink Proof of Reserve data feeds. It verifies whether each asset is fully backed by comparing its total supply to the reserves reported by the respective Chainlink feed, and flags any assets that are not.
+- `ProofOfReserveExecutor`: This contract executes emergency actions for reserves flagged as unbacked by the ProofOfReserveAggregator, freezing those reserves and, in the V2 version, also disabling borrowing for all pool assets.
 
 <br>
 
 Other components of the Proof of Reserve system:
 
-- `AvaxBridgeWrapper`: A contract-specific for the Avalanche network, it wraps the sum of the total supply of deprecated bridges with the active ones, providing the correct total supply of cross-chain assets.
+- `AvaxBridgeWrapper`: An Avalanche-specific contract that aggregates the total supply of a bridged asset across its current and deprecated bridge contracts, providing a unified totalSupply for use by the ProofOfReserveAggregator.
 - `ProofOfReserveKeeper`: Chainlink automation that monitors the reserves and can perform emergency actions through the ProofOfReserveExecutor.
 
 <br>
