@@ -145,7 +145,7 @@ contract ProofOfReserveExecutorV2Test is Test {
     proofOfReserveExecutorV2.disableAssets(assets);
   }
 
-  function testAreAllReservesBackedEmptyArray() public {
+  function testAreAllReservesBackedEmptyArray() public view {
     bool areAllReservesBacked = proofOfReserveExecutorV2.areAllReservesBacked();
 
     assertEq(areAllReservesBacked, true);

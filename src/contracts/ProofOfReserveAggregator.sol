@@ -111,6 +111,8 @@ contract ProofOfReserveAggregator is IProofOfReserveAggregator, Ownable {
 
           if (
             answer < 0 ||
+            // casting to 'uint256' is safe because short-circuit evaluation skips this branch when answer is negative
+            // forge-lint: disable-next-line(unsafe-typecast)
             IERC20(totalSupplyAddress).totalSupply() > uint256(answer)
           ) {
             unbackedAssetsFlags[i] = true;
