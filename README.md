@@ -93,7 +93,7 @@ The contract uses OZ ownable for access control, which will be assigned to the A
   - **purpose**: Determines whether the emergency action can be performed, with logic specific to each pool.
   - **functionality**:
     - Permissionless view function that uses the configured ProofOfReserveAggregator to check the collateralization status of the enabled assets in this contract.
-    - For unbacked reserves, it checks whether the reserve is already frozen, and if is not, the emergency action can be triggered.
+    - For unbacked reserves, it checks whether the reserve is already frozen, and if it is not, the emergency action can be triggered.
     - The Executor V2 includes an additional step that verifies whether any pool V2 reserves are borrowable. If so, the emergency action can also be triggered.
 
 - **`executeEmergencyAction`**
@@ -102,7 +102,7 @@ The contract uses OZ ownable for access control, which will be assigned to the A
   - **functionality**:
     - Permissionless function that uses the configured ProofOfReserveAggregator to get the collateralization status of the enabled assets in this contract and freeze undercollateralized reserves.
     - The Executor V2 includes an additional action that turns off borrowing of all pool V2 reserves.
-    - To Executors be able to perform the emergency action they must be granted pool specific roles:
+    - For Executors to be able to perform the emergency action they must be granted pool specific roles:
       - On V2: a `PROOF_OF_RESERVE_ADMIN` role must be granted to the Executor V2 via the Addresses Provider V2. Additionally, the Lending Pool Configurator must be upgraded to support the `PROOF_OF_RESERVE_ADMIN` role, enabling it to freeze reserves and disable borrowing.
       - On V3: The `EMERGENCY_ADMIN_ROLE` must be granted to the Executor via the ACL Manager, allowing the Executor V3 to perform the freeze action.
 
