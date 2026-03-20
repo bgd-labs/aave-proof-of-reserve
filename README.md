@@ -169,6 +169,25 @@ This contract is Chainlink Automation compatible, which will execute the emergen
 
 <br>
 
+# Security
+
+## Audits
+
+- [SigmaPrime](./security/sigmap/audit-report-round-2.md)
+- [Certora](./security/Certora)
+
+## Assets covered
+
+Currently, the Proof of Reserves is active on the Avalanche Network, covering the following assets:
+
+| Asset Symbol                                                                      | PoR Feed                                                                              | Bridge Wrapper                                                                            |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [AAVE.e](https://snowscan.xyz/address/0x63a72806098Bd3D9520cC43356dD78afe5D386D9) | [AAVE.e PoR](https://snowscan.xyz/address/0x14C4c668E34c09E1FBA823aD5DB47F60aeBDD4F7) | [AAVE.e Wrapper](https://snowscan.xyz/address/0xADE6CBA6c45aa8E9d0337cAc3D2619eabc39D901) |
+| [WETH.e](https://snowscan.xyz/address/0x49D5c2BdFfac6CE2BFdB6640F4F80f226bc10bAB) | [WETH.e PoR](https://snowscan.xyz/address/0xDDaf9290D057BfA12d7576e6dADC109421F31948) | [WETH.e Wrapper](https://snowscan.xyz/address/0x8B6851156023f4f5A66F68BEA80851c3D905Ac93) |
+| [DAI.e](https://snowscan.xyz/address/0xd586E7F844cEa2F87f50152665BCbc2C279D8d70)  | [DAI.e PoR](https://snowscan.xyz/address/0x976D7fAc81A49FA71EF20694a3C56B9eFB93c30B)  | [DAI.e Wrapper](https://snowscan.xyz/address/0x004F81e8880A40cf605C72e785a3F98eF16EcbF3)  |
+| [LINK.e](https://snowscan.xyz/address/0x5947BB275c521040051D82396192181b413227A3) | [LINK.e PoR](https://snowscan.xyz/address/0x943cEF1B112Ca9FD7EDaDC9A46477d3812a382b6) | [LINK.e Wrapper](https://snowscan.xyz/address/0x42c5A9CCd4626251f3E64a08a9968023A34e84dE) |
+| [WBTC.e](https://snowscan.xyz/address/0x50b7545627a5162F82A992c33b87aDc75187B218) | [WBTC.e PoR](https://snowscan.xyz/address/0xebEfEAA58636DF9B20a4fAd78Fad8759e6A20e87) | [WBTC.e Wrapper](https://snowscan.xyz/address/0xac3AF0f4A52C577Cc2C241dF51a01FDe3D06D93B) |
+
 # Development
 
 ```bash
