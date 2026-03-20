@@ -250,7 +250,7 @@ contract ProofOfReserveAggregatorTest is Test {
     proofOfReserveAggregator.disableProofOfReserveFeed(ASSET_1);
   }
 
-  function testAreAllReservesBackedEmptyArray() public {
+  function testAreAllReservesBackedEmptyArray() public view {
     address[] memory assets = new address[](0);
     (
       bool areReservesBacked,
