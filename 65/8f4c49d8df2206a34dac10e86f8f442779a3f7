@@ -1,0 +1,43 @@
+src/interfaces/IProofOfReserveExecutorV4.sol
+  s_9489d2339cd77b::t_ae9d9fdfdefb46 1-37
+foundry.toml
+  h_739c25e72c37fb 12
+  s_9489d2339cd77b::t_aae135fd844ad8 9-11
+  h_739c25e72c37fb 23
+tests/ProofOfReserveExecutorV4.t.sol
+  s_9489d2339cd77b::t_1c70f20d8719ea 1-45,51-62,67-71,75-77,82-91,95-129,134-340,345-347
+  s_9489d2339cd77b::t_99a357082b5119 46-50,63-66,72-74,78-81,92-94,130-133,341-344
+src/contracts/ProofOfReserveExecutorV4.sol
+  s_9489d2339cd77b::t_0cd0f39b63f710 1-12,14-15,17-245
+  h_739c25e72c37fb 13,16
+remappings.txt
+  s_9489d2339cd77b::t_b61577725bb7b6 6
+  s_9489d2339cd77b::t_4c622319f92052 5
+.gitmodules
+  h_739c25e72c37fb 10
+foundry.lock
+  h_739c25e72c37fb 1-17
+lib/aave-helpers
+  h_739c25e72c37fb 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "658f4c49d8df2206a34dac10e86f8f442779a3f7",
+  "prompts": {},
+  "humans": {
+    "h_739c25e72c37fb": {
+      "author": "DhairyaSethi <55102840+DhairyaSethi@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_9489d2339cd77b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a8c5ef42-fac3-42aa-8851-4863ee6614b3",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "DhairyaSethi <55102840+DhairyaSethi@users.noreply.github.com>"
+    }
+  }
+}
