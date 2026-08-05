@@ -1,0 +1,17 @@
+{
+  "lib/aave-helpers": {
+    "tag": {
+      "name": "v4.1.1",
+      "rev": "e535b9f42d1f36a6429203fa92aa0da27767b16a"
+    }
+  },
+  "lib/forge-std": {
+    "rev": "f46d8301cf732f4f83846565aa475628265e51e0"
+  },
+  "lib/protocol-v2": {
+    "branch": {
+      "name": "proof-of-reserve",
+      "rev": "c74bceb2ffeafebf84d7c93f0a28a431a45a7a5b"
+    }
+  }
+}

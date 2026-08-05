@@ -7,4 +7,4 @@
 	branch = proof-of-reserve
 [submodule "lib/aave-helpers"]
 	path = lib/aave-helpers
-	url = https://github.com/bgd-labs/aave-helpers
+	url = https://github.com/aave-dao/aave-helpers
